@@ -1,0 +1,12 @@
+.env
+.env.local
+.env.*.local
+backend/.env
+dist/
+build/
+node_modules/
+backend/node_modules/
+bun.lockb
+.DS_Store
+*.pem
+.vercel
