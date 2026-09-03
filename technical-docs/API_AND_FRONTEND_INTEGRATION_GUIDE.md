@@ -15,15 +15,16 @@ All protected endpoints require an `Authorization: Bearer <jwt_token>` header. A
 
 ```mermaid
 sequenceDiagram
-    participant User as Frontend / Robinhood Wallet
+    autonumber
+    actor User as Frontend / Robinhood Wallet
     participant API as Monkii Labs Backend
 
-    User->>API: POST /api/auth/nonce { walletAddress: "0x..." }
-    API-->>User: { nonce, message }
-    User->>User: Signs message with wallet (personal_sign)
-    User->>API: POST /api/auth/verify { walletAddress, signature }
-    API-->>User: { token, user: { id, walletAddress } }
-    User->>User: Stores token in localStorage / auth store
+    User->>API: POST /api/auth/nonce (walletAddress)
+    API-->>User: Return nonce and sign-in message
+    User->>User: Signs message via personal_sign
+    User->>API: POST /api/auth/verify (walletAddress, signature)
+    API-->>User: Return JWT session token and user profile
+    User->>User: Store token for Bearer authorization
 ```
 
 ### 1.1 Request Nonce
@@ -92,11 +93,11 @@ Agent nurturing runs a client-side Web Worker calculating nonces so that `keccak
 
 ```mermaid
 flowchart TD
-    A["Frontend: POST /api/sessions/start"] --> B["Backend issues { sessionId, challenge: { seed, difficulty } }"]
-    B --> C["Web Worker: iterates nonce until leading zero bits >= difficulty"]
-    C --> D["Frontend: POST /api/sessions/heartbeat { sessionId, seed, nonce }"]
-    D --> E["Backend verifies PoW, awards $MONKI, restores agent vitality"]
-    E --> F["Backend returns { ok, powerDelta, monkiEarned, nextChallenge }"]
+    A["1. Frontend: POST /api/sessions/start"] --> B["2. Backend issues session and challenge"]
+    B --> C["3. Web Worker: grinds nonce for target difficulty"]
+    C --> D["4. Frontend: POST /api/sessions/heartbeat"]
+    D --> E["5. Backend verifies PoW, awards $MONKI and restores vitality"]
+    E --> F["6. Backend returns nextChallenge"]
     F --> C
 ```
 
