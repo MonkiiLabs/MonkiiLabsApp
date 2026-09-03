@@ -217,19 +217,19 @@ export type MilestoneKey = "first_heartbeat" | "thriving_streak_7d" | "top_nurtu
 
 export const MILESTONES: Record<MilestoneKey, { name: string; description: string; companionId: string }> = {
   first_heartbeat: {
-    name: "Initiation Spark",
+    name: "Cyber-Chimp Drone",
     description: "Granted upon completing your first Proof-of-Life heartbeat.",
-    companionId: "spark-orb",
+    companionId: "cyber-chimp-drone",
   },
   thriving_streak_7d: {
-    name: "Solar Resilience",
+    name: "Plasma Lemur",
     description: "Granted for nurturing and keeping agents alive.",
-    companionId: "solar-sprite",
+    companionId: "plasma-lemur",
   },
   top_nurturer_10k: {
-    name: "Quantum Ascension",
+    name: "Celestial King Monkii",
     description: "Granted to elite nurturers with over 10,000 $MONKI mined.",
-    companionId: "quantum-phoenix",
+    companionId: "celestial-king-monkii",
   },
 };
 

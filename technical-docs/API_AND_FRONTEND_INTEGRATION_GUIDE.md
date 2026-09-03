@@ -352,9 +352,19 @@ self.onmessage = (event: MessageEvent<{ seed: string; difficulty: number }>) => 
 
 ## 6. Companion Collectibles (3 Equipment Slots)
 
-### 6.1 Catalog
+Companions provide passive buffs: **Earn Boost** (+6% to +30%) and **Power Decay Reduction** (up to 40%). Up to 3 companions can be equipped simultaneously per agent. Equipping is tracked off-chain in PostgreSQL for instant, gasless operation.
+
+### 6.1 Roster & Catalog
 * **Endpoint:** `GET /api/companions/catalog`
-* **Response (200):** Lists all 6 archetypes: `spark-orb`, `circuit-beetle`, `solar-sprite`, `byte-fox`, `void-golem`, `quantum-phoenix`.
+* **Response (200):** Lists all active Monkii Labs cyber-primate companions:
+  1. `cyber-chimp-drone`: +6% Earn Boost, 0% Decay Reduction (Common)
+  2. `nano-baboon-core`: +8% Earn Boost, 0% Decay Reduction (Common)
+  3. `plasma-lemur`: +12% Earn Boost, 10% Decay Reduction (Uncommon)
+  4. `mecha-mandrill`: +15% Earn Boost, 15% Decay Reduction (Uncommon)
+  5. `quantum-ape-sentinel`: +20% Earn Boost, 25% Decay Reduction (Rare)
+  6. `celestial-king-monkii`: +30% Earn Boost, 40% Decay Reduction (Epic)
+
+Assets are served directly from `/companions/<slug>.jpg`.
 
 ### 6.2 User Inventory
 * **Endpoint:** `GET /api/companions/inventory`
@@ -383,7 +393,7 @@ self.onmessage = (event: MessageEvent<{ seed: string; difficulty: number }>) => 
 * **Body:**
   ```json
   {
-    "milestoneKey": "first_heartbeat" // "first_heartbeat" | "thriving_streak_7d" | "top_nurturer_10k"
+    "milestoneKey": "first_heartbeat" // "first_heartbeat" (Cyber-Chimp) | "thriving_streak_7d" (Plasma Lemur) | "top_nurturer_10k" (Celestial King)
   }
   ```
 
