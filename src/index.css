@@ -1,54 +1,272 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 41 62% 87%;
-    --foreground: 0 0% 9%;
+    /* MONKII LABS palette — sky blue, coral, cream */
+    --background: 0 0% 98%;
+    --foreground: 220 13% 18%;
+    
+    /* Cards - Cream/White tones */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 220 13% 18%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 201 79% 57%;
+    --popover-foreground: 220 13% 18%;
+    
+    /* Primary - Coral Red (from the monkii mark) */
+    --primary: 6 78% 57%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 41 62% 87%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 41 30% 90%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 5 78% 56%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 80%;
-    --input: 0 0% 80%;
-    --ring: 201 79% 57%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 133 100% 39%;
-    --primary-foreground: 0 0% 5%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 78 100% 55%;
-    --accent-foreground: 0 0% 5%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 133 100% 39%;
+    
+    /* Secondary - Sky Blue (from banner sky) */
+    --secondary: 199 89% 65%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 199 89% 95%;
+    --accent-foreground: 199 89% 40%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 6 78% 57%;
+    
+    --radius: 1rem;
+    
+    /* Playful brand colors */
+    --sky-blue: 199 89% 65%;
+    --sky-blue-light: 199 89% 85%;
+    --sky-blue-dark: 199 89% 45%;
+    
+    --coral: 6 78% 57%;
+    --coral-light: 6 78% 75%;
+    --coral-dark: 6 78% 45%;
+    
+    --cream: 40 33% 97%;
+    --cream-dark: 40 20% 93%;
+    
+    --cloud-white: 0 0% 100%;
+    
+    /* Brand text & surface colors */
+    --claw-coral: 6 78% 57%;
+    --claw-coral-dark: 6 78% 45%;
+    --claw-sky: 199 89% 65%;
+    --claw-sky-dark: 199 89% 50%;
+    --claw-charcoal: 220 13% 18%;
+    --claw-gray-900: 220 13% 25%;
+    --claw-gray-600: 215 16% 47%;
+    --claw-gray-400: 215 14% 65%;
+    
+    /* Worker Type Colors */
+    --ai-purple: 263 70% 55%;
+    --ai-purple-bg: 263 70% 95%;
+    --human-green: 160 84% 39%;
+    --human-green-bg: 160 60% 92%;
+    
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+    --purple: 263 70% 55%;
+    --reward-green: 160 84% 39%;
+    --notification-red: 6 78% 57%;
+    --error-red: 0 84% 60%;
+    
+    /* Dashboard Design System - Light & Playful */
+    --dashboard-bg: 199 40% 97%;
+    --dashboard-card: 0 0% 100%;
+    --dashboard-card-foreground: 220 13% 18%;
+    --dashboard-border: 199 30% 88%;
+    --dashboard-hover: 199 50% 95%;
+    
+    /* Hero gradient - Sky blue to cream */
+    --hero-from: 199 89% 70%;
+    --hero-via: 199 89% 60%;
+    --hero-to: 40 33% 97%;
+    
+    --surface-dark: 199 89% 98%;
+    --surface-darker: 199 40% 95%;
+    
+    --glass-bg: 0 0% 100%;
+    --glass-border: 199 89% 80%;
   }
 }
 
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+  
+  /* Playful scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--cream));
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--sky-blue-light));
+    border-radius: 10px;
+    border: 2px solid hsl(var(--cream));
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--sky-blue));
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: linear-gradient(180deg, 
+      hsl(var(--glass-bg) / 0.9) 0%, 
+      hsl(var(--glass-bg) / 0.7) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid hsl(var(--glass-border) / 0.4);
+    box-shadow: 0 8px 32px hsl(var(--sky-blue) / 0.15);
+  }
+  
+  .hero-gradient {
+    background: linear-gradient(180deg, 
+      hsl(var(--sky-blue)) 0%, 
+      hsl(var(--sky-blue-light)) 50%, 
+      hsl(var(--cream)) 100%
+    );
+  }
+  
+  .cta-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--coral)) 0%, 
+      hsl(var(--coral-light)) 100%
+    );
+  }
+  
+  .sky-gradient {
+    background: linear-gradient(180deg,
+      hsl(199 89% 70%) 0%,
+      hsl(199 89% 80%) 100%
+    );
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--coral)) 0%, 
+      hsl(var(--sky-blue-dark)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .cloud-shape {
+    background: hsl(var(--cloud-white));
+    border-radius: 50%;
+    box-shadow: 
+      30px -20px 0 0 hsl(var(--cloud-white)),
+      60px -10px 0 5px hsl(var(--cloud-white)),
+      90px -20px 0 -5px hsl(var(--cloud-white)),
+      120px 0 0 0 hsl(var(--cloud-white));
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-float-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+  
+  .animate-bounce-gentle {
+    animation: bounce-gentle 3s ease-in-out infinite;
+  }
+  
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  @keyframes bounce-gentle {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes wiggle {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-5deg);
+    }
+    75% {
+      transform: rotate(5deg);
+    }
+  }
+  
+  @keyframes cloud-drift {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100vw);
+    }
+  }
+  
+  .animate-cloud-drift {
+    animation: cloud-drift 60s linear infinite;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Playful card hover effect */
+  .card-playful {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-playful:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px hsl(var(--sky-blue) / 0.2);
+  }
+  
+  /* Button bounce on click */
+  .btn-bounce:active {
+    transform: scale(0.95);
+  }
 }
