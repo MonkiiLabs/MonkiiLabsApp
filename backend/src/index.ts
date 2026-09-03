@@ -1,21 +1,40 @@
 import "dotenv/config";
 import { app } from "./app";
+import { env } from "./lib/env";
 import { migrate } from "./db/migrate";
+import { startPowerEval } from "./services/power-eval";
+import { startTelegramPolling } from "./lib/telegram";
 
-const PORT = process.env.PORT || 4000;
-
-async function start() {
-  try {
-    console.log("[Monkii Labs] Running database migrations...");
-    await migrate();
-  } catch (err) {
-    console.error("[Monkii Labs] Migration error:", err);
+async function main() {
+  if (env.databaseUrl) {
+    try {
+      console.log("[startup] Running database migrations...");
+      await migrate();
+    } catch (err) {
+      console.error("[startup] Migration error:", err);
+    }
+  } else {
+    console.warn("[startup] DATABASE_URL not set — skipping migrations.");
   }
 
-  app.listen(PORT, () => {
-    console.log(`[Monkii Labs API] Server running on port ${PORT}`);
-    console.log(`[Monkii Labs API] Network: Robinhood Chain (Arbitrum Orbit L2)`);
+  app.listen(env.port, () => {
+    console.log(`[startup] Monkii Labs API listening on :${env.port} (${env.nodeEnv}) — Robinhood Chain L2`);
   });
+
+  if (env.databaseUrl) {
+    // Start periodic power decay & vitality evaluator
+    startPowerEval();
+
+    // Start Telegram polling if not configured in webhook mode
+    if (env.telegramWebhookUrl) {
+      console.log(`[telegram] Webhook mode configured for ${env.telegramWebhookUrl}`);
+    } else if (env.telegramBotToken) {
+      startTelegramPolling();
+    }
+  }
 }
 
-start();
+main().catch((err) => {
+  console.error("[startup] Fatal error:", err);
+  process.exit(1);
+});
