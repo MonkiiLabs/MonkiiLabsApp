@@ -106,6 +106,69 @@ companionsRouter.post(
   }),
 );
 
+const COMPANION_TYPE_MAP: Record<string, bigint> = {
+  "cyber-chimp-drone": 1n,
+  "nano-baboon-core": 2n,
+  "plasma-lemur": 3n,
+  "mecha-mandrill": 4n,
+  "quantum-ape-sentinel": 5n,
+  "celestial-king-monkii": 6n,
+};
+
+const companionMintAbi = [
+  {
+    type: "function",
+    name: "mint",
+    inputs: [{ name: "companionTypeId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+const buildMintTxSchema = z.object({
+  companionId: z.string(),
+});
+
+// POST /api/companions/build-mint-tx — builds transaction payload for frontend wallet to sign
+companionsRouter.post(
+  "/companions/build-mint-tx",
+  requireAuth,
+  handler(async (req, res) => {
+    const body = parseBody(buildMintTxSchema, req, res);
+    if (!body) return;
+
+    let typeId: bigint | undefined = COMPANION_TYPE_MAP[body.companionId.toLowerCase()];
+    if (!typeId && !Number.isNaN(Number(body.companionId))) {
+      const num = BigInt(body.companionId);
+      if (num >= 1n && num <= 6n) {
+        typeId = num;
+      }
+    }
+
+    if (!typeId) {
+      res.status(400).json({ error: "invalid_companion_archetype" });
+      return;
+    }
+
+    const { env } = await import("../lib/env");
+    const { encodeFunctionData } = await import("viem");
+
+    const data = encodeFunctionData({
+      abi: companionMintAbi,
+      functionName: "mint",
+      args: [typeId],
+    });
+
+    res.json({
+      to: env.companionsNftAddress,
+      data,
+      value: "0x0",
+      chainId: env.robinhoodChainId,
+      companionTypeId: Number(typeId),
+    });
+  }),
+);
+
 const verifyMintSchema = z.object({
   txHash: z.string(),
   companionId: z.string(),
@@ -150,6 +213,15 @@ companionsRouter.post(
 
     if (receipt.from.toLowerCase() !== userAddress.toLowerCase()) {
       res.status(403).json({ error: "minter_mismatch" });
+      return;
+    }
+
+    const { env } = await import("../lib/env");
+    if (
+      env.companionsNftAddress &&
+      receipt.to?.toLowerCase() !== env.companionsNftAddress.toLowerCase()
+    ) {
+      res.status(400).json({ error: "invalid_contract_address" });
       return;
     }
 
