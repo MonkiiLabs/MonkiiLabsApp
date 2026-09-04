@@ -2,10 +2,10 @@ import { Section, Reveal } from "./Section";
 import { BRAND } from "@/lib/brand";
 
 /* =====================================================================
-   06 — Roadmap.
+   06. Roadmap.
 
    A bench, not a timeline. Four stations on one rule, read left to
-   right, with a marker on each — the same way the props are laid out
+   right, with a marker on each, the same way the props are laid out
    across the desk in the source art. Vertical zig-zag timelines cost a
    lot of height and buy nothing that four columns on a line don't.
    ===================================================================== */
@@ -37,10 +37,13 @@ const PHASES = [
   },
 ];
 
+/* The marker says where a phase stands, so it uses the product's own
+   vocabulary: alive for what is running, act-red for what is being built
+   next, and a hollow ring for what has not been started. */
 const MARKER = {
-  shipping: "bg-vital",
-  next: "bg-coral",
-  planned: "bg-white",
+  shipping: "bg-alive",
+  next: "bg-act",
+  planned: "border border-hair/25 bg-bench",
 } as const;
 
 const Roadmap = () => (
@@ -48,7 +51,7 @@ const Roadmap = () => (
     id="roadmap"
     index="06"
     eyebrow="Roadmap"
-    tone="white"
+    tone="raised"
     title={
       <>
         From a heartbeat
@@ -64,27 +67,27 @@ const Roadmap = () => (
   >
     <div className="relative">
       {/* The bench rule the stations sit on. */}
-      <div className="absolute left-0 right-0 top-[7px] hidden h-0.5 bg-ink/20 lg:block" aria-hidden />
+      <div className="absolute left-0 right-0 top-[7px] hidden h-px bg-hair/12 lg:block" aria-hidden />
 
       <div className="grid gap-fib4 lg:grid-cols-4 lg:gap-fib3">
         {PHASES.map((p, i) => (
           <Reveal key={p.phase} delay={i * 0.08}>
             <div className="relative lg:pt-fib4">
               <span
-                className={`absolute left-0 top-0 hidden h-4 w-4 rounded-full border-2 border-ink lg:block ${MARKER[p.state]}`}
+                className={`absolute left-0 top-[1px] hidden h-3 w-3 rounded-full lg:block ${MARKER[p.state]}`}
                 aria-hidden
               />
-              <div className="label-mono text-coral lg:mt-0">{p.phase}</div>
+              <div className="label-mono text-act-lit lg:mt-0">{p.phase}</div>
               {/* Reserve two lines so the rules under every station land on
                   the same baseline, however long a phase title runs. */}
-              <h3 className="mt-fib2 font-display text-d1 text-ink lg:min-h-[3.125rem]">
+              <h3 className="mt-fib2 font-display text-d1 text-paper lg:min-h-[3.125rem]">
                 {p.title}
               </h3>
-              <ul className="mt-fib3 space-y-fib2 border-t-2 border-ink/15 pt-fib3">
+              <ul className="mt-fib3 space-y-fib2 border-t border-hair/10 pt-fib3">
                 {p.items.map((item) => (
-                  <li key={item} className="flex items-start gap-fib2 text-label text-claw-gray-600">
+                  <li key={item} className="flex items-start gap-fib2 text-label text-paper-2">
                     <span
-                      className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rotate-45 bg-ink/40"
+                      className="mt-[0.55em] h-1 w-1 shrink-0 rounded-full bg-paper-4"
                       aria-hidden
                     />
                     {item}

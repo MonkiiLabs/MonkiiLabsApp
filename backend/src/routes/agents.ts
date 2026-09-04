@@ -84,7 +84,7 @@ agentsRouter.post(
     try {
       const { rows } = await pool.query<AgentRow>(
         `INSERT INTO agents (id, on_chain_id, name, description, category, x_handle, avatar_url, power_decay_rate, owner_wallet, current_power, state)
-         VALUES ($1, $1, $2, $3, $4, $5, $6, $7, $8, 88, 'thriving')
+         VALUES ($1::text, $1::text, $2, $3, $4, $5, $6, $7, $8, 88, 'thriving')
          RETURNING ${AGENT_COLUMNS}`,
         [body.id, body.name, body.description, body.category, body.xHandle ?? null, body.avatarUrl ?? null, body.powerDecayRate, ownerWallet],
       );

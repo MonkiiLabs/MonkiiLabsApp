@@ -3,11 +3,11 @@ import { RARITY_ORDER, RARITY_STYLES } from "@/features/monkii/data";
 import { BRAND } from "@/lib/brand";
 
 /* =====================================================================
-   04 — Companions.
+   04. Companions.
 
    Collectible art carries this one, so the tiles are mostly image: a
    square plate, an ink keyline, and one line of consequence underneath.
-   The rarity ladder is a rail rather than a table — five tiers is a
+   The rarity ladder is a rail rather than a table: five tiers is a
    scale, and a scale should look like one.
    ===================================================================== */
 
@@ -61,7 +61,7 @@ const CompanionsSection = () => (
     id="companions"
     index="04"
     eyebrow="Companions"
-    tone="white"
+    tone="raised"
     title={
       <>
         Three slots per agent.
@@ -84,8 +84,8 @@ const CompanionsSection = () => (
             {/* Both chips ride on the plate, so the caption below is name
                 over note on every tile and the notes share one baseline
                 across the row however long a name runs. */}
-            <article className="ink-card ink-raise flex h-full flex-col overflow-hidden">
-              <div className="relative aspect-square overflow-hidden border-b-2 border-ink bg-cream">
+            <article className="panel-raised raise flex h-full flex-col overflow-hidden">
+              <div className="relative aspect-square overflow-hidden border-b border-hair/8 bg-bench">
                 <img
                   src={`/companions/${c.slug}.jpg`}
                   alt={c.name}
@@ -93,17 +93,17 @@ const CompanionsSection = () => (
                   className="h-full w-full object-cover"
                 />
                 <span
-                  className={`absolute left-fib2 top-fib2 rounded-full border-2 border-ink px-fib2 py-0.5 text-micro font-semibold uppercase tracking-[0.18em] ${s.bg} ${s.text}`}
+                  className={`absolute left-fib2 top-fib2 rounded-sm border px-fib2 py-0.5 text-micro font-semibold uppercase ${s.border} ${s.bg} ${s.text}`}
                 >
                   {c.rarity}
                 </span>
-                <span className="absolute right-fib2 top-fib2 rounded-full border-2 border-ink bg-vital px-fib2 py-0.5 font-mono text-label font-semibold text-ink">
+                <span className="absolute right-fib2 top-fib2 rounded-sm border border-alive/35 bg-bench/85 px-fib2 py-0.5 font-mono text-micro font-semibold tabular-nums text-alive-lit backdrop-blur-sm">
                   {c.boost}
                 </span>
               </div>
               <div className="flex flex-1 flex-col p-fib3">
-                <h3 className="font-display text-d1 text-ink">{c.name}</h3>
-                <p className="mt-fib2 text-label text-claw-gray-600">{c.note}</p>
+                <h3 className="font-display text-d1 text-paper">{c.name}</h3>
+                <p className="mt-fib2 text-label text-paper-3">{c.note}</p>
               </div>
             </article>
           </Reveal>
@@ -114,27 +114,27 @@ const CompanionsSection = () => (
     {/* The ladder. Five tiers read as a scale, left to right. */}
     <Reveal delay={0.16}>
       <div className="mt-fib5">
-        <h3 className="label-mono text-claw-gray-600">Rarity ladder</h3>
+        <h3 className="label-mono text-paper-3">Rarity ladder</h3>
         <div className="mt-fib3 grid gap-fib2 sm:grid-cols-2 lg:grid-cols-5">
           {RARITY_ORDER.map((rarity) => {
             const s = RARITY_STYLES[rarity];
             return (
-              <div key={rarity} className="ink-flat p-fib3">
+              <div key={rarity} className="panel-raised p-fib3">
                 <span
-                  className={`inline-block rounded-full border-2 border-ink px-fib2 py-0.5 text-micro font-semibold uppercase tracking-[0.18em] ${s.bg} ${s.text}`}
+                  className={`inline-block rounded-sm border px-fib2 py-0.5 text-micro font-semibold uppercase ${s.border} ${s.bg} ${s.text}`}
                 >
                   {rarity}
                 </span>
-                <div className="mt-fib2 font-mono text-label font-semibold text-ink">
+                <div className="mt-fib2 font-mono text-label font-semibold tabular-nums text-brass">
                   {s.bonus}
                 </div>
-                <p className="mt-fib1 text-label text-claw-gray-600">{s.effect}</p>
+                <p className="mt-fib1 text-label text-paper-3">{s.effect}</p>
               </div>
             );
           })}
         </div>
-        <p className="mt-fib3 max-w-[68ch] text-label text-claw-gray-600">
-          Legendary abilities go further — <em>never fully fades</em>, a second nurture
+        <p className="mt-fib3 max-w-[68ch] text-label text-paper-2">
+          Legendary abilities go further: <em>never fully fades</em>, a second nurture
           reward once a day, or a boosted {BRAND.stockToken} allocation. Buffs apply only
           while the Companion is equipped to an agent you are actively nurturing.
         </p>

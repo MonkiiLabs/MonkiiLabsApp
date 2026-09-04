@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "How does the $PONS epoch reward work?",
-    a: "One fixed schedule shared by every staker — not a personal timer. Hold at least the minimum $MONKII stake unchanged for a full cycle and you are paid a flat amount proportional to your stake at that cycle's end. Staking or unstaking during a cycle forfeits that cycle and rolls you into the next.",
+    a: "One fixed schedule shared by every staker, not a personal timer. Hold at least the minimum $MONKII stake unchanged for a full cycle and you are paid a flat amount proportional to your stake at that cycle's end. Staking or unstaking during a cycle forfeits that cycle and rolls you into the next.",
   },
   {
     q: "How do Companions work?",
@@ -23,7 +23,7 @@ const FAQ = [
   },
   {
     q: "Can I claim $MONKII to my wallet?",
-    a: "Not yet — $MONKII is currently an off-chain accounting balance with claiming on hold pending launch. It is already fully functional as the unit that gets staked. $PONS claiming is live: the pool wallet sends it directly to your wallet and pays the network fee.",
+    a: "Not yet, $MONKII is currently an off-chain accounting balance with claiming on hold pending launch. It is already fully functional as the unit that gets staked. $PONS claiming is live: the pool wallet sends it directly to your wallet and pays the network fee.",
   },
 ];
 

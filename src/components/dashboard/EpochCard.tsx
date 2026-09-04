@@ -37,55 +37,57 @@ const EpochCard = () => {
   return (
     <div className="space-y-4">
       {/* 24-Hour Epoch Disbursal Clock */}
-      <section className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-[#0d130f]/90 p-5 shadow-xl shadow-black/40 backdrop-blur-md">
-        <header className="flex items-center justify-between border-b border-white/10 pb-3">
+      <section className="panel overflow-hidden p-fib3">
+        {/* Stacked, not split: the tracked mono label and the timestamp
+            both wrap in a 290px rail if they share a row. */}
+        <header className="border-b border-hair/8 pb-fib2">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-emerald-400" />
-            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-300">
-              Next Epoch Disbursal
-            </h2>
+            <Clock className="h-3.5 w-3.5 shrink-0 text-alive-lit" />
+            <h2 className="label-mono text-paper-2">Next disbursal</h2>
           </div>
-          <span className="font-mono text-[10px] text-emerald-400">00:00 UTC</span>
+          <p className="mt-1 font-mono text-micro tabular-nums text-paper-3">
+            Every 24h at 00:00 UTC
+          </p>
         </header>
 
         <div className="pt-4">
-          <div className="flex items-center justify-center gap-1 rounded-xl border border-white/5 bg-black/40 py-3 font-mono text-2xl font-bold tabular-nums text-emerald-400 shadow-inner">
+          <div className="well flex items-center justify-center gap-1 py-fib2 font-mono text-d1 font-semibold tabular-nums text-alive-lit">
             {countdown ? (
               <>
                 <span className="w-10 text-center">{countdown.h}</span>
-                <span className="text-slate-600">:</span>
+                <span className="text-paper-4">:</span>
                 <span className="w-10 text-center">{countdown.m}</span>
-                <span className="text-slate-600">:</span>
+                <span className="text-paper-4">:</span>
                 <span className="w-10 text-center">{countdown.s}</span>
               </>
             ) : (
-              <span className="text-slate-500">23:59:59</span>
+              <span className="text-paper-4">--:--:--</span>
             )}
           </div>
-          <p className="mt-2 text-center text-xs text-slate-400">
+          <p className="mt-2 text-center text-xs text-paper-3">
             Automated snapshot & $PONS distribution cycle
           </p>
 
-          <dl className="mt-4 space-y-2 border-t border-white/10 pt-3 text-xs">
+          <dl className="mt-4 space-y-2 border-t border-hair/10 pt-3 text-xs">
             <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Cycle Eligibility</dt>
+              <dt className="text-paper-3">Cycle Eligibility</dt>
               <dd
                 className={`font-mono text-xs font-semibold ${
-                  staking?.isEligibleForNextEpoch ? "text-emerald-400" : "text-amber-400"
+                  staking?.isEligibleForNextEpoch ? "text-alive-lit" : "text-idle"
                 }`}
               >
-                {staking ? (staking.isEligibleForNextEpoch ? "Eligible ✓" : "Pending Next Cycle") : "—"}
+                {staking ? (staking.isEligibleForNextEpoch ? "Eligible ✓" : "Pending Next Cycle") : "-"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Current Multiplier</dt>
-              <dd className="font-mono text-xs font-semibold tabular-nums text-white">
+              <dt className="text-paper-3">Current Multiplier</dt>
+              <dd className="font-mono text-xs font-semibold tabular-nums text-paper">
                 {staking ? `×${staking.rewardMultiplier.toFixed(2)}` : "×1.00"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-slate-400">{BRAND.valueToken} Yield Accrued</dt>
-              <dd className="font-mono text-xs font-semibold tabular-nums text-emerald-400">
+              <dt className="text-paper-3">{BRAND.valueToken} Yield Accrued</dt>
+              <dd className="font-mono text-xs font-semibold tabular-nums text-alive-lit">
                 {fmt(balances?.claimablePons, 2)}
               </dd>
             </div>

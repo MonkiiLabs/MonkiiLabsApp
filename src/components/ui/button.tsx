@@ -4,31 +4,46 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/* =====================================================================
+   Button.
+
+   The previous build gave every button a 2px charcoal keyline over a
+   hard offset shadow that collapsed on press, so buttons physically
+   travelled across the page. That is a comic-book device, and it was the
+   loudest source of the cartoon read.
+
+   What replaces it: a filled red slab for the one action that matters,
+   hairlines for everything else, and a 97% scale on press, felt rather
+   than watched. Red is the only fill, because red is the only colour on
+   this site you are meant to press.
+   ===================================================================== */
+
 const buttonVariants = cva(
-  // Ink system: a 2px charcoal keyline over a hard, blur-free shadow that
-  // collapses on press, so a button physically travels when you hit it.
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-label font-bold ring-offset-background transition-[transform,box-shadow,background-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-label font-semibold transition-[background-color,border-color,color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-act-lit focus-visible:ring-offset-2 focus-visible:ring-offset-bench active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "border-2 border-ink bg-coral text-white shadow-ink hover:bg-coral-dark hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+          "border border-act-lit/50 bg-act text-paper hover:bg-act-lit active:bg-act-deep",
         destructive:
-          "border-2 border-ink bg-destructive text-white shadow-ink hover:bg-coral-dark hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+          "border border-act-lit/50 bg-act text-paper hover:bg-act-lit active:bg-act-deep",
         outline:
-          "border-2 border-ink bg-white text-ink shadow-ink hover:bg-cream hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+          "border border-hair/13 bg-hair/[0.04] text-paper hover:border-hair/25 hover:bg-hair/10",
         secondary:
-          "border-2 border-ink bg-sky text-ink shadow-ink hover:bg-sky-dark hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
-        // Vital = alive. Reserved for actions that restore or pay out.
+          "border border-hair/10 bg-bench-3 text-paper hover:border-hair/20 hover:bg-bench-4",
+        // Reserved for reporting, not for acting. Green never fills a
+        // button: it outlines one, because green means "alive", and a
+        // reading is not a command.
         vital:
-          "border-2 border-ink bg-vital text-ink shadow-ink hover:brightness-105 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
-        ghost: "text-ink hover:bg-cream",
-        link: "text-coral underline-offset-4 hover:underline",
+          "border border-alive/35 bg-alive/10 text-alive-lit hover:border-alive/60 hover:bg-alive/15",
+        ghost: "text-paper-2 hover:bg-hair/[0.06] hover:text-paper",
+        link: "text-act-lit underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-11 px-fib3 py-2",
-        sm: "h-9 px-fib3 text-micro tracking-[0.1em]",
-        lg: "h-12 px-fib4",
+        // 40px floor everywhere, so no control drops under the tap target.
+        default: "h-10 px-fib3",
+        sm: "h-9 px-fib2 text-micro font-semibold uppercase",
+        lg: "h-11 px-fib4",
         icon: "h-10 w-10 p-0",
       },
     },

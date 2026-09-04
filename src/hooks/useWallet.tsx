@@ -4,35 +4,36 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAccount, useDisconnect, useSignMessage } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccount, useDisconnect, useSignMessage, useSwitchChain } from "wagmi";
+import { useConnectModal, useAccountModal, useChainModal } from "@rainbow-me/rainbowkit";
 
 import { AUTH_EXPIRED_EVENT } from "@/lib/api";
 import { auth } from "@/features/api/endpoints";
-import {
-  ensureRobinhoodChain,
-  getProviderFor,
-  hasInjectedWallet,
-  isMetaMaskAvailable,
-  isRobinhoodWalletAvailable,
-  openInMetaMaskApp,
-  type WalletKind,
-} from "@/lib/ethereum";
+import { CHAIN_ID, CHAIN_NAME } from "@/lib/config";
 import { clearToken, getStoredAddress, getToken, setToken } from "@/lib/tokenStorage";
 
 /* =====================================================================
    Wallet + session.
-   Powered by RainbowKit & Wagmi on Robinhood Chain (EVM Chain ID 4663).
-   Two gasless steps:
-   1. Wallet Connect (RainbowKit modal / Wagmi provider)
-   2. Monkii Labs Session (nonce → personal_sign → verify JWT token)
-   ===================================================================== */
 
-const WALLET_KEY = "monkii_wallet";
+   RainbowKit owns connection; wagmi owns account state. This file owns
+   only the second step: the Monkii Labs session, and nothing else.
+
+   The previous version ran a parallel connection path over
+   `window.ethereum` alongside RainbowKit: two sources of truth for "am I
+   connected", a bespoke picker modal competing with RainbowKit's, and a
+   `wallet_switchEthereumChain` call that only extensions understood. All
+   of it is gone. There is one connect surface, and every wallet reaches
+   it the same way.
+
+   Two steps, both gasless:
+     1. Connect:        RainbowKit modal, any wagmi connector
+     2. Open a session: nonce → personal_sign → verify → JWT
+   ===================================================================== */
 
 export type ConnectResult = { success: boolean; address?: string; error?: string };
 
@@ -42,76 +43,53 @@ interface WalletState {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
   authError: string | null;
-  walletType: WalletKind | null;
   address: string | null;
+  /** The connector's own name, "MetaMask", "Rainbow", "WalletConnect". */
+  walletType: string | null;
+  /** True when the wallet is connected but pointed at another network. */
+  isWrongNetwork: boolean;
   formatAddress: (addr: string) => string;
-  showConnectModal: boolean;
-  setShowConnectModal: (show: boolean) => void;
-  openRainbowModal: () => void;
-  connect: (walletType: string, address: string) => void;
-  connectWallet: (kind: WalletKind) => Promise<ConnectResult>;
+  /** Opens the RainbowKit connect modal. */
+  openConnect: () => void;
+  /**
+   * The one entry point into the product. Opens RainbowKit's wallet
+   * picker when there is nothing connected, then signs as soon as a
+   * wallet arrives, so choosing a wallet and opening a session read as
+   * one action instead of two.
+   */
+  connectAndSignIn: () => void;
+  /** Drops the current wallet and reopens the picker to choose another. */
+  switchWallet: () => void;
+  /** Opens the RainbowKit account modal (balance, copy, disconnect). */
+  openAccount: () => void;
+  /** Moves the wallet onto Robinhood Chain. */
+  switchToRobinhoodChain: () => void;
   /** Runs the gasless nonce → personal_sign → verify handshake. */
   signIn: () => Promise<boolean>;
   disconnect: () => void;
-  hasWallet: boolean;
-  isRobinhoodInstalled: boolean;
-  isMetaMaskInstalled: boolean;
-  isMobile: boolean;
-  openMetaMaskApp: () => void;
 }
 
 const WalletContext = createContext<WalletState | undefined>(undefined);
 
-function isMobileDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-}
-
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const qc = useQueryClient();
-  const { address: wagmiAddress, isConnected: wagmiConnected, connector } = useAccount();
+  const { address: wagmiAddress, isConnected, connector, chainId } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
+  const { switchChain } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
-
-  const [legacyConnected, setLegacyConnected] = useState(false);
-  const [legacyAddress, setLegacyAddress] = useState<string | null>(null);
-  const [walletType, setWalletType] = useState<WalletKind | null>(null);
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  const { openAccountModal } = useAccountModal();
+  const { openChainModal } = useChainModal();
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getToken()));
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const [hasWallet, setHasWallet] = useState(false);
-  const [isRobinhoodInstalled, setIsRobinhoodInstalled] = useState(false);
-  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
-  const [isMobile] = useState(isMobileDevice);
+  const address = wagmiAddress ?? null;
+  const isWrongNetwork = isConnected && chainId !== undefined && chainId !== CHAIN_ID;
 
-  // Active address is wagmiAddress if connected via RainbowKit, else fallback to legacy
-  const address = wagmiAddress ?? legacyAddress;
-  const isConnected = wagmiConnected || legacyConnected;
-
-  // Detect available browser extensions
-  useEffect(() => {
-    let cancelled = false;
-    const check = () => {
-      if (cancelled) return;
-      setHasWallet(hasInjectedWallet());
-      setIsRobinhoodInstalled(isRobinhoodWalletAvailable());
-      setIsMetaMaskInstalled(isMetaMaskAvailable());
-    };
-    check();
-    const timers = [200, 600, 1200, 2000].map((ms) => window.setTimeout(check, ms));
-    window.addEventListener("ethereum#initialized", check);
-    return () => {
-      cancelled = true;
-      timers.forEach(window.clearTimeout);
-      window.removeEventListener("ethereum#initialized", check);
-    };
-  }, []);
-
-  // Sync authentication state whenever active address changes
+  // Sync session state whenever the active address changes. A token
+  // issued to one address must never be treated as valid for another.
   useEffect(() => {
     if (!address) {
       setIsAuthenticated(false);
@@ -119,12 +97,31 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
     const token = getToken();
     const stored = getStoredAddress();
-    const isMatching =
-      Boolean(token) && (!stored || stored.toLowerCase() === address.toLowerCase());
-    setIsAuthenticated(isMatching);
+    setIsAuthenticated(
+      Boolean(token) && (!stored || stored.toLowerCase() === address.toLowerCase()),
+    );
   }, [address]);
 
-  // apiFetch raises this on any 401 response
+  // A wallet that connects while sitting on another network leaves the
+  // app pointed at a chain it cannot read. Ask for the switch once per
+  // arrival on a wrong chain: once, because the request opens a wallet
+  // prompt, and re-firing it on every render would trap the user in it.
+  const switchAttemptedFor = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isConnected || chainId === undefined) {
+      switchAttemptedFor.current = null;
+      return;
+    }
+    if (chainId === CHAIN_ID) {
+      switchAttemptedFor.current = null;
+      return;
+    }
+    if (switchAttemptedFor.current === chainId) return;
+    switchAttemptedFor.current = chainId;
+    switchChain?.({ chainId: CHAIN_ID });
+  }, [isConnected, chainId, switchChain]);
+
+  // apiFetch raises this on any 401 response.
   useEffect(() => {
     const handler = () => {
       setIsAuthenticated(false);
@@ -139,39 +136,26 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     return addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
   }, []);
 
-  const connect = useCallback((type: string, addr: string) => {
-    const kind = (type as WalletKind) ?? "injected";
-    setWalletType(kind);
-    setLegacyAddress(addr);
-    setLegacyConnected(true);
-    try {
-      localStorage.setItem(WALLET_KEY, JSON.stringify({ type: kind, address: addr }));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const disconnect = useCallback(() => {
     clearToken();
     qc.clear();
-    setWalletType(null);
-    setLegacyAddress(null);
-    setLegacyConnected(false);
     setIsAuthenticated(false);
     setAuthError(null);
-    try {
-      localStorage.removeItem(WALLET_KEY);
-    } catch {
-      /* ignore */
-    }
     wagmiDisconnect();
   }, [qc, wagmiDisconnect]);
 
-  /** Gasless nonce → personal_sign → verify authentication handshake */
+  /** Gasless nonce → personal_sign → verify handshake. */
   const signIn = useCallback(async (): Promise<boolean> => {
-    const targetAddr = address;
-    if (!targetAddr) {
-      setAuthError("No wallet connected. Connect your wallet first.");
+    if (!address) {
+      setAuthError("Connect a wallet first.");
+      return false;
+    }
+
+    // Signing on the wrong network produces a token the backend will
+    // reject, so the switch is a precondition rather than a warning.
+    if (chainId !== undefined && chainId !== CHAIN_ID) {
+      setAuthError(`Switch your wallet to ${CHAIN_NAME}, then sign in.`);
+      switchChain?.({ chainId: CHAIN_ID });
       return false;
     }
 
@@ -179,35 +163,23 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     setAuthError(null);
 
     try {
-      // 1. Request nonce and sign-in message from backend
-      const { message } = await auth.nonce(targetAddr);
-
-      // 2. Request user signature via Wagmi / RainbowKit signer
-      let signature: string;
-      try {
-        signature = await signMessageAsync({ message });
-      } catch (wagmiErr) {
-        // Fallback to injected provider if wagmi connector sign message fails
-        const provider = getProviderFor("injected");
-        if (provider) {
-          const { personalSign } = await import("@/lib/ethereum");
-          signature = await personalSign(provider, targetAddr, message);
-        } else {
-          throw wagmiErr;
-        }
-      }
-
-      // 3. Verify signature with backend to receive JWT token
-      const { token } = await auth.verify(targetAddr, signature);
-      setToken(token, targetAddr);
+      const { message } = await auth.nonce(address);
+      const signature = await signMessageAsync({
+        message,
+        account: address as `0x${string}`,
+      });
+      const { token } = await auth.verify(address, signature);
+      setToken(token, address);
       setIsAuthenticated(true);
       qc.invalidateQueries();
       return true;
     } catch (err) {
       const code = (err as { code?: number })?.code;
+      const name = (err as { name?: string })?.name;
+      const rejected = code === 4001 || name === "UserRejectedRequestError";
       setAuthError(
-        code === 4001
-          ? "Signature declined. Sign message to open your Monkii Labs session."
+        rejected
+          ? "Signature declined. Sign the message to open your session."
           : (err as Error)?.message || "Could not sign in.",
       );
       setIsAuthenticated(false);
@@ -215,66 +187,58 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsAuthenticating(false);
     }
-  }, [address, signMessageAsync, qc]);
+  }, [address, chainId, switchChain, signMessageAsync, qc]);
 
-  const openRainbowModal = useCallback(() => {
-    if (openConnectModal) {
-      openConnectModal();
-    } else {
-      setShowConnectModal(true);
+  const openConnect = useCallback(() => openConnectModal?.(), [openConnectModal]);
+  const openAccount = useCallback(() => openAccountModal?.(), [openAccountModal]);
+
+  /* ---- Connect and sign as one action --------------------------------
+     RainbowKit owns the wallet picker, and it only hands back control by
+     updating the account state. So the intent to sign is recorded before
+     the modal opens and acted on once a wallet actually lands. */
+  const [pendingSignIn, setPendingSignIn] = useState(false);
+  const [pendingPicker, setPendingPicker] = useState(false);
+
+  const connectAndSignIn = useCallback(() => {
+    if (!isConnected) {
+      setPendingSignIn(true);
+      openConnectModal?.();
+      return;
     }
-  }, [openConnectModal]);
+    void signIn();
+  }, [isConnected, openConnectModal, signIn]);
 
-  const handleSetShowConnectModal = useCallback(
-    (show: boolean) => {
-      if (show && openConnectModal) {
-        openConnectModal();
-      } else {
-        setShowConnectModal(show);
-      }
-    },
-    [openConnectModal],
-  );
+  const switchWallet = useCallback(() => {
+    // openConnectModal is undefined while a wallet is still connected, so
+    // the picker has to wait for the disconnect to land.
+    setPendingPicker(true);
+    disconnect();
+  }, [disconnect]);
 
-  const connectWallet = useCallback(
-    async (kind: WalletKind): Promise<ConnectResult> => {
-      // If RainbowKit modal is available, open it
-      if (openConnectModal) {
-        openConnectModal();
-        return { success: true };
-      }
+  useEffect(() => {
+    if (!pendingPicker || isConnected || !openConnectModal) return;
+    setPendingPicker(false);
+    setPendingSignIn(true);
+    openConnectModal();
+  }, [pendingPicker, isConnected, openConnectModal]);
 
-      const provider = getProviderFor(kind);
-      if (!provider) {
-        if (isMobileDevice() && kind === "metamask") {
-          openInMetaMaskApp();
-          return { success: false, error: "Opening MetaMask… continue in its in-app browser." };
-        }
-        return {
-          success: false,
-          error:
-            kind === "robinhood"
-              ? "Robinhood Wallet not detected. Open this page in the Robinhood app browser."
-              : "No EVM wallet detected.",
-        };
-      }
+  useEffect(() => {
+    if (!pendingSignIn) return;
+    if (!isConnected || !address) return;
+    // Hold while the chain switch requested on connect is still running;
+    // signing on the wrong network mints a token the backend rejects.
+    if (isWrongNetwork) return;
+    setPendingSignIn(false);
+    if (!isAuthenticated) void signIn();
+  }, [pendingSignIn, isConnected, address, isWrongNetwork, isAuthenticated, signIn]);
 
-      try {
-        const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
-        const account = accounts?.[0];
-        if (!account) return { success: false, error: "No account was shared." };
-
-        await ensureRobinhoodChain(provider).catch(() => {});
-        connect(kind, account);
-        return { success: true, address: account };
-      } catch (error) {
-        const err = error as { code?: number; message?: string };
-        if (err.code === 4001) return { success: false, error: "Connection request was rejected." };
-        return { success: false, error: err.message || "Failed to connect." };
-      }
-    },
-    [connect, openConnectModal],
-  );
+  const switchToRobinhoodChain = useCallback(() => {
+    if (switchChain) {
+      switchChain({ chainId: CHAIN_ID });
+      return;
+    }
+    openChainModal?.();
+  }, [switchChain, openChainModal]);
 
   const value = useMemo<WalletState>(
     () => ({
@@ -282,42 +246,34 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       isAuthenticated,
       isAuthenticating,
       authError,
-      walletType: (connector?.id as WalletKind) ?? walletType,
       address,
+      walletType: connector?.name ?? null,
+      isWrongNetwork,
       formatAddress,
-      showConnectModal,
-      setShowConnectModal: handleSetShowConnectModal,
-      openRainbowModal,
-      connect,
-      connectWallet,
+      openConnect,
+      connectAndSignIn,
+      switchWallet,
+      openAccount,
+      switchToRobinhoodChain,
       signIn,
       disconnect,
-      hasWallet,
-      isRobinhoodInstalled,
-      isMetaMaskInstalled,
-      isMobile,
-      openMetaMaskApp: openInMetaMaskApp,
     }),
     [
       isConnected,
       isAuthenticated,
       isAuthenticating,
       authError,
-      connector,
-      walletType,
       address,
+      connector,
+      isWrongNetwork,
       formatAddress,
-      showConnectModal,
-      handleSetShowConnectModal,
-      openRainbowModal,
-      connect,
-      connectWallet,
+      openConnect,
+      connectAndSignIn,
+      switchWallet,
+      openAccount,
+      switchToRobinhoodChain,
       signIn,
       disconnect,
-      hasWallet,
-      isRobinhoodInstalled,
-      isMetaMaskInstalled,
-      isMobile,
     ],
   );
 

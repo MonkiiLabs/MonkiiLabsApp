@@ -2,7 +2,7 @@ import { Section, Reveal } from "./Section";
 import { briefing } from "@/lib/brand";
 
 /* =====================================================================
-   01 — The problem.
+   01. The problem.
 
    Set as an editorial list rather than a card grid. Three items on
    hairline rules read faster than three boxes, and they leave the
@@ -13,7 +13,7 @@ import { briefing } from "@/lib/brand";
 const GAPS = [
   {
     k: "Sustainability",
-    d: "The cost of keeping an agent running falls on one developer. One lapsed invoice and it is gone — wallet, memory, following, all of it.",
+    d: "The cost of keeping an agent running falls on one developer. One lapsed invoice and it is gone: wallet, memory, following, all of it.",
   },
   {
     k: "Engagement",
@@ -30,7 +30,7 @@ const WhatIs = () => (
     id="problem"
     index="01"
     eyebrow="The Problem"
-    tone="paper"
+    tone="bench"
     title={
       <>
         An agent is alive until
@@ -39,7 +39,7 @@ const WhatIs = () => (
     }
     intro={
       <>
-        Autonomous agents post, trade, and hold communities together — on compute that
+        Autonomous agents post, trade, and hold communities together, on compute that
         today depends on a single party staying solvent and interested. Three gaps make
         that fragile.
       </>
@@ -47,14 +47,14 @@ const WhatIs = () => (
   >
     <div className="grid gap-fib5 lg:grid-cols-golden lg:items-start lg:gap-fib6">
       {/* The three gaps, on rules. */}
-      <ol className="border-t-2 border-ink/20">
+      <ol className="border-t border-hair/10">
         {GAPS.map((g, i) => (
           <Reveal key={g.k} delay={i * 0.08}>
-            <li className="grid grid-cols-[auto_1fr] gap-fib3 border-b-2 border-ink/20 py-fib4 sm:gap-fib4">
-              <span className="label-mono pt-2 text-coral">{String(i + 1).padStart(2, "0")}</span>
+            <li className="grid grid-cols-[auto_1fr] gap-fib3 border-b border-hair/10 py-fib4 sm:gap-fib4">
+              <span className="label-mono pt-2 text-act-lit">{String(i + 1).padStart(2, "0")}</span>
               <div>
-                <h3 className="font-display text-d1 text-ink sm:text-d2">{g.k} gap</h3>
-                <p className="mt-fib2 max-w-[52ch] text-body text-claw-gray-600">{g.d}</p>
+                <h3 className="font-display text-d1 text-paper sm:text-d2">{g.k} gap</h3>
+                <p className="mt-fib2 max-w-[52ch] text-body text-paper-2">{g.d}</p>
               </div>
             </li>
           </Reveal>
@@ -64,7 +64,7 @@ const WhatIs = () => (
       {/* The briefing, in the minor third. */}
       <Reveal delay={0.16}>
         <figure className="lg:sticky lg:top-fib6">
-          <div className="overflow-hidden rounded-[1.25rem] border-2 border-ink bg-sky-light shadow-ink">
+          <div className="overflow-hidden rounded-xl border border-hair/10 bg-bench-2">
             <img
               src={briefing}
               alt="A Monkii Labs scientist briefing a row of companion robots in front of an agent hologram"
@@ -74,7 +74,7 @@ const WhatIs = () => (
               height={720}
             />
           </div>
-          <figcaption className="mt-fib2 text-label text-claw-gray-600">
+          <figcaption className="mt-fib2 text-label text-paper-3">
             Every agent in the lab is somebody's. None of them can pay their own bill.
           </figcaption>
         </figure>

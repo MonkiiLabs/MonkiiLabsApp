@@ -12,19 +12,21 @@ const ITEMS = [
 ];
 
 /**
- * A charcoal rule between the sky and the paper. It does one job — it
- * closes the hero with a hard edge, the way an ink outline closes a
- * shape in the source art — and carries the network facts while it does.
+ * The strip between the hero instrument and the argument. It reads as
+ * equipment labelling on the front of a rack: one step darker than the
+ * bench, hairlines top and bottom, telemetry set in mono. The separator
+ * between items is a green tick, because each item is a fact the network
+ * is currently reporting.
  */
 const Ticker = () => (
-  <div className="relative overflow-hidden border-y-2 border-ink bg-ink py-fib2">
+  <div className="relative overflow-hidden border-y border-hair/[0.07] bg-bench-2 py-fib2">
     <div className="flex w-max animate-marquee">
       {[0, 1].map((copy) => (
         <div key={copy} className="flex shrink-0 items-center" aria-hidden={copy === 1}>
           {ITEMS.map((item) => (
             <span key={item} className="flex shrink-0 items-center">
-              <span className="label-mono px-fib4 text-cream">{item}</span>
-              <span className="h-1.5 w-1.5 rotate-45 bg-vital" />
+              <span className="label-mono px-fib4 text-paper-3">{item}</span>
+              <span className="h-1 w-1 rounded-full bg-alive/70" />
             </span>
           ))}
         </div>

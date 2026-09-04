@@ -71,27 +71,27 @@ const StakingInner = () => {
         </div>
 
         {/* Multiplier Progress Bar */}
-        <div className="border-t border-white/10 px-5 py-4">
+        <div className="border-t border-hair/10 px-5 py-4">
           <div className="flex items-baseline justify-between text-xs">
-            <span className="font-mono text-slate-400">
+            <span className="font-mono text-paper-3">
               Progress to Max Boost (×{policy?.MAX_MULTIPLIER ?? 3.0})
             </span>
-            <span className="font-mono font-semibold tabular-nums text-emerald-400">
+            <span className="font-mono font-semibold tabular-nums text-alive-lit">
               {fmt(staked)} / {fmt(policy?.STAKE_FOR_MAX ?? 10000)} {BRAND.rewardToken}
             </span>
           </div>
 
-          <div className="mt-2.5 h-3 overflow-hidden rounded-full border border-white/10 bg-[#090d0a]">
+          <div className="mt-2.5 h-3 overflow-hidden rounded-full border border-hair/10 bg-bench">
             <div
-              className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
+              className="h-full bg-gradient-to-r from-alive to-alive-lit transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
               style={{ width: `${pct * 100}%` }}
             />
           </div>
 
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-paper-3">
             {data.isEligibleForNextEpoch
               ? "Your position is active and qualified for the upcoming 00:00 UTC snapshot."
-              : "Staking resets your epoch timer — distribution eligibility begins the subsequent cycle."}
+              : "Staking resets your epoch timer. Distribution eligibility begins the next cycle."}
           </p>
         </div>
       </Panel>
@@ -112,8 +112,8 @@ const StakingInner = () => {
                 onClick={() => setToken(t.value)}
                 className={`rounded-xl px-3.5 py-2 font-mono text-xs font-semibold transition-all ${
                   token === t.value
-                    ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-sm"
-                    : "border border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                    ? "border border-alive/40 bg-alive/15 text-alive-lit"
+                    : "border border-hair/10 bg-hair/[0.05] text-paper-3 hover:text-paper"
                 }`}
               >
                 {t.label}
@@ -122,7 +122,7 @@ const StakingInner = () => {
           </div>
 
           <label className="mt-4 block">
-            <span className="font-mono text-xs uppercase tracking-wider text-slate-400">
+            <span className="font-mono text-xs uppercase tracking-wider text-paper-3">
               Amount to Stake
             </span>
             <div className="mt-2 flex items-center gap-2">
@@ -134,27 +134,27 @@ const StakingInner = () => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-[#090d0a] px-4 font-mono text-sm tabular-nums text-white focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                className="h-11 min-w-0 flex-1 rounded-xl border border-hair/10 bg-bench px-4 font-mono text-sm tabular-nums text-paper focus:border-alive/50 focus:outline-none focus:ring-1 focus:ring-alive/50"
               />
               <button
                 type="button"
                 onClick={() => setAmount(String(available))}
-                className="rounded-xl border border-white/10 bg-white/10 px-3.5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:bg-white/20"
+                className="rounded-xl border border-hair/10 bg-hair/10 px-3.5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:bg-hair/20"
               >
                 MAX
               </button>
             </div>
-            <span className="mt-1.5 block text-xs text-slate-400">
-              Available in wallet/accrual: <span className="font-mono text-white">{fmt(available, 2)}</span> {token}
+            <span className="mt-1.5 block text-xs text-paper-3">
+              Available in wallet/accrual: <span className="font-mono text-paper">{fmt(available, 2)}</span> {token}
             </span>
           </label>
 
           {projected != null && token === "MONKI" && (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-300">
-              <Sparkles className="h-4 w-4 shrink-0 text-emerald-400" />
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-alive/20 bg-alive/5 p-3 text-xs text-alive-lit">
+              <Sparkles className="h-4 w-4 shrink-0 text-alive-lit" />
               <span>
                 Projected mining multiplier will increase to{" "}
-                <strong className="font-mono font-bold text-emerald-400">
+                <strong className="font-mono font-bold text-alive-lit">
                   ×{projected.toFixed(2)}
                 </strong>
               </span>
@@ -166,7 +166,7 @@ const StakingInner = () => {
               type="button"
               disabled={!valid || parsed > available || stake.isPending}
               onClick={() => stake.mutate({ amount: parsed, token })}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-40"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-act py-3 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
             >
               {stake.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -180,7 +180,7 @@ const StakingInner = () => {
               type="button"
               disabled={!valid || parsed > staked || unstake.isPending}
               onClick={() => unstake.mutate({ amount: parsed, token })}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white/10 active:scale-[0.98] disabled:opacity-40"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-hair/15 bg-hair/[0.05] py-3 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-all hover:bg-hair/10 active:scale-[0.98] disabled:opacity-40"
             >
               {unstake.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

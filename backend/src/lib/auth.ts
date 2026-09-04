@@ -89,7 +89,7 @@ export async function verifySignature(
   // 3. Upsert user record
   const userRes = await pool.query<{ id: string; wallet_address: string }>(
     `INSERT INTO users (wallet_address, address)
-     VALUES ($1, $1)
+     VALUES ($1::text, $1::text)
      ON CONFLICT (wallet_address)
      DO UPDATE SET updated_at = now()
      RETURNING id, wallet_address`,

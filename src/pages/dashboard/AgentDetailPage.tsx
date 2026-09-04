@@ -141,7 +141,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               <img
                 src={agent.avatarUrl ?? monkiiMark}
                 alt={agent.name}
-                className="h-16 w-16 shrink-0 rounded-2xl border border-white/15 bg-white/5 object-cover shadow-md"
+                className="h-16 w-16 shrink-0 rounded-2xl border border-hair/15 bg-hair/[0.05] object-cover"
               />
               <span className="absolute -bottom-1 -right-1">
                 <StateChip state={state} />
@@ -150,7 +150,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-paper sm:text-3xl">
                   {agent.name}
                 </h1>
                 {agent.xHandle && (
@@ -158,14 +158,14 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                     href={`https://x.com/${agent.xHandle}`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:underline"
+                    className="font-mono text-xs text-alive-lit hover:text-alive-lit hover:underline"
                   >
                     @{agent.xHandle}
                   </a>
                 )}
               </div>
               {agent.description && (
-                <p className="mt-2 max-w-[64ch] text-xs leading-relaxed text-slate-400">
+                <p className="mt-2 max-w-[64ch] text-xs leading-relaxed text-paper-3">
                   {agent.description}
                 </p>
               )}
@@ -180,18 +180,18 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               onClick={() => toggleStar(agentId)}
               className={`grid h-9 w-9 place-items-center rounded-xl border transition-all ${
                 starred
-                  ? "border-amber-400/50 bg-amber-400/15 text-amber-300"
-                  : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+                  ? "border-idle/50 bg-idle/15 text-idle"
+                  : "border-hair/10 bg-hair/[0.05] text-paper-3 hover:border-hair/20 hover:text-paper"
               }`}
             >
-              <Star className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : ""}`} />
+              <Star className={`h-4 w-4 ${starred ? "fill-idle text-idle" : ""}`} />
             </button>
 
             <button
               type="button"
               onClick={shareToX}
               title="Share to X"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-hair/10 bg-hair/[0.05] px-3 py-2 text-xs font-semibold text-paper-2 transition-all hover:border-hair/25 hover:bg-hair/10 hover:text-paper"
             >
               <Share2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Share</span>
@@ -200,12 +200,12 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
         </div>
 
         {/* Vitality Gauge */}
-        <div className="border-t border-white/10 px-5 py-4">
+        <div className="border-t border-hair/10 px-5 py-4">
           <PowerMeter power={power} max={max} state={state} segments={16} />
         </div>
 
         {/* Telemetry Metrics */}
-        <div className="grid grid-cols-3 gap-4 border-t border-white/10 p-5 text-center sm:text-left">
+        <div className="grid grid-cols-3 gap-4 border-t border-hair/10 p-5 text-center sm:text-left">
           <Stat value={fmt(agent.nurturerCount)} label="Nurturers" />
           <Stat value={`−${fmt(agent.powerDecayRate, 1)}/m`} label="Power Decay" tone="coral" />
           <Stat
@@ -217,25 +217,25 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
       </Panel>
 
       {/* Proof-of-Life Activation Chamber Console */}
-      <section className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-[#0a0e0b] shadow-2xl backdrop-blur-md">
-        <header className="flex items-center justify-between border-b border-emerald-500/20 px-5 py-3.5">
+      <section className="overflow-hidden rounded-2xl border border-alive/30 bg-bench backdrop-blur-md">
+        <header className="flex items-center justify-between border-b border-alive/20 px-5 py-3.5">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span
-                className={`absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${
+                className={`absolute inline-flex h-full w-full rounded-full bg-alive-lit ${
                   nurture.isRunning ? "animate-ping opacity-75" : "opacity-20"
                 }`}
               />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-alive" />
             </span>
-            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-emerald-400">
+            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-alive-lit">
               Proof-of-Life Activation Chamber
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
             {nurture.isRunning && (
-              <span className="font-mono text-xs font-bold text-emerald-400">
+              <span className="font-mono text-xs font-bold text-alive-lit">
                 {formatTimer(elapsedSecs)}
               </span>
             )}
@@ -243,9 +243,9 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               type="button"
               aria-label={soundEnabled ? "Mute audio feedback" : "Enable audio feedback"}
               onClick={() => setSoundEnabled((v) => !v)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-paper-3 hover:text-paper transition-colors"
             >
-              {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400" /> : <VolumeX className="h-4 w-4" />}
+              {soundEnabled ? <Volume2 className="h-4 w-4 text-alive-lit" /> : <VolumeX className="h-4 w-4" />}
             </button>
           </div>
         </header>
@@ -253,38 +253,38 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
         <div className="p-5">
           {/* Real-time Telemetry Grid */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
-              <div className="font-display text-2xl font-bold tabular-nums text-emerald-400">
+            <div className="rounded-xl border border-hair/[0.05] bg-hair/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-alive-lit">
                 {nurture.stats.heartbeats}
               </div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
                 Heartbeats Sent
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
-              <div className="font-display text-2xl font-bold tabular-nums text-white">
+            <div className="rounded-xl border border-hair/[0.05] bg-hair/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-paper">
                 +{fmt(nurture.stats.monkiEarned, 2)}
               </div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
                 {BRAND.rewardToken} Earned
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
-              <div className="font-display text-2xl font-bold tabular-nums text-emerald-400">
+            <div className="rounded-xl border border-hair/[0.05] bg-hair/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-alive-lit">
                 ×{nurture.stats.lastMultiplier.toFixed(2)}
               </div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
                 Epoch Multiplier
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
-              <div className="font-display text-2xl font-bold tabular-nums text-white">
-                {nurture.stats.hashRate ? `${fmt(nurture.stats.hashRate)} H/s` : "—"}
+            <div className="rounded-xl border border-hair/[0.05] bg-hair/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-paper">
+                {nurture.stats.hashRate ? `${fmt(nurture.stats.hashRate)} H/s` : "-"}
               </div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
                 Compute Hash Rate
               </div>
             </div>
@@ -293,8 +293,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           {/* Intensity Selector */}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-slate-400">Load Intensity:</span>
-              <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
+              <span className="font-mono text-xs text-paper-3">Load Intensity:</span>
+              <div className="flex rounded-xl border border-hair/10 bg-hair/[0.05] p-1">
                 {INTENSITIES.map((opt) => (
                   <button
                     key={opt.value}
@@ -304,8 +304,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                     title={opt.blurb}
                     className={`rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-all disabled:opacity-40 ${
                       intensity === opt.value
-                        ? "bg-emerald-500 text-black shadow-sm"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-act text-paper"
+                        : "text-paper-3 hover:text-paper"
                     }`}
                   >
                     {opt.label}
@@ -315,7 +315,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             </div>
 
             {nurture.difficulty != null && (
-              <span className="font-mono text-[11px] text-slate-500">
+              <span className="font-mono text-[11px] text-paper-4">
                 Target Difficulty: {nurture.difficulty} bits
               </span>
             )}
@@ -328,8 +328,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             disabled={nurture.phase === "starting" || nurture.phase === "stopping"}
             className={`mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-xl py-3 text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.99] disabled:opacity-50 ${
               nurture.isRunning
-                ? "border border-rose-500/40 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
-                : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-950/40"
+                ? "border border-act/40 bg-act/15 text-act-lit hover:bg-act/25"
+                : "bg-act text-paper hover:bg-act-lit"
             }`}
           >
             {nurture.isRunning ? (
@@ -343,11 +343,11 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             )}
           </button>
 
-          <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[11px] text-slate-500">
-            <Cpu className="h-3.5 w-3.5 text-slate-500" />
+          <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[11px] text-paper-4">
+            <Cpu className="h-3.5 w-3.5 text-paper-4" />
             Runs client-side in a Web Worker · Zero UI blocking · Auto-pauses on background tab
           </p>
-          {nurture.error && <p className="mt-2 text-center text-xs text-rose-400">{nurture.error}</p>}
+          {nurture.error && <p className="mt-2 text-center text-xs text-act-lit">{nurture.error}</p>}
         </div>
       </section>
 
@@ -361,16 +361,16 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           {equipped.map((c) => (
             <div
               key={c.userCompanionId}
-              className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-white/5 p-3"
+              className="flex items-center gap-3.5 rounded-xl border border-hair/10 bg-hair/[0.05] p-3"
             >
               <img
                 src={c.imageUrl ?? `/companions/${c.companionId}.jpg`}
                 alt=""
-                className="h-12 w-12 shrink-0 rounded-lg border border-white/15 object-cover"
+                className="h-12 w-12 shrink-0 rounded-lg border border-hair/15 object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-white">{c.name}</p>
-                <p className="text-[11px] text-slate-400">
+                <p className="truncate text-xs font-bold text-paper">{c.name}</p>
+                <p className="text-[11px] text-paper-3">
                   +{c.bonusEarnPct}% Earn Boost · {c.decayReductionPct}% Power Decay Shield
                 </p>
               </div>
@@ -379,7 +379,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                 aria-label={`Unequip ${c.name}`}
                 onClick={() => unequip.mutate(c.userCompanionId)}
                 disabled={unequip.isPending}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-50"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-hair/10 bg-hair/[0.05] text-act-lit transition-colors hover:bg-act/20 disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -394,8 +394,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           )}
 
           {freeSlots > 0 && spare.length > 0 && (
-            <div className="rounded-xl border border-dashed border-white/15 p-4">
-              <p className="font-mono text-xs uppercase tracking-wider text-slate-400">
+            <div className="rounded-xl border border-dashed border-hair/15 p-4">
+              <p className="font-mono text-xs uppercase tracking-wider text-paper-3">
                 Equip from your Inventory
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -411,7 +411,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                         slotIndex: equipped.length + 1,
                       })
                     }
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-3 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-500/30 hover:bg-white/10 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-hair/10 bg-hair/[0.05] py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper transition-colors hover:border-alive/30 hover:bg-hair/10 disabled:opacity-50"
                   >
                     <img
                       src={c.imageUrl ?? `/companions/${c.slug}.jpg`}
@@ -426,9 +426,9 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           )}
 
           {freeSlots > 0 && spare.length === 0 && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-paper-3">
               No unequipped companions in inventory.{" "}
-              <Link to="/dashboard/companions" className="font-semibold text-emerald-400 hover:underline">
+              <Link to="/dashboard/companions" className="font-semibold text-alive-lit hover:underline">
                 Mint free companions
               </Link>{" "}
               (standard ETH network gas only).
@@ -448,7 +448,7 @@ const AgentDetailPage = () => {
     <>
       <Link
         to="/dashboard/agents"
-        className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-slate-400 hover:text-emerald-400 transition-colors"
+        className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-paper-3 hover:text-alive-lit transition-colors"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Fleet Telemetry
       </Link>

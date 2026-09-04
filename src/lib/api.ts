@@ -71,9 +71,21 @@ export async function apiFetch<T = unknown>(path: string, init: ApiInit = {}): P
   }
 
   if (res.status === 401) {
-    clearToken();
-    window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
-    throw new ApiError(401, "Session expired. Sign in with your wallet again.");
+    const body = await parse<{ error?: string; message?: string }>(res);
+    const serverMessage =
+      (typeof body === "object" && body && (body.error || body.message)) || null;
+
+    const isAuthEndpoint = path.includes("/auth/verify") || path.includes("/auth/nonce");
+    const hadToken = Boolean(getToken()) && !init.anonymous;
+
+    // Only invalidate session if this was a token-authenticated request that got rejected
+    if (hadToken && !isAuthEndpoint) {
+      clearToken();
+      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+      throw new ApiError(401, serverMessage || "Session expired. Sign in with your wallet again.", body);
+    }
+
+    throw new ApiError(401, serverMessage || "Authentication failed. Could not verify wallet signature.", body);
   }
 
   if (!res.ok) {

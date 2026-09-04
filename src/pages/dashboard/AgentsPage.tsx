@@ -85,28 +85,28 @@ const AgentsPage = () => {
       <div className="mb-6 space-y-3">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-paper-4" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search agents by name, handle, or thesis…"
-              className="h-10 w-full rounded-xl border border-white/10 bg-[#111713] pl-10 pr-4 text-xs text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+              className="h-10 w-full rounded-xl border border-hair/10 bg-bench-2 pl-10 pr-4 text-xs text-paper placeholder:text-paper-4 focus:border-alive/50 focus:outline-none focus:ring-1 focus:ring-alive/50"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#111713] px-3 py-2 text-xs text-slate-300">
-              <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" />
+            <div className="flex items-center gap-1.5 rounded-xl border border-hair/10 bg-bench-2 px-3 py-2 text-xs text-paper-2">
+              <ArrowUpDown className="h-3.5 w-3.5 text-paper-4" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="bg-transparent text-xs text-white focus:outline-none"
+                className="bg-transparent text-xs text-paper focus:outline-none"
               >
-                <option value="power_desc" className="bg-[#111713]">Highest Power</option>
-                <option value="power_asc" className="bg-[#111713]">Needs Help (Lowest Power)</option>
-                <option value="nurturers" className="bg-[#111713]">Most Nurturers</option>
-                <option value="name" className="bg-[#111713]">Name (A-Z)</option>
+                <option value="power_desc" className="bg-bench-2">Highest Power</option>
+                <option value="power_asc" className="bg-bench-2">Needs Help (Lowest Power)</option>
+                <option value="nurturers" className="bg-bench-2">Most Nurturers</option>
+                <option value="name" className="bg-bench-2">Name (A-Z)</option>
               </select>
             </div>
           </div>
@@ -124,20 +124,20 @@ const AgentsPage = () => {
                 onClick={() => setActiveTab(tab.value)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                   isSelected
-                    ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-sm"
-                    : "border border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+                    ? "border border-alive/40 bg-alive/15 text-alive-lit"
+                    : "border border-hair/10 bg-hair/[0.05] text-paper-3 hover:border-hair/20 hover:text-paper"
                 }`}
               >
                 {Icon && (
                   <Icon
                     className={`h-3.5 w-3.5 ${
-                      isSelected ? "fill-amber-400 text-amber-400" : "text-slate-400"
+                      isSelected ? "fill-idle text-idle" : "text-paper-3"
                     }`}
                   />
                 )}
                 <span>{tab.label}</span>
                 {tab.value === "watchlist" && watchlist.length > 0 && (
-                  <span className="ml-1 rounded-full bg-amber-400/20 px-1.5 py-0.2 text-[10px] text-amber-300">
+                  <span className="ml-1 rounded-full bg-idle/20 px-1.5 py-0.2 text-[10px] text-idle">
                     {watchlist.length}
                   </span>
                 )}
@@ -156,8 +156,8 @@ const AgentsPage = () => {
                 onClick={() => setCategory(c)}
                 className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors ${
                   category === c
-                    ? "bg-white/15 text-white"
-                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                    ? "bg-hair/15 text-paper"
+                    : "text-paper-3 hover:bg-hair/[0.05] hover:text-paper"
                 }`}
               >
                 {c === "all" ? "All categories" : c}
@@ -183,7 +183,7 @@ const AgentsPage = () => {
 
       {visible.length > 0 && (
         <>
-          <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+          <div className="mb-3 flex items-center justify-between text-xs text-paper-3">
             <span className="font-mono text-[11px] uppercase tracking-wider">
               Displaying {visible.length} Agent{visible.length === 1 ? "" : "s"}
             </span>

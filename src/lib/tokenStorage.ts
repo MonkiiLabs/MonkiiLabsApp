@@ -1,7 +1,7 @@
 /**
  * Session token storage.
  *
- * The API issues a single JWT from POST /api/auth/verify — there is no
+ * The API issues a single JWT from POST /api/auth/verify, there is no
  * refresh token in the protocol, so an expired session is re-established by
  * signing the nonce message again (which is gasless).
  */
@@ -22,7 +22,7 @@ export function setToken(token: string, walletAddress?: string) {
     localStorage.setItem(TOKEN_KEY, token);
     if (walletAddress) localStorage.setItem(ADDRESS_KEY, walletAddress);
   } catch {
-    /* private mode — the session simply won't survive a reload */
+    /* private mode, the session simply won't survive a reload */
   }
 }
 

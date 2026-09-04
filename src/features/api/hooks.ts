@@ -235,7 +235,7 @@ export function useMintCompanion() {
       mintCompanion(companionId, (stage) => {
         if (stage === "signing") {
           toast.info("Confirm in your wallet", {
-            description: "The mint is free — you pay network gas in ETH only.",
+            description: "The mint is free. You pay network gas in ETH only.",
           });
         }
         if (stage === "verifying") {
@@ -267,7 +267,7 @@ export function useEquipCompanion() {
       qc.invalidateQueries({ queryKey: qk.inventory });
       qc.invalidateQueries({ queryKey: qk.agent(vars.agentId) });
       qc.invalidateQueries({ queryKey: qk.summary });
-      toast.success("Companion equipped", { description: "Buffs apply immediately — no gas." });
+      toast.success("Companion equipped", { description: "Buffs apply immediately. No gas." });
     },
     onError: (err) => toast.error("Could not equip", { description: describeError(err) }),
   });

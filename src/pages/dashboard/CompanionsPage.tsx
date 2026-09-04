@@ -17,7 +17,7 @@ import {
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 
-/* The roster is fixed by the integration guide — six companions, free mints paying native ETH gas */
+/* The roster is fixed by the integration guide, six companions, free mints paying native ETH gas */
 const ROSTER: Array<{
   id: string;
   name: string;
@@ -35,11 +35,11 @@ const ROSTER: Array<{
 ];
 
 const RARITY_CHIP: Record<Rarity, string> = {
-  Common: "border-slate-500/30 bg-slate-500/10 text-slate-300",
-  Uncommon: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+  Common: "border-paper-4/30 bg-paper-4/10 text-paper-2",
+  Uncommon: "border-alive/30 bg-alive/10 text-alive-lit",
   Rare: "border-sky-500/30 bg-sky-500/10 text-sky-400",
   Epic: "border-purple-500/30 bg-purple-500/10 text-purple-400",
-  Legendary: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+  Legendary: "border-idle/30 bg-idle/10 text-idle",
 };
 
 const MILESTONES: Array<{ key: MilestoneKey; label: string; requirement: string }> = [
@@ -78,21 +78,21 @@ const CompanionsInner = () => {
               {owned.map((c) => (
                 <li
                   key={c.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                  className="flex items-center gap-3 rounded-xl border border-hair/10 bg-hair/[0.05] p-3"
                 >
                   <img
                     src={c.imageUrl ?? `/companions/${c.slug}.jpg`}
                     alt=""
-                    className="h-12 w-12 shrink-0 rounded-lg border border-white/15 object-cover"
+                    className="h-12 w-12 shrink-0 rounded-lg border border-hair/15 object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-white">{c.name}</p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="truncate text-xs font-bold text-paper">{c.name}</p>
+                    <p className="text-[11px] text-paper-3">
                       +{c.earnBoostPct}% earn boost
                       {c.decayReductionPct > 0 && ` · ${c.decayReductionPct}% decay shield`}
                     </p>
                     {c.equippedAgentId && (
-                      <p className="mt-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+                      <p className="mt-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-alive-lit">
                         Equipped · {c.agentName ?? "Active Slot"}
                       </p>
                     )}
@@ -102,7 +102,7 @@ const CompanionsInner = () => {
                       type="button"
                       onClick={() => unequip.mutate(c.id)}
                       disabled={unequip.isPending}
-                      className="shrink-0 rounded-lg border border-white/10 bg-white/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase text-slate-200 hover:bg-white/20 disabled:opacity-50"
+                      className="shrink-0 rounded-lg border border-hair/10 bg-hair/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase text-paper hover:bg-hair/20 disabled:opacity-50"
                     >
                       Unequip
                     </button>
@@ -127,9 +127,9 @@ const CompanionsInner = () => {
             return (
               <article
                 key={c.id}
-                className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:border-white/20"
+                className="flex flex-col overflow-hidden rounded-2xl border border-hair/10 bg-hair/[0.05] backdrop-blur-sm transition-all hover:border-hair/20"
               >
-                <div className="relative aspect-[4/3] bg-[#090d0a]">
+                <div className="relative aspect-[4/3] bg-bench">
                   <img
                     src={`/companions/${c.id}.jpg`}
                     alt={c.name}
@@ -144,10 +144,10 @@ const CompanionsInner = () => {
                 </div>
 
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="truncate font-display text-sm font-bold text-white">{c.name}</h3>
+                  <h3 className="truncate font-display text-sm font-bold text-paper">{c.name}</h3>
                   <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="font-mono text-emerald-400 font-semibold">+{c.earn}% Earn</span>
-                    <span className="font-mono text-slate-400">
+                    <span className="font-mono text-alive-lit font-semibold">+{c.earn}% Earn</span>
+                    <span className="font-mono text-paper-3">
                       {c.decay > 0 ? `${c.decay}% Shield` : "Standard"}
                     </span>
                   </div>
@@ -159,8 +159,8 @@ const CompanionsInner = () => {
                       onClick={() => mint.mutate(c.id)}
                       className={`w-full rounded-xl py-2 font-mono text-xs font-bold uppercase tracking-wider transition-all ${
                         isOwned
-                          ? "border border-white/10 bg-white/5 text-slate-500"
-                          : "bg-emerald-500 text-black hover:bg-emerald-400 active:scale-[0.98]"
+                          ? "border border-hair/10 bg-hair/[0.05] text-paper-4"
+                          : "bg-act text-paper hover:bg-act-lit active:scale-[0.97]"
                       }`}
                     >
                       {busy ? (

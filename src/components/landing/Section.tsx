@@ -6,53 +6,34 @@ import { monkiiMark, BRAND } from "@/lib/brand";
 /* =====================================================================
    Landing primitives.
 
-   Every section on the page opens the same way: an index, a hairline
-   rule, a label — then a headline that occupies the left two thirds and
-   a standfirst that occupies the right one. That single rule does most
-   of the layout work, and it is why the page reads as one document
-   rather than a stack of unrelated blocks.
+   The page used to alternate four grounds (sky, paper, cream, white)
+   with one dark section punched into the middle. That was the cartoon
+   read: a bright poster with a cockpit bolted on. The whole page now
+   lives on the bench, and sections separate by *lightness* instead, one
+   or two points apart. You feel the boundary; you never see a seam.
+
+   Every section still opens the same way: an index, a hairline, a label,
+   then a headline in the left two thirds with the standfirst in the
+   right. That rule does most of the layout work, and it is why the page
+   reads as one document rather than a stack of blocks.
    ===================================================================== */
 
-type Tone = "paper" | "white" | "cream" | "chamber";
+type Tone = "bench" | "raised" | "lit";
 
-const TONE: Record<Tone, { section: string; rule: string; index: string; label: string; title: string; intro: string }> = {
-  paper: {
-    section: "bg-background text-ink",
-    rule: "bg-ink/25",
-    index: "text-coral",
-    label: "text-claw-gray-600",
-    title: "text-ink",
-    intro: "text-claw-gray-600",
-  },
-  white: {
-    section: "bg-white text-ink",
-    rule: "bg-ink/25",
-    index: "text-coral",
-    label: "text-claw-gray-600",
-    title: "text-ink",
-    intro: "text-claw-gray-600",
-  },
-  cream: {
-    section: "bg-cream text-ink",
-    rule: "bg-ink/25",
-    index: "text-coral",
-    label: "text-claw-gray-600",
-    title: "text-ink",
-    intro: "text-claw-gray-600",
-  },
-  chamber: {
-    section: "chamber-ground",
-    rule: "bg-vital/40",
-    index: "text-vital",
-    label: "text-bone-2",
-    title: "text-bone",
-    intro: "text-bone-2",
-  },
+const TONE: Record<Tone, { section: string; rule: string; index: string }> = {
+  // The default ground.
+  bench: { section: "bg-bench", rule: "bg-hair/15", index: "text-act-lit" },
+  // One step up. Used where a section is a specimen tray rather than a
+  // page: companions, roadmap.
+  raised: { section: "bg-bench-2", rule: "bg-hair/15", index: "text-act-lit" },
+  // The loop. The only section where green leads, because it is the only
+  // section about something being alive.
+  lit: { section: "bg-bench", rule: "bg-alive/40", index: "text-alive-lit" },
 };
 
 interface SectionProps {
   id?: string;
-  /** Two-digit index. It is the spine of the document — always supply it. */
+  /** Two-digit index. It is the spine of the document, always supply it. */
   index?: string;
   eyebrow: string;
   title: ReactNode;
@@ -68,21 +49,18 @@ export const Section = ({
   eyebrow,
   title,
   intro,
-  tone = "paper",
+  tone = "bench",
   children,
   className = "",
 }: SectionProps) => {
   const t = TONE[tone];
   return (
-    <section id={id} className={`relative w-full py-fib6 lg:py-fib7 ${t.section} ${className}`}>
+    <section
+      id={id}
+      className={`relative w-full border-t border-hair/[0.06] py-fib6 lg:py-fib7 ${t.section} ${className}`}
+    >
       <div className="mx-auto w-full max-w-6xl px-fib3 sm:px-fib4">
-        <SectionHeader
-          index={index}
-          eyebrow={eyebrow}
-          title={title}
-          intro={intro}
-          tone={tone}
-        />
+        <SectionHeader index={index} eyebrow={eyebrow} title={title} intro={intro} tone={tone} />
         {children}
       </div>
     </section>
@@ -94,7 +72,7 @@ export const SectionHeader = ({
   eyebrow,
   title,
   intro,
-  tone = "paper",
+  tone = "bench",
 }: Pick<SectionProps, "index" | "eyebrow" | "title" | "intro" | "tone">) => {
   const t = TONE[tone];
   return (
@@ -103,7 +81,7 @@ export const SectionHeader = ({
         <div className="flex items-center gap-fib2">
           {index && <span className={`label-mono ${t.index}`}>{index}</span>}
           <span className={`h-px w-fib4 ${t.rule}`} aria-hidden />
-          <span className={`label-mono ${t.label}`}>{eyebrow}</span>
+          <span className="label-mono text-paper-3">{eyebrow}</span>
         </div>
       </Reveal>
 
@@ -111,11 +89,11 @@ export const SectionHeader = ({
           They meet on a baseline, not on a centre line. */}
       <div className="mt-fib3 grid gap-fib3 lg:grid-cols-golden lg:items-end lg:gap-fib5">
         <Reveal delay={0.05}>
-          <h2 className={`font-display text-d2 sm:text-d3 lg:text-d4 ${t.title}`}>{title}</h2>
+          <h2 className="font-display text-d2 text-paper sm:text-d3 lg:text-d4">{title}</h2>
         </Reveal>
         {intro && (
           <Reveal delay={0.12}>
-            <p className={`max-w-[42ch] text-body ${t.intro}`}>{intro}</p>
+            <p className="max-w-[42ch] text-body text-paper-2">{intro}</p>
           </Reveal>
         )}
       </div>
@@ -137,7 +115,7 @@ export const Reveal = ({
     initial={{ opacity: 0, y: 13 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "-60px" }}
-    transition={{ duration: 0.5, delay, ease: [0.2, 0, 0, 1] }}
+    transition={{ duration: 0.5, delay, ease: [0.23, 1, 0.32, 1] }}
   >
     {children}
   </motion.div>
@@ -150,11 +128,11 @@ export const Reveal = ({
  */
 export const Wordmark = ({
   size = "md",
-  tone = "ink",
+  tone = "paper",
   className = "",
 }: {
   size?: "sm" | "md" | "lg";
-  tone?: "ink" | "bone";
+  tone?: "paper" | "bone";
   className?: string;
 }) => {
   const scale = {
@@ -163,20 +141,17 @@ export const Wordmark = ({
     lg: { text: "text-d2 sm:text-d3", mark: "h-[1.05em] w-[1.05em]" },
   }[size];
 
-  const first = tone === "bone" ? "text-bone" : "text-coral";
-  const second = tone === "bone" ? "text-bone-2" : "text-ink";
-
   return (
     <span
-      className={`inline-flex items-center font-display font-black leading-none tracking-[-0.03em] ${scale.text} ${className}`}
+      className={`inline-flex items-center font-display font-extrabold leading-none tracking-[-0.03em] ${scale.text} ${className}`}
       aria-label={BRAND.name}
     >
-      <span className={first}>M</span>
+      <span className="text-paper">M</span>
       {/* The source square is mostly sky. Scaling inside a clipped circle
           crops to the face, which is the only part that survives at
           nav size. */}
       <span
-        className={`${scale.mark} relative mx-[0.04em] inline-block shrink-0 overflow-hidden rounded-full border-2 border-ink bg-sky align-middle`}
+        className={`${scale.mark} relative mx-[0.04em] inline-block shrink-0 overflow-hidden rounded-full border border-hair/20 bg-bench-3 align-middle`}
       >
         <img
           src={monkiiMark}
@@ -185,8 +160,8 @@ export const Wordmark = ({
           className="absolute left-1/2 top-1/2 h-[168%] w-[168%] max-w-none -translate-x-1/2 -translate-y-[46%] object-cover"
         />
       </span>
-      <span className={first}>NKII</span>
-      <span className={`${second} ml-[0.26em]`}>LABS</span>
+      <span className="text-paper">NKII</span>
+      <span className="ml-[0.26em] text-paper-3">LABS</span>
     </span>
   );
 };
@@ -195,22 +170,20 @@ export const Wordmark = ({
 export const Readout = ({
   value,
   label,
-  tone = "ink",
+  tone = "paper",
 }: {
   value: ReactNode;
   label: string;
-  tone?: "ink" | "bone";
+  tone?: "paper" | "alive" | "brass";
 }) => (
   <div>
     <div
-      className={`font-display text-d1 sm:text-d2 ${tone === "bone" ? "text-bone" : "text-ink"}`}
+      className={`font-display text-d1 tabular-nums sm:text-d2 ${
+        tone === "alive" ? "text-alive-lit" : tone === "brass" ? "text-brass" : "text-paper"
+      }`}
     >
       {value}
     </div>
-    <div
-      className={`label-mono mt-fib1 ${tone === "bone" ? "text-bone-3" : "text-claw-gray-600"}`}
-    >
-      {label}
-    </div>
+    <div className="label-mono mt-fib1 text-paper-3">{label}</div>
   </div>
 );

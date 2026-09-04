@@ -4,7 +4,7 @@ export default function AccessibilityPage() {
   return (
     <StaticPageShell title="Accessibility">
       <p>
-        MONKII LABS is designed so that a single, low-effort action — starting a heartbeat — is enough
+        MONKII LABS is designed so that a single, low-effort action, starting a heartbeat, is enough
         to participate fully. We aim to keep that action reachable for everyone.
       </p>
       <p>

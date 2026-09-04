@@ -1,12 +1,22 @@
-import { getInjectedProvider, personalSign } from "@/lib/ethereum";
+import { signMessage } from "wagmi/actions";
+
+import { wagmiConfig } from "@/lib/wagmi";
 
 /**
  * Wallet-signed financial authorizations.
  *
- * Every balance-altering action — claims, withdrawals, staking, unstaking —
- * carries an explicit personal_sign over a structured message, so the server
+ * Every balance-altering action (claims, withdrawals, staking, unstaking)
+ * carries an explicit signature over a structured message, so the server
  * can prove the user authorised that exact amount at that exact moment. It
  * costs no gas and broadcasts no transaction.
+ *
+ * Signing goes through the wagmi connector rather than `window.ethereum`.
+ * That distinction matters: the injected provider only exists for browser
+ * extensions, so the previous implementation silently failed for anyone
+ * who connected over WalletConnect or from a mobile wallet's in-app
+ * browser: they could sign in, then find every stake and withdrawal
+ * throwing "No wallet detected". Routing through the connector makes all
+ * of RainbowKit's wallets work identically.
  *
  * The message shape is fixed by the API contract; do not reorder the lines.
  */
@@ -73,11 +83,6 @@ export async function signFinancialAction(
   action: FinancialAction,
   amount?: number,
 ): Promise<SignedAuthorization> {
-  const provider = getInjectedProvider();
-  if (!provider) {
-    throw new Error("No wallet detected. Connect a wallet to authorize this action.");
-  }
-
   const nonce = randomNonce();
   const timestamp = Date.now();
   const message = buildAuthorizationMessage({
@@ -88,6 +93,10 @@ export async function signFinancialAction(
     timestamp,
   });
 
-  const signature = await personalSign(provider, walletAddress, message);
+  const signature = await signMessage(wagmiConfig, {
+    message,
+    account: walletAddress as `0x${string}`,
+  });
+
   return { signature, nonce, timestamp };
 }

@@ -44,7 +44,7 @@ const HomeInner = () => {
             tone="vital"
           />
           <Stat
-            value={data?.powerRank ? `#${data.powerRank}` : "—"}
+            value={data?.powerRank ? `#${data.powerRank}` : "-"}
             label="Fleet Rank"
             tone="coral"
           />
@@ -58,7 +58,7 @@ const HomeInner = () => {
           hint="Disbursed on Robinhood Chain via gasless cryptographic authorization."
         />
         <div className="grid gap-4 p-5 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-hair/10 bg-hair/[0.05] p-4">
             <Stat
               value={fmt(balances?.claimableMonki, 1)}
               label={`${BRAND.rewardToken} Compute Accrual`}
@@ -67,14 +67,14 @@ const HomeInner = () => {
               type="button"
               disabled={claim.isPending || !balances?.claimableMonki}
               onClick={() => claim.mutate("monki")}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white/20 active:scale-[0.98] disabled:opacity-40"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-hair/10 bg-hair/10 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-all hover:bg-hair/20 active:scale-[0.98] disabled:opacity-40"
             >
-              <Zap className="h-3.5 w-3.5 text-emerald-400" />
+              <Zap className="h-3.5 w-3.5 text-alive-lit" />
               Settle {BRAND.rewardToken}
             </button>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-hair/10 bg-hair/[0.05] p-4">
             <Stat
               value={fmt(balances?.claimablePons, 2)}
               label={`${BRAND.valueToken} Yield Payout`}
@@ -84,7 +84,7 @@ const HomeInner = () => {
               type="button"
               disabled={claim.isPending || !balances?.claimablePons}
               onClick={() => claim.mutate("pons")}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-40"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-act py-2.5 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
             >
               <Coins className="h-3.5 w-3.5" />
               Claim {BRAND.valueToken} on L2
@@ -93,7 +93,7 @@ const HomeInner = () => {
         </div>
 
         {(balances?.claimableMetaStock ?? 0) > 0 && (
-          <div className="border-t border-white/10 p-5">
+          <div className="border-t border-hair/10 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Stat
                 value={fmt(balances?.claimableMetaStock, 4)}
@@ -103,7 +103,7 @@ const HomeInner = () => {
                 type="button"
                 disabled={claim.isPending}
                 onClick={() => claim.mutate("meta")}
-                className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-emerald-300 transition-all hover:bg-emerald-500/25 active:scale-[0.98] disabled:opacity-40"
+                className="rounded-xl border border-alive/30 bg-alive/15 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-alive-lit transition-all hover:bg-alive/25 active:scale-[0.98] disabled:opacity-40"
               >
                 Claim {BRAND.stockToken}
               </button>
@@ -119,7 +119,7 @@ const HomeInner = () => {
           action={
             <Link
               to="/dashboard/agents"
-              className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-emerald-400 hover:text-emerald-300"
+              className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-alive-lit hover:text-alive-lit"
             >
               Browse Fleet <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -133,7 +133,7 @@ const HomeInner = () => {
               action={
                 <Link
                   to="/dashboard/agents"
-                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-emerald-400"
+                  className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit"
                 >
                   <Heart className="h-3.5 w-3.5" />
                   Explore Fleet
@@ -154,20 +154,20 @@ const HomeInner = () => {
       {activity.length > 0 && (
         <Panel>
           <PanelHeader title="Recent Proof-of-Life Telemetry Activity" />
-          <ul className="divide-y divide-white/5 px-5">
+          <ul className="divide-y divide-hair/[0.05] px-5">
             {activity.slice(0, 8).map((entry) => (
               <li key={entry.id} className="flex items-center justify-between gap-4 py-3 text-xs">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-white">
+                  <p className="truncate font-medium text-paper">
                     {entry.message ?? entry.type}
                   </p>
-                  <p className="text-slate-400">
+                  <p className="text-paper-3">
                     {entry.agentName ? `${entry.agentName} · ` : ""}
                     {timeAgo(entry.createdAt)}
                   </p>
                 </div>
                 {entry.amount != null && (
-                  <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-emerald-400">
+                  <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-alive-lit">
                     +{fmt(entry.amount, 2)}
                   </span>
                 )}

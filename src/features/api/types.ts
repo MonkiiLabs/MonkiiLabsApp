@@ -1,6 +1,6 @@
 /**
  * Wire types for the Monkii Labs API.
- * Field names mirror the integration guide exactly — do not rename them
+ * Field names mirror the integration guide exactly: do not rename them
  * here; map to friendlier names at the component boundary instead.
  */
 

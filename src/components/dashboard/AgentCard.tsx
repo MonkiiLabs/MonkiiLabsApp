@@ -15,23 +15,23 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
   const starred = isStarred(agent.id);
 
   return (
-    <article className="group relative flex h-full flex-col rounded-2xl border border-white/10 bg-[#111713]/90 p-4 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/30 hover:bg-[#141b16] hover:shadow-xl hover:shadow-black/50">
+    <article className="group relative flex h-full flex-col rounded-xl border border-hair/9 bg-bench-2 p-fib3 transition-colors duration-200 hover:border-hair/18 hover:bg-bench-3">
       <div className="flex items-start justify-between gap-3">
         <Link to={`/dashboard/agents/${agent.id}`} className="flex items-start gap-3 min-w-0 flex-1">
           <img
             src={agent.avatarUrl ?? monkiiMark}
             alt={agent.name}
             loading="lazy"
-            className="h-11 w-11 shrink-0 rounded-xl border border-white/15 bg-white/5 object-cover"
+            className="h-11 w-11 shrink-0 rounded-xl border border-hair/15 bg-hair/[0.05] object-cover"
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h3 className="truncate font-display text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+              <h3 className="truncate font-display text-base font-bold text-paper group-hover:text-alive-lit transition-colors">
                 {agent.name}
               </h3>
-              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-400" />
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-paper-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-alive-lit" />
             </div>
-            <p className="mt-0.5 truncate font-mono text-[11px] text-slate-400">
+            <p className="mt-0.5 truncate font-mono text-[11px] text-paper-3">
               {agent.xHandle ? `@${agent.xHandle}` : agent.category}
             </p>
           </div>
@@ -48,16 +48,16 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
           }}
           className={`grid h-8 w-8 place-items-center rounded-lg border transition-all ${
             starred
-              ? "border-amber-400/50 bg-amber-400/15 text-amber-300"
-              : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+              ? "border-idle/50 bg-idle/15 text-idle"
+              : "border-hair/10 bg-hair/[0.05] text-paper-3 hover:border-hair/20 hover:text-paper"
           }`}
         >
-          <Star className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : ""}`} />
+          <Star className={`h-4 w-4 ${starred ? "fill-idle text-idle" : ""}`} />
         </button>
       </div>
 
       {!compact && agent.description && (
-        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-400">
+        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-paper-3">
           {agent.description}
         </p>
       )}
@@ -65,7 +65,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
       <div className="mt-4">
         <div className="mb-2 flex items-center justify-between">
           <StateChip state={agent.state} />
-          <span className="font-mono text-[11px] font-semibold text-slate-400">
+          <span className="font-mono text-[11px] font-semibold text-paper-3">
             {Math.round(agent.power)} pw
           </span>
         </div>
@@ -78,15 +78,15 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
         />
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/5 pt-3 text-xs text-slate-400">
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-hair/[0.05] pt-3 text-xs text-paper-3">
         <span className="inline-flex items-center gap-1.5 font-mono text-[11px]">
-          <Users className="h-3.5 w-3.5 text-slate-500" />
+          <Users className="h-3.5 w-3.5 text-paper-4" />
           {fmt(agent.nurturerCount)} nurturers
         </span>
 
         <Link
           to={`/dashboard/agents/${agent.id}`}
-          className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-400 transition-all hover:border-emerald-400/40 hover:bg-emerald-500/20"
+          className="inline-flex items-center gap-1 rounded-lg border border-alive/20 bg-alive/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-alive-lit transition-all hover:border-alive-lit/40 hover:bg-alive/20"
         >
           <Heart className="h-3 w-3" />
           <span>Nurture</span>

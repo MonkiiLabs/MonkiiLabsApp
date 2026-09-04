@@ -18,7 +18,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
  *
  * The ground alternates paper / chamber / cream / white deliberately.
  * The single dark section is the Activation Chamber at 02, which lands
- * around the first third of the scroll — the page applies the rule of
+ * around the first third of the scroll: the page applies the rule of
  * thirds to its own length, not just to its layouts.
  */
 const Index = () => (

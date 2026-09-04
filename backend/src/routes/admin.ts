@@ -33,7 +33,7 @@ adminRouter.post(
 
     await pool.query(
       `INSERT INTO users (wallet_address, address)
-       VALUES ($1, $1)
+       VALUES ($1::text, $1::text)
        ON CONFLICT (wallet_address) DO NOTHING`,
       [body.recipientAddress],
     );

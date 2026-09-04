@@ -15,7 +15,10 @@ const SECTIONS = [
 ];
 
 /**
- * Modern floating glass navigation bar.
+ * The nav rail. It sits on the bench rather than floating above a
+ * different world, so it takes a hairline and one lightness step, no
+ * ring, no lift, no coloured border on scroll. The only thing that
+ * changes when you scroll is that the hairline appears.
  */
 const LandingNavbar = () => {
   const [open, setOpen] = useState(false);
@@ -38,13 +41,11 @@ const LandingNavbar = () => {
   return (
     <div className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6">
       <nav
-        className={`mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-2xl border bg-[#0a0e0b]/85 px-4 py-2.5 backdrop-blur-xl transition-all duration-200 ${
-          lifted
-            ? "border-emerald-500/30 shadow-2xl shadow-black/80"
-            : "border-white/10 shadow-lg shadow-black/40"
+        className={`mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-xl border bg-bench/85 px-fib2 py-2 backdrop-blur-xl transition-colors duration-200 ${
+          lifted ? "border-hair/12" : "border-transparent"
         }`}
       >
-        <Link to="/" className="shrink-0 transition-opacity hover:opacity-90" aria-label="Monkii Labs — home">
+        <Link to="/" className="shrink-0 transition-opacity hover:opacity-90" aria-label="Monkii Labs home">
           <Wordmark size="sm" />
         </Link>
 
@@ -55,7 +56,7 @@ const LandingNavbar = () => {
               key={s.id}
               type="button"
               onClick={() => scrollTo(s.id)}
-              className="font-mono text-xs font-medium uppercase tracking-wider text-slate-300 transition-colors hover:text-emerald-400"
+              className="label-mono text-paper-3 transition-colors hover:text-paper"
             >
               {s.label}
             </button>
@@ -66,9 +67,9 @@ const LandingNavbar = () => {
         <div className="flex items-center gap-3">
           <Link
             to="/dashboard"
-            className="hidden items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-xs font-semibold text-slate-200 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white sm:inline-flex"
+            className="act-quiet hidden h-9 items-center gap-1.5 px-fib3 font-mono text-micro font-semibold uppercase tracking-[0.16em] text-paper-2 sm:inline-flex"
           >
-            <LayoutDashboard className="h-3.5 w-3.5 text-emerald-400" />
+            <LayoutDashboard className="h-3.5 w-3.5 text-paper-3" />
             <span>Launch Cockpit</span>
           </Link>
 
@@ -80,37 +81,37 @@ const LandingNavbar = () => {
               <button
                 type="button"
                 aria-label="Open menu"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-300 lg:hidden"
+                className="act-quiet grid h-9 w-9 place-items-center text-paper-2 lg:hidden"
               >
                 <Menu className="h-4 w-4" />
               </button>
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[min(20rem,86vw)] border-l border-white/15 bg-[#0a0e0b] p-0 text-white"
+              className="w-[min(20rem,86vw)] border-l border-hair/10 bg-bench-2 p-0 text-paper"
             >
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <div className="flex items-center justify-between border-b border-white/10 p-4">
+              <div className="flex items-center justify-between border-b border-hair/10 p-fib3">
                 <Wordmark size="sm" />
                 <button
                   type="button"
                   aria-label="Close menu"
                   onClick={() => setOpen(false)}
-                  className="grid h-8 w-8 place-items-center rounded-xl border border-white/10 text-slate-400"
+                  className="grid h-9 w-9 place-items-center rounded-md border border-hair/10 text-paper-3"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <nav className="flex flex-col p-4">
+              <nav className="flex flex-col p-fib3">
                 {SECTIONS.map((s, i) => (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => scrollTo(s.id)}
-                    className="flex items-baseline gap-3 border-b border-white/5 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-slate-300 hover:text-emerald-400"
+                    className="flex items-baseline gap-fib2 border-b border-hair/[0.07] py-fib2 text-left label-mono text-paper-2 hover:text-paper"
                   >
-                    <span className="text-emerald-400">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="text-paper-4">{String(i + 1).padStart(2, "0")}</span>
                     <span>{s.label}</span>
                   </button>
                 ))}
@@ -118,7 +119,7 @@ const LandingNavbar = () => {
                 <Link
                   to="/dashboard"
                   onClick={() => setOpen(false)}
-                  className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 font-mono text-xs font-bold uppercase tracking-wider text-black hover:bg-emerald-400"
+                  className="act mt-fib4 flex h-11 items-center justify-center gap-2 font-mono text-micro font-semibold uppercase tracking-[0.16em]"
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   Launch Cockpit

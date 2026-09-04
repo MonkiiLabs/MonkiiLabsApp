@@ -3,8 +3,6 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import DashHeader from "@/components/dashboard/DashHeader";
 import DashSidebar from "@/components/dashboard/DashSidebar";
 import EpochCard from "@/components/dashboard/EpochCard";
-import WalletConnectModal from "@/components/WalletConnectModal";
-import { useWallet } from "@/hooks/useWallet";
 
 import HomePage from "@/pages/dashboard/HomePage";
 import AgentsPage from "@/pages/dashboard/AgentsPage";
@@ -21,7 +19,6 @@ import ProfilePage from "@/pages/dashboard/ProfilePage";
  */
 const Dashboard = () => {
   const location = useLocation();
-  const { showConnectModal, setShowConnectModal, connect } = useWallet();
 
   const wide =
     location.pathname.startsWith("/dashboard/staking") ||
@@ -29,17 +26,9 @@ const Dashboard = () => {
     location.pathname.startsWith("/dashboard/companions");
 
   return (
-    <div className="min-h-screen bg-[#080c09] text-slate-100 relative selection:bg-emerald-500 selection:text-black">
+    <div className="relative min-h-screen bg-bench text-paper">
       {/* High-tech telemetry grid and ambient atmosphere */}
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_80%_at_50%_-10%,rgba(0,200,5,0.08),rgba(0,0,0,0))] opacity-80" />
-      <div
-        className="pointer-events-none fixed inset-0 -z-10 opacity-15"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
-          backgroundSize: "36px 36px",
-        }}
-      />
+      <div className="grain-lit pointer-events-none fixed inset-0 -z-10" />
 
       <DashHeader />
 
@@ -73,12 +62,6 @@ const Dashboard = () => {
           )}
         </div>
       </main>
-
-      <WalletConnectModal
-        open={showConnectModal}
-        onOpenChange={setShowConnectModal}
-        onConnect={connect}
-      />
     </div>
   );
 };
