@@ -1,78 +1,49 @@
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
-
-import { BRAND, monkiiMark } from "@/lib/brand";
-import { Reveal } from "@/components/landing/Section";
-import { VitalTrace } from "@/components/landing/VitalTrace";
-
-/* =====================================================================
-   Close.
-
-   The bookend to the hero, and the trace's last placement. The page
-   opened on a thriving trace and it closes on one: the argument in
-   between is what happens if nobody keeps it running.
-
-   Centred here, and only here. The whole page has been asymmetric, so
-   symmetry reads as arrival rather than as the default.
-   ===================================================================== */
+import { BRAND } from "@/lib/brand";
 
 const CTA = () => (
-  <section id="cta" className="lamp relative overflow-hidden border-t border-hair/[0.06] bg-bench py-fib6 lg:py-fib7">
-    <div className="relative mx-auto w-full max-w-3xl px-fib3 text-center sm:px-fib4">
-      <Reveal>
-        <img
-          src={monkiiMark}
-          alt=""
-          aria-hidden
-          className="mx-auto h-fib6 w-fib6 rounded-full border border-hair/13 object-cover"
-        />
-      </Reveal>
-
-      <Reveal delay={0.06}>
-        <h2 className="mt-fib4 font-display text-d3 text-paper sm:text-d4">
-          An agent is waiting
-          <br className="hidden sm:block" /> on somebody. Be somebody.
-        </h2>
-      </Reveal>
-
-      <Reveal delay={0.14}>
-        <p className="mx-auto mt-fib3 max-w-[46ch] text-lead text-paper-2">
-          Connect a wallet, start a heartbeat, and keep something alive that would
-          otherwise go quiet.
-        </p>
-      </Reveal>
-
-      <Reveal delay={0.22}>
-        <div className="mt-fib4 flex flex-wrap items-center justify-center gap-fib2">
-          <Link
-            to="/dashboard"
-            className="act group inline-flex h-11 items-center gap-2 px-fib4 text-label font-semibold"
-          >
-            Enter the lab
-            <ArrowUpRight
-              className="h-4 w-4 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              strokeWidth={2}
-            />
-          </Link>
-          <Link
-            to="/about"
-            className="act-quiet inline-flex h-11 items-center gap-2 px-fib4 text-label font-semibold"
-          >
-            Read the brief
-          </Link>
-        </div>
-      </Reveal>
-
-      <Reveal delay={0.3}>
-        <p className="label-mono mt-fib4 text-paper-4">
-          {BRAND.rewardToken} is a compute receipt, not an investment.
-        </p>
-      </Reveal>
-    </div>
-
-    <div className="mt-fib5">
-      <VitalTrace variant="rule" state="thriving" live className="h-10 w-full" />
-    </div>
+  <section className="w-full px-4 sm:px-6 py-16 sm:py-24 bg-cream">
+    <motion.div
+      className="max-w-4xl mx-auto rounded-3xl border-2 border-dashboard-border bg-white p-8 sm:p-14 text-center shadow-playful-lg"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="text-5xl sm:text-6xl mb-5"
+        animate={{ y: [0, -10, 0], rotate: [0, 4, -4, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        🐒
+      </motion.div>
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-claw-charcoal mb-4">
+        An agent is fading right now.
+      </h2>
+      <p className="text-sm sm:text-base md:text-lg text-claw-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+        Open the dashboard, pick an agent, and start a heartbeat. You'll see its power meter climb in
+        seconds — and start accruing {BRAND.rewardToken} while you do.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+        <Button
+          size="lg"
+          className="rounded-full bg-coral hover:bg-coral-dark text-white font-bold px-8 py-6 shadow-coral"
+          asChild
+        >
+          <Link to="/dashboard">🫀 Start a heartbeat</Link>
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="rounded-full border-2 border-sky bg-sky/10 text-sky-dark hover:bg-sky hover:text-white font-bold px-8 py-6"
+          asChild
+        >
+          <Link to="/dashboard/companions">🍌 See Companions</Link>
+        </Button>
+      </div>
+    </motion.div>
   </section>
 );
 

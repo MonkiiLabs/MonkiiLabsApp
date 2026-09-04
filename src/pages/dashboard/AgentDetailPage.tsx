@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
-  Cpu,
   Heart,
   Share2,
   Square,
@@ -38,6 +37,7 @@ import {
   fmt,
 } from "@/components/dashboard/primitives";
 import { BRAND, monkiiMark } from "@/lib/brand";
+import { AGENT_POWER_MAX } from "@/lib/config";
 
 const INTENSITIES: Array<{ value: Intensity; label: string; blurb: string }> = [
   { value: "light", label: "Light", blurb: "Low CPU/GPU overhead" },
@@ -104,7 +104,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
   const { agent, companionBuffs } = data;
   const power = nurture.power ?? agent.power;
   const state = nurture.state ?? agent.state;
-  const max = agent.healthyThreshold || agent.power || 1;
+  const max = AGENT_POWER_MAX;
 
   const equipped = companionBuffs?.companions ?? [];
   const freeSlots = MAX_SLOTS - equipped.length;
@@ -137,22 +137,18 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
       <Panel raised>
         <div className="flex flex-wrap items-start justify-between gap-4 p-5">
           <div className="flex items-start gap-4 min-w-0 flex-1">
-            <div className="relative">
-              <img
-                src={agent.avatarUrl ?? monkiiMark}
-                alt={agent.name}
-                className="h-16 w-16 shrink-0 rounded-2xl border border-hair/15 bg-hair/[0.05] object-cover"
-              />
-              <span className="absolute -bottom-1 -right-1">
-                <StateChip state={state} />
-              </span>
-            </div>
+            <img
+              src={agent.avatarUrl ?? monkiiMark}
+              alt={agent.name}
+              className="h-16 w-16 shrink-0 rounded-2xl border border-hair/15 bg-hair/[0.05] object-cover"
+            />
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="font-display text-2xl font-bold tracking-tight text-paper sm:text-3xl">
                   {agent.name}
                 </h1>
+                <StateChip state={state} />
                 {agent.xHandle && (
                   <a
                     href={`https://x.com/${agent.xHandle}`}
@@ -207,7 +203,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
         {/* Telemetry Metrics */}
         <div className="grid grid-cols-3 gap-4 border-t border-hair/10 p-5 text-center sm:text-left">
           <Stat value={fmt(agent.nurturerCount)} label="Nurturers" />
-          <Stat value={`−${fmt(agent.powerDecayRate, 1)}/m`} label="Power Decay" tone="coral" />
+          <Stat value={`−${fmt(agent.powerDecayRate, 1)}/h`} label="Power Decay" tone="coral" />
           <Stat
             value={`+${fmt(companionBuffs?.totalBonusEarnPct ?? 0, 0)}%`}
             label="Companion Buff"
@@ -217,7 +213,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
       </Panel>
 
       {/* Proof-of-Life Activation Chamber Console */}
-      <section className="overflow-hidden rounded-2xl border border-alive/30 bg-bench backdrop-blur-md">
+      <section className="overflow-hidden rounded-2xl border border-alive/30 bg-white shadow-playful">
         <header className="flex items-center justify-between border-b border-alive/20 px-5 py-3.5">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -304,7 +300,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                     title={opt.blurb}
                     className={`rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-all disabled:opacity-40 ${
                       intensity === opt.value
-                        ? "bg-act text-paper"
+                        ? "bg-act text-white"
                         : "text-paper-3 hover:text-paper"
                     }`}
                   >
@@ -329,7 +325,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             className={`mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-xl py-3 text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.99] disabled:opacity-50 ${
               nurture.isRunning
                 ? "border border-act/40 bg-act/15 text-act-lit hover:bg-act/25"
-                : "bg-act text-paper hover:bg-act-lit"
+                : "bg-act text-white hover:bg-act-lit"
             }`}
           >
             {nurture.isRunning ? (
@@ -343,10 +339,6 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             )}
           </button>
 
-          <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[11px] text-paper-4">
-            <Cpu className="h-3.5 w-3.5 text-paper-4" />
-            Runs client-side in a Web Worker · Zero UI blocking · Auto-pauses on background tab
-          </p>
           {nurture.error && <p className="mt-2 text-center text-xs text-act-lit">{nurture.error}</p>}
         </div>
       </section>

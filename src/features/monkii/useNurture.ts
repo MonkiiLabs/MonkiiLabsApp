@@ -4,6 +4,8 @@ import { toast } from "sonner";
 
 import { sessions } from "@/features/api/endpoints";
 import { describeError, qk } from "@/features/api/hooks";
+import { ApiError } from "@/lib/api";
+import { HEARTBEAT_MIN_INTERVAL_SECONDS } from "@/lib/config";
 import type { AgentState, Challenge, Intensity } from "@/features/api/types";
 import type { PowRequest, PowResponse } from "@/workers/pow.worker";
 
@@ -15,6 +17,22 @@ import type { PowRequest, PowResponse } from "@/workers/pow.worker";
    grind again. The worker lives off the main thread, and the loop is
    driven by refs rather than state so a re-render never restarts a grind
    or double-submits a solution.
+
+   PACING. The server rejects two heartbeats from one session inside
+   HEARTBEAT_MIN_INTERVAL_SECONDS with 429 `too_fast`. A quick machine
+   solves a low-difficulty challenge in well under a second, so without
+   pacing the loop sprints straight into that limiter, and the old code
+   treated the 429 like any other rejection: toast, and stop the session.
+   The effect was that the faster your CPU, the sooner nurturing died.
+
+   Two things prevent it now. Before submitting, the loop waits out
+   whatever is left of the interval since the last accepted heartbeat. If
+   a 429 still comes back (clock skew, a longer server-side interval, a
+   retried request), it is treated as back-pressure rather than failure:
+   the loop sleeps for the server's own retryAfterSeconds and resubmits
+   the same solution, which is still valid because the rate-limit check
+   runs before the challenge is consumed. The interval the server reports
+   is remembered, so the loop self-corrects to the real configured value.
    ===================================================================== */
 
 export interface NurtureStats {
@@ -37,7 +55,43 @@ const EMPTY_STATS: NurtureStats = {
   companionBuffPct: 0,
 };
 
-export type NurturePhase = "idle" | "starting" | "solving" | "submitting" | "stopping";
+export type NurturePhase =
+  | "idle"
+  | "starting"
+  | "solving"
+  | "submitting"
+  /** Solved, holding for the server's minimum gap before submitting. */
+  | "pacing"
+  | "stopping";
+
+/** Resolves after `ms`, or early if `abort` flips false. Never rejects. */
+function sleep(ms: number, abort: () => boolean): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    const step = 100;
+    let waited = 0;
+    const id = window.setInterval(() => {
+      waited += step;
+      if (waited >= ms || abort()) {
+        window.clearInterval(id);
+        resolve();
+      }
+    }, step);
+  });
+}
+
+/**
+ * A 429 from the heartbeat endpoint, carrying the server's own wait.
+ * Anything else, including a 429 without the `too_fast` code, is a real
+ * failure and is left for the caller to surface.
+ */
+function readTooFast(err: unknown): { retryAfterSeconds: number } | null {
+  if (!(err instanceof ApiError) || err.status !== 429) return null;
+  const body = err.body as { error?: string; retryAfterSeconds?: number } | undefined;
+  if (body?.error !== "too_fast") return null;
+  const wait = Number(body.retryAfterSeconds);
+  return { retryAfterSeconds: Number.isFinite(wait) && wait > 0 ? wait : 1 };
+}
 
 export function useNurture(agentId: string | undefined) {
   const qc = useQueryClient();
@@ -53,6 +107,10 @@ export function useNurture(agentId: string | undefined) {
   const sessionRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const currentSeedRef = useRef<string | null>(null);
+  /** Epoch ms of the last accepted heartbeat, for pacing the next one. */
+  const lastAcceptedRef = useRef(0);
+  /** Server's minimum gap, in seconds. Corrected by any 429 we receive. */
+  const minIntervalRef = useRef(HEARTBEAT_MIN_INTERVAL_SECONDS);
 
   const isRunning = phase !== "idle";
 
@@ -110,6 +168,7 @@ export function useNurture(agentId: string | undefined) {
       setStats(EMPTY_STATS);
       setPhase("starting");
       runningRef.current = true;
+      lastAcceptedRef.current = 0;
 
       try {
         const session = await sessions.start(agentId, intensity);
@@ -135,13 +194,51 @@ export function useNurture(agentId: string | undefined) {
           // A solution for a challenge we have already moved past is stale.
           if (msg.seed !== currentSeedRef.current) return;
 
-          setPhase("submitting");
           try {
             const sessionId = sessionRef.current;
             if (sessionId == null) return;
 
-            const result = await sessions.heartbeat(sessionId, msg.seed, msg.nonce);
+            // Wait out whatever is left of the server's minimum gap. On the
+            // first heartbeat of a session there is nothing to wait for.
+            const sinceLast = Date.now() - lastAcceptedRef.current;
+            const gapMs = minIntervalRef.current * 1000;
+            if (lastAcceptedRef.current > 0 && sinceLast < gapMs) {
+              setPhase("pacing");
+              await sleep(gapMs - sinceLast, () => !runningRef.current);
+              if (!runningRef.current) return;
+            }
+
+            setPhase("submitting");
+
+            // The rate-limit check runs before the challenge is consumed, so
+            // a rejected solution is still a valid solution: on `too_fast`
+            // we sleep and resubmit the same nonce rather than discarding
+            // the work and killing the session.
+            let result = null as Awaited<ReturnType<typeof sessions.heartbeat>> | null;
+            for (let attempt = 0; attempt < 4 && result === null; attempt += 1) {
+              try {
+                result = await sessions.heartbeat(sessionId, msg.seed, msg.nonce);
+              } catch (err) {
+                const tooFast = readTooFast(err);
+                if (!tooFast) throw err;
+
+                // Trust the server over our own configured guess.
+                minIntervalRef.current = Math.max(
+                  minIntervalRef.current,
+                  tooFast.retryAfterSeconds,
+                );
+                setPhase("pacing");
+                await sleep(tooFast.retryAfterSeconds * 1000 + 250, () => !runningRef.current);
+                if (!runningRef.current) return;
+                setPhase("submitting");
+              }
+            }
             if (!runningRef.current) return;
+            if (result === null) {
+              throw new Error("The server kept asking us to slow down. Try again in a moment.");
+            }
+
+            lastAcceptedRef.current = Date.now();
 
             setStats((s) => ({
               heartbeats: s.heartbeats + 1,

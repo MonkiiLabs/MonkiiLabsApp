@@ -26,18 +26,18 @@ export function NotificationsBell() {
         >
           <Bell className="h-4 w-4" />
           {urgentCount > 0 ? (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-act px-1 text-[9px] font-bold text-paper ring-2 ring-[#0c100d] animate-pulse">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-act px-1 text-[9px] font-bold text-white ring-2 ring-white animate-pulse">
               {urgentCount}
             </span>
           ) : totalAlerts > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-idle ring-2 ring-[#0c100d]" />
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-idle ring-2 ring-white" />
           ) : null}
         </button>
       </PopoverTrigger>
 
       <PopoverContent
         align="end"
-        className="w-80 rounded-2xl border border-hair/15 bg-[#0f1410]/95 p-0 text-paper backdrop-blur-xl"
+        className="w-80 rounded-2xl border border-hair/15 bg-white/95 p-0 text-paper backdrop-blur-xl shadow-playful-lg"
       >
         <div className="flex items-center justify-between border-b border-hair/10 px-4 py-3">
           <div className="flex items-center gap-2">

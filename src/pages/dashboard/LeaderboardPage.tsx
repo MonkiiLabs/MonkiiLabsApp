@@ -58,8 +58,6 @@ const LeaderboardPage = () => {
   return (
     <>
       <PageTitle
-        index="04"
-        eyebrow="Fleet Standings"
         title="Leaderboard & High-Power Telemetry"
         intro="Recognizing the top distributed compute nodes sustaining the autonomous agent ecosystem on Robinhood Chain."
       />

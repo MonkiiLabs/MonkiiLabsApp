@@ -18,48 +18,42 @@ export default {
       },
     },
     extend: {
-      // Tailwind's stock opacity scale jumps 5 / 10 / 20 / 25, which is far
-      // too coarse for a hairline system: the difference between a border
-      // at 9% and one at 13% is the difference between a surface you feel
-      // and one you see. Anything off the scale emits no rule at all, so
-      // the whole integer range is defined here rather than scattering
-      // arbitrary-value syntax across every component.
-      opacity: Object.fromEntries(
-        Array.from({ length: 101 }, (_, i) => [String(i), String(i / 100)]),
-      ),
+      // Nunito everywhere. The display/mono split belonged to the dark
+      // instrument look; here even the "mono" slot is Nunito so a stale
+      // font-mono on a wallet address or a gauge label still reads as
+      // part of the same round, friendly face. Tabular figures come from
+      // font-variant-numeric (see .tabular in index.css) rather than
+      // from swapping in a monospace family.
       fontFamily: {
-        sans: ["Instrument Sans", "system-ui", "sans-serif"],
-        display: ["Bricolage Grotesque", "Instrument Sans", "system-ui", "sans-serif"],
-        mono: ["IBM Plex Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        sans: ["Nunito", "system-ui", "sans-serif"],
+        display: ["Nunito", "system-ui", "sans-serif"],
+        mono: ["Nunito", "system-ui", "sans-serif"],
       },
-      // Type ladder on phi (1.618). 10 / 16 / 26 / 42 / 69 / 111 are exact
-      // phi steps; 13 / 21 / 33 / 54 / 87 fill between them at sqrt(phi).
-      // Running text is set at golden leading (1.618); display is set tight.
+      // Kept from the previous build: this is measure, not identity, and
+      // the dashboard layouts are built on it. Only leading is loosened,
+      // because Nunito is rounder and wants more air than a grotesk.
       fontSize: {
-        micro: ["0.625rem", { lineHeight: "1.4", letterSpacing: "0.24em" }],
-        label: ["0.8125rem", { lineHeight: "1.5", letterSpacing: "0.005em" }],
-        body: ["1rem", { lineHeight: "1.618" }],
-        lead: ["1.3125rem", { lineHeight: "1.5", letterSpacing: "-0.008em" }],
-        d1: ["1.625rem", { lineHeight: "1.12", letterSpacing: "-0.018em" }],
-        d2: ["2.0625rem", { lineHeight: "1.04", letterSpacing: "-0.022em" }],
-        d3: ["2.625rem", { lineHeight: "1", letterSpacing: "-0.026em" }],
-        d4: ["3.375rem", { lineHeight: "0.98", letterSpacing: "-0.028em" }],
-        d5: ["4.3125rem", { lineHeight: "0.96", letterSpacing: "-0.03em" }],
-        d6: ["5.4375rem", { lineHeight: "0.94", letterSpacing: "-0.032em" }],
-        d7: ["6.9375rem", { lineHeight: "0.92", letterSpacing: "-0.034em" }],
+        micro: ["0.6875rem", { lineHeight: "1.4", letterSpacing: "0.12em" }],
+        label: ["0.8125rem", { lineHeight: "1.5" }],
+        body: ["1rem", { lineHeight: "1.65" }],
+        lead: ["1.3125rem", { lineHeight: "1.55" }],
+        d1: ["1.625rem", { lineHeight: "1.2", letterSpacing: "-0.015em" }],
+        d2: ["2.0625rem", { lineHeight: "1.15", letterSpacing: "-0.018em" }],
+        d3: ["2.625rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
+        d4: ["3.375rem", { lineHeight: "1.08", letterSpacing: "-0.022em" }],
+        d5: ["4.3125rem", { lineHeight: "1.05", letterSpacing: "-0.024em" }],
+        d6: ["5.4375rem", { lineHeight: "1.02", letterSpacing: "-0.026em" }],
+        d7: ["6.9375rem", { lineHeight: "1", letterSpacing: "-0.028em" }],
       },
-      // Fibonacci rhythm — it converges on phi, so the vertical spacing
-      // and the type scale share one ratio.
       spacing: {
-        fib1: "0.5rem",    /*   8 */
-        fib2: "0.8125rem", /*  13 */
-        fib3: "1.3125rem", /*  21 */
-        fib4: "2.125rem",  /*  34 */
-        fib5: "3.4375rem", /*  55 */
-        fib6: "5.5625rem", /*  89 */
-        fib7: "9rem",      /* 144 */
+        fib1: "0.5rem",
+        fib2: "0.8125rem",
+        fib3: "1.3125rem",
+        fib4: "2.125rem",
+        fib5: "3.4375rem",
+        fib6: "5.5625rem",
+        fib7: "9rem",
       },
-      // The golden section, for two-column splits that are never 50/50.
       gridTemplateColumns: {
         golden: "1.618fr 1fr",
         "golden-flip": "1fr 1.618fr",
@@ -68,10 +62,13 @@ export default {
         major: "61.8%",
         minor: "38.2%",
       },
+      // The full integer opacity range stays: the dashboard uses
+      // border-hair/9, /13, /16 and friends, and anything off Tailwind's
+      // stock 5/10/20/25 scale would emit no rule at all.
+      opacity: Object.fromEntries(
+        Array.from({ length: 101 }, (_, i) => [String(i), String(i / 100)]),
+      ),
       colors: {
-        // Borders are consumed through an alpha — border-hair/11, never
-        // a solid keyline.
-        hair: "hsl(var(--hair))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -106,47 +103,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
 
-        /* ---- The bench: four surfaces, warm graphite --------------- */
-        bench: {
-          DEFAULT: "hsl(var(--bench))",
-          2: "hsl(var(--bench-2))",
-          3: "hsl(var(--bench-3))",
-          4: "hsl(var(--bench-4))",
-        },
-        /* ---- Type: cream, four levels ------------------------------ */
-        paper: {
-          DEFAULT: "hsl(var(--paper))",
-          2: "hsl(var(--paper-2))",
-          3: "hsl(var(--paper-3))",
-          4: "hsl(var(--paper-4))",
-        },
-        /* ---- Act: the only colour you can press -------------------- */
-        act: {
-          DEFAULT: "hsl(var(--act))",
-          lit: "hsl(var(--act-lit))",
-          deep: "hsl(var(--act-deep))",
-        },
-        /* ---- Alive: the only colour that reports vitality ---------- */
-        alive: {
-          DEFAULT: "hsl(var(--alive))",
-          lit: "hsl(var(--alive-lit))",
-          dim: "hsl(var(--alive-dim))",
-        },
-        idle: "hsl(var(--idle))",
-        brass: "hsl(var(--brass))",
-        cream: {
-          DEFAULT: "hsl(var(--cream))",
-          dark: "hsl(var(--cream-dark))",
-        },
-        state: {
-          thriving: "hsl(var(--state-thriving))",
-          idle: "hsl(var(--state-idle))",
-          fading: "hsl(var(--state-fading))",
-        },
-
-        /* ---- Aliases from the previous build -----------------------
-           Every one resolves into the bench palette, so a class that has
-           not been migrated yet still renders in the new world. */
+        /* ---- Playful brand colours ------------------------------- */
         sky: {
           DEFAULT: "hsl(var(--sky-blue))",
           light: "hsl(var(--sky-blue-light))",
@@ -157,6 +114,11 @@ export default {
           light: "hsl(var(--coral-light))",
           dark: "hsl(var(--coral-dark))",
         },
+        cream: {
+          DEFAULT: "hsl(var(--cream))",
+          dark: "hsl(var(--cream-dark))",
+        },
+        cloud: "hsl(var(--cloud-white))",
         surface: {
           dark: "hsl(var(--surface-dark))",
           darker: "hsl(var(--surface-darker))",
@@ -195,7 +157,42 @@ export default {
         },
         reward: "hsl(var(--reward-green))",
         "notification-red": "hsl(var(--notification-red))",
-        ink: "hsl(var(--bench))",
+
+        /* ---- Bench-era names, resolved into the sky palette --------
+           These exist so the live, API-wired dashboard components keep
+           compiling and render light. Every one points at a CSS variable
+           that index.css has already repointed. */
+        hair: "hsl(var(--hair))",
+        bench: {
+          DEFAULT: "hsl(var(--bench))",
+          2: "hsl(var(--bench-2))",
+          3: "hsl(var(--bench-3))",
+          4: "hsl(var(--bench-4))",
+        },
+        paper: {
+          DEFAULT: "hsl(var(--paper))",
+          2: "hsl(var(--paper-2))",
+          3: "hsl(var(--paper-3))",
+          4: "hsl(var(--paper-4))",
+        },
+        act: {
+          DEFAULT: "hsl(var(--act))",
+          lit: "hsl(var(--act-lit))",
+          deep: "hsl(var(--act-deep))",
+        },
+        alive: {
+          DEFAULT: "hsl(var(--alive))",
+          lit: "hsl(var(--alive-lit))",
+          dim: "hsl(var(--alive-dim))",
+        },
+        idle: "hsl(var(--idle))",
+        brass: "hsl(var(--brass))",
+        state: {
+          thriving: "hsl(var(--state-thriving))",
+          idle: "hsl(var(--state-idle))",
+          fading: "hsl(var(--state-fading))",
+        },
+        ink: "hsl(var(--claw-charcoal))",
         chamber: {
           DEFAULT: "hsl(var(--chamber))",
           2: "hsl(var(--chamber-2))",
@@ -212,26 +209,24 @@ export default {
           3: "hsl(var(--bone-3))",
         },
       },
-      // A tight ladder. Small controls sit near-square; only cards and
-      // sheets get real curvature. The old 14px base read as a toy.
       borderRadius: {
-        sm: "calc(var(--radius) - 6px)",  /*  4 — chips, inline code   */
-        md: "calc(var(--radius) - 4px)",  /*  6 — inputs, small buttons */
-        lg: "var(--radius)",              /* 10 — cards                 */
-        xl: "calc(var(--radius) + 4px)",  /* 14 — panels, figures       */
-        "2xl": "calc(var(--radius) + 8px)", /* 18 — sheets, modals      */
-        "3xl": "calc(var(--radius) + 8px)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
+        "3xl": "calc(var(--radius) + 16px)",
       },
-      // Depth is a hairline plus a lightness step, never a drop shadow.
-      // These collapse to a ring so any stale shadow-* class is harmless.
+      // Soft, diffuse, sky-tinted. Depth here is light and air, not a
+      // hairline cut into a dark ground.
       boxShadow: {
-        ink: "0 0 0 1px hsl(var(--hair) / 0.08)",
-        "ink-sm": "0 0 0 1px hsl(var(--hair) / 0.06)",
-        "ink-lg": "0 0 0 1px hsl(var(--hair) / 0.12)",
-        playful: "0 0 0 1px hsl(var(--hair) / 0.08)",
-        "playful-lg": "0 0 0 1px hsl(var(--hair) / 0.12)",
-        coral: "0 0 0 1px hsl(var(--act) / 0.35)",
-        vital: "0 0 0 1px hsl(var(--alive) / 0.3)",
+        playful: "0 4px 20px -4px hsl(var(--sky-blue) / 0.25)",
+        "playful-lg": "0 12px 40px -8px hsl(var(--sky-blue) / 0.3)",
+        coral: "0 4px 20px -4px hsl(var(--coral) / 0.3)",
+        vital: "0 4px 20px -4px hsl(var(--human-green) / 0.25)",
+        ink: "0 4px 20px -4px hsl(var(--sky-blue) / 0.25)",
+        "ink-sm": "0 2px 10px -3px hsl(var(--sky-blue) / 0.2)",
+        "ink-lg": "0 12px 40px -8px hsl(var(--sky-blue) / 0.3)",
       },
       keyframes: {
         "accordion-down": {
@@ -243,19 +238,36 @@ export default {
           to: { height: "0" },
         },
         "fade-in": {
-          from: { opacity: "0", transform: "translateY(8px)" },
+          from: { opacity: "0", transform: "translateY(10px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "scale-in": {
-          from: { opacity: "0", transform: "scale(0.96)" },
+          from: { opacity: "0", transform: "scale(0.95)" },
           to: { opacity: "1", transform: "scale(1)" },
+        },
+        "bounce-in": {
+          "0%": { transform: "scale(0.3)", opacity: "0" },
+          "50%": { transform: "scale(1.05)" },
+          "70%": { transform: "scale(0.9)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s cubic-bezier(0.23, 1, 0.32, 1)",
-        "accordion-up": "accordion-up 0.2s cubic-bezier(0.23, 1, 0.32, 1)",
-        "fade-in": "fade-in 0.4s cubic-bezier(0.23, 1, 0.32, 1)",
-        "scale-in": "scale-in 0.18s cubic-bezier(0.23, 1, 0.32, 1)",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.6s ease-out",
+        "scale-in": "scale-in 0.4s ease-out",
+        "bounce-in": "bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+      },
+      backgroundImage: {
+        "hero-gradient":
+          "linear-gradient(180deg, hsl(199 89% 70%) 0%, hsl(199 89% 80%) 50%, hsl(40 33% 97%) 100%)",
+        "sky-gradient":
+          "linear-gradient(180deg, hsl(199 89% 70%) 0%, hsl(199 89% 85%) 100%)",
+        "coral-gradient":
+          "linear-gradient(135deg, hsl(6 78% 57%) 0%, hsl(6 78% 70%) 100%)",
+        "cloud-pattern":
+          "radial-gradient(ellipse at center, hsl(0 0% 100% / 0.9), transparent 70%)",
       },
     },
   },

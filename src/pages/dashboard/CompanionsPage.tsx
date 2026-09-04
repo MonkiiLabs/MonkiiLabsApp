@@ -127,7 +127,7 @@ const CompanionsInner = () => {
             return (
               <article
                 key={c.id}
-                className="flex flex-col overflow-hidden rounded-2xl border border-hair/10 bg-hair/[0.05] backdrop-blur-sm transition-all hover:border-hair/20"
+                className="flex flex-col overflow-hidden rounded-2xl border border-hair/10 bg-white shadow-playful transition-all hover:border-hair/20"
               >
                 <div className="relative aspect-[4/3] bg-bench">
                   <img
@@ -160,7 +160,7 @@ const CompanionsInner = () => {
                       className={`w-full rounded-xl py-2 font-mono text-xs font-bold uppercase tracking-wider transition-all ${
                         isOwned
                           ? "border border-hair/10 bg-hair/[0.05] text-paper-4"
-                          : "bg-act text-paper hover:bg-act-lit active:scale-[0.97]"
+                          : "bg-act text-white hover:bg-act-lit active:scale-[0.97]"
                       }`}
                     >
                       {busy ? (
@@ -187,8 +187,6 @@ const CompanionsInner = () => {
 const CompanionsPage = () => (
   <>
     <PageTitle
-      index="02"
-      eyebrow="ERC-721 Collectibles"
       title="Companion Collectibles"
       intro="Free collectible ERC-721 companions minted natively on Robinhood Chain. Equip up to three per agent to boost Proof-of-Life $MONKI accrual and resist power fade."
     />

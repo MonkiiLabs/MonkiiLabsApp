@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import DashHeader from "@/components/dashboard/DashHeader";
 import DashSidebar from "@/components/dashboard/DashSidebar";
 import EpochCard from "@/components/dashboard/EpochCard";
+import CloudField from "@/components/CloudField";
 
 import HomePage from "@/pages/dashboard/HomePage";
 import AgentsPage from "@/pages/dashboard/AgentsPage";
@@ -14,8 +15,9 @@ import AlertsPage from "@/pages/dashboard/AlertsPage";
 import ProfilePage from "@/pages/dashboard/ProfilePage";
 
 /**
- * Modern Robinhood Chain Laboratory Cockpit Shell.
- * High-tech ambient dark aesthetic, precision three-column layout, and responsive telemetry.
+ * The dashboard shell: a bright sky ground, drifting clouds behind
+ * everything, and white paper panels floating on top. Three columns on
+ * wide screens, collapsing to one on mobile.
  */
 const Dashboard = () => {
   const location = useLocation();
@@ -26,9 +28,12 @@ const Dashboard = () => {
     location.pathname.startsWith("/dashboard/companions");
 
   return (
-    <div className="relative min-h-screen bg-bench text-paper">
-      {/* High-tech telemetry grid and ambient atmosphere */}
-      <div className="grain-lit pointer-events-none fixed inset-0 -z-10" />
+    // No background on the wrapper: an opaque ground here would paint over
+    // the negative-z sky and cloud layers below and hide them entirely.
+    <div className="relative min-h-screen text-claw-charcoal">
+      {/* The sky, and the clouds moving across it. */}
+      <div className="pointer-events-none fixed inset-0 -z-20 bg-gradient-to-b from-sky-light via-cream to-cream" />
+      <CloudField />
 
       <DashHeader />
 

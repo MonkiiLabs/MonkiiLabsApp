@@ -1,189 +1,83 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-
-import { monkiiMark, BRAND } from "@/lib/brand";
-
-/* =====================================================================
-   Landing primitives.
-
-   The page used to alternate four grounds (sky, paper, cream, white)
-   with one dark section punched into the middle. That was the cartoon
-   read: a bright poster with a cockpit bolted on. The whole page now
-   lives on the bench, and sections separate by *lightness* instead, one
-   or two points apart. You feel the boundary; you never see a seam.
-
-   Every section still opens the same way: an index, a hairline, a label,
-   then a headline in the left two thirds with the standfirst in the
-   right. That rule does most of the layout work, and it is why the page
-   reads as one document rather than a stack of blocks.
-   ===================================================================== */
-
-type Tone = "bench" | "raised" | "lit";
-
-const TONE: Record<Tone, { section: string; rule: string; index: string }> = {
-  // The default ground.
-  bench: { section: "bg-bench", rule: "bg-hair/15", index: "text-act-lit" },
-  // One step up. Used where a section is a specimen tray rather than a
-  // page: companions, roadmap.
-  raised: { section: "bg-bench-2", rule: "bg-hair/15", index: "text-act-lit" },
-  // The loop. The only section where green leads, because it is the only
-  // section about something being alive.
-  lit: { section: "bg-bench", rule: "bg-alive/40", index: "text-alive-lit" },
-};
+import { BRAND, monkiiLogo } from "@/lib/brand";
 
 interface SectionProps {
   id?: string;
-  /** Two-digit index. It is the spine of the document, always supply it. */
-  index?: string;
   eyebrow: string;
   title: ReactNode;
   intro?: ReactNode;
-  tone?: Tone;
   children: ReactNode;
   className?: string;
 }
 
-export const Section = ({
-  id,
-  index,
-  eyebrow,
-  title,
-  intro,
-  tone = "bench",
-  children,
-  className = "",
-}: SectionProps) => {
-  const t = TONE[tone];
-  return (
-    <section
-      id={id}
-      className={`relative w-full border-t border-hair/[0.06] py-fib6 lg:py-fib7 ${t.section} ${className}`}
-    >
-      <div className="mx-auto w-full max-w-6xl px-fib3 sm:px-fib4">
-        <SectionHeader index={index} eyebrow={eyebrow} title={title} intro={intro} tone={tone} />
-        {children}
-      </div>
-    </section>
-  );
-};
-
-export const SectionHeader = ({
-  index,
-  eyebrow,
-  title,
-  intro,
-  tone = "bench",
-}: Pick<SectionProps, "index" | "eyebrow" | "title" | "intro" | "tone">) => {
-  const t = TONE[tone];
-  return (
-    <header className="mb-fib5 lg:mb-fib6">
-      <Reveal>
-        <div className="flex items-center gap-fib2">
-          {index && <span className={`label-mono ${t.index}`}>{index}</span>}
-          <span className={`h-px w-fib4 ${t.rule}`} aria-hidden />
-          <span className="label-mono text-paper-3">{eyebrow}</span>
-        </div>
-      </Reveal>
-
-      {/* Golden section: the title takes 1.618 parts, the standfirst 1.
-          They meet on a baseline, not on a centre line. */}
-      <div className="mt-fib3 grid gap-fib3 lg:grid-cols-golden lg:items-end lg:gap-fib5">
-        <Reveal delay={0.05}>
-          <h2 className="font-display text-d2 text-paper sm:text-d3 lg:text-d4">{title}</h2>
-        </Reveal>
+export const Section = ({ id, eyebrow, title, intro, children, className = "" }: SectionProps) => (
+  <section id={id} className={`w-full py-16 sm:py-24 px-4 sm:px-6 ${className}`}>
+    <div className="max-w-6xl mx-auto">
+      <motion.div
+        className="max-w-3xl mb-10 sm:mb-14"
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.5 }}
+      >
+        <span className="inline-block mb-3 px-4 py-1.5 rounded-full bg-sky/15 border-2 border-sky/30 text-xs font-extrabold uppercase tracking-wider text-sky-dark">
+          {eyebrow}
+        </span>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-claw-charcoal leading-tight">
+          {title}
+        </h2>
         {intro && (
-          <Reveal delay={0.12}>
-            <p className="max-w-[42ch] text-body text-paper-2">{intro}</p>
-          </Reveal>
+          <p className="mt-4 text-sm sm:text-base md:text-lg text-claw-gray-600 leading-relaxed">{intro}</p>
         )}
-      </div>
-    </header>
-  );
-};
+      </motion.div>
+      {children}
+    </div>
+  </section>
+);
 
-export const Reveal = ({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) => (
+export const Reveal = ({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) => (
   <motion.div
     className={className}
-    initial={{ opacity: 0, y: 13 }}
+    initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "-60px" }}
-    transition={{ duration: 0.5, delay, ease: [0.23, 1, 0.32, 1] }}
+    transition={{ duration: 0.45, delay }}
   >
     {children}
   </motion.div>
 );
 
 /**
- * The wordmark, built the way the brand spec asks for it: the scientist
- * face stands in for the O. Type carries the rest, so it stays crisp at
- * every size and needs no bitmap.
+ * The wordmark: the mascot tile, then MONKII LABS set in Nunito with the
+ * first word in coral. The dashboard header and the landing navbar both
+ * use it, so it lives here next to the other shared landing furniture.
  */
 export const Wordmark = ({
   size = "md",
-  tone = "paper",
   className = "",
 }: {
   size?: "sm" | "md" | "lg";
-  tone?: "paper" | "bone";
   className?: string;
 }) => {
   const scale = {
-    sm: { text: "text-[1.0625rem]", mark: "h-[1.05em] w-[1.05em]" },
-    md: { text: "text-d1", mark: "h-[1.05em] w-[1.05em]" },
-    lg: { text: "text-d2 sm:text-d3", mark: "h-[1.05em] w-[1.05em]" },
+    sm: { text: "text-base sm:text-lg", mark: "w-8 h-8 sm:w-9 sm:h-9", radius: "rounded-lg" },
+    md: { text: "text-lg sm:text-xl", mark: "w-10 h-10 sm:w-12 sm:h-12", radius: "rounded-xl" },
+    lg: { text: "text-2xl sm:text-3xl", mark: "w-14 h-14 sm:w-16 sm:h-16", radius: "rounded-2xl" },
   }[size];
 
   return (
-    <span
-      className={`inline-flex items-center font-display font-extrabold leading-none tracking-[-0.03em] ${scale.text} ${className}`}
-      aria-label={BRAND.name}
-    >
-      <span className="text-paper">M</span>
-      {/* The source square is mostly sky. Scaling inside a clipped circle
-          crops to the face, which is the only part that survives at
-          nav size. */}
-      <span
-        className={`${scale.mark} relative mx-[0.04em] inline-block shrink-0 overflow-hidden rounded-full border border-hair/20 bg-bench-3 align-middle`}
-      >
-        <img
-          src={monkiiMark}
-          alt=""
-          aria-hidden
-          className="absolute left-1/2 top-1/2 h-[168%] w-[168%] max-w-none -translate-x-1/2 -translate-y-[46%] object-cover"
-        />
+    <span className={`inline-flex items-center gap-2 sm:gap-3 ${className}`} aria-label={BRAND.name}>
+      <img
+        src={monkiiLogo}
+        alt=""
+        aria-hidden
+        className={`${scale.mark} ${scale.radius} shrink-0 object-cover shadow-playful transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+      />
+      <span className={`font-extrabold tracking-tight ${scale.text}`}>
+        <span className="text-coral">{BRAND.first}</span>
+        <span className="text-claw-charcoal"> {BRAND.second}</span>
       </span>
-      <span className="text-paper">NKII</span>
-      <span className="ml-[0.26em] text-paper-3">LABS</span>
     </span>
   );
 };
-
-/** A single instrument reading: value over label. Used in stat rails. */
-export const Readout = ({
-  value,
-  label,
-  tone = "paper",
-}: {
-  value: ReactNode;
-  label: string;
-  tone?: "paper" | "alive" | "brass";
-}) => (
-  <div>
-    <div
-      className={`font-display text-d1 tabular-nums sm:text-d2 ${
-        tone === "alive" ? "text-alive-lit" : tone === "brass" ? "text-brass" : "text-paper"
-      }`}
-    >
-      {value}
-    </div>
-    <div className="label-mono mt-fib1 text-paper-3">{label}</div>
-  </div>
-);

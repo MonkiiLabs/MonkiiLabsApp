@@ -3,20 +3,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-/* A badge is a reading, so it is a tinted chip on a hairline rather than
-   a solid sticker in a charcoal keyline. Only `destructive` fills, and
-   only because an alarm should read hotter than its surroundings. */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm border px-fib2 py-0.5 text-micro font-semibold uppercase transition-colors focus:outline-none focus:ring-2 focus:ring-act-lit focus:ring-offset-2 focus:ring-offset-bench",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border-act/35 bg-act/12 text-act-lit",
-        secondary: "border-hair/12 bg-hair/[0.05] text-paper-2",
-        destructive: "border-act-lit/50 bg-act text-paper",
-        vital: "border-alive/35 bg-alive/12 text-alive-lit",
-        muted: "border-hair/8 bg-hair/[0.03] text-paper-3",
-        outline: "border-hair/16 bg-transparent text-paper-2",
+        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
       },
     },
     defaultVariants: {

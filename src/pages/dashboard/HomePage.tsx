@@ -84,7 +84,7 @@ const HomeInner = () => {
               type="button"
               disabled={claim.isPending || !balances?.claimablePons}
               onClick={() => claim.mutate("pons")}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-act py-2.5 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-act py-2.5 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
             >
               <Coins className="h-3.5 w-3.5" />
               Claim {BRAND.valueToken} on L2
@@ -133,7 +133,7 @@ const HomeInner = () => {
               action={
                 <Link
                   to="/dashboard/agents"
-                  className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit"
+                  className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit"
                 >
                   <Heart className="h-3.5 w-3.5" />
                   Explore Fleet
@@ -183,8 +183,6 @@ const HomeInner = () => {
 const HomePage = () => (
   <>
     <PageTitle
-      index="00"
-      eyebrow="Cockpit"
       title="Monkii Laboratory Dashboard"
       intro="Your distributed compute telemetry: monitored AI agents, Proof-of-Life sessions, and claimable ecosystem yield."
     />

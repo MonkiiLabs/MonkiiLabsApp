@@ -2,141 +2,79 @@ import { Section, Reveal } from "./Section";
 import { RARITY_ORDER, RARITY_STYLES } from "@/features/monkii/data";
 import { BRAND } from "@/lib/brand";
 
-/* =====================================================================
-   04. Companions.
-
-   Collectible art carries this one, so the tiles are mostly image: a
-   square plate, an ink keyline, and one line of consequence underneath.
-   The rarity ladder is a rail rather than a table: five tiers is a
-   scale, and a scale should look like one.
-   ===================================================================== */
-
-const ROSTER = [
-  {
-    slug: "cyber-chimp-drone",
-    name: "Cyber-Chimp Drone",
-    rarity: "Common" as const,
-    boost: "+6%",
-    note: "Optimises heartbeat transmission.",
-  },
-  {
-    slug: "nano-baboon-core",
-    name: "Nano-Baboon Core",
-    rarity: "Common" as const,
-    boost: "+8%",
-    note: "Regulates hash throughput.",
-  },
-  {
-    slug: "plasma-lemur",
-    name: "Plasma Lemur",
-    rarity: "Uncommon" as const,
-    boost: "+12%",
-    note: "Buffers power against thermal decay.",
-  },
-  {
-    slug: "mecha-mandrill",
-    name: "Mecha Mandrill",
-    rarity: "Uncommon" as const,
-    boost: "+15%",
-    note: "Enhances heartbeat resonance.",
-  },
-  {
-    slug: "quantum-ape-sentinel",
-    name: "Quantum Ape Sentinel",
-    rarity: "Rare" as const,
-    boost: "+20%",
-    note: "Shields against ambient entropy.",
-  },
-  {
-    slug: "celestial-king-monkii",
-    name: "Celestial King Monkii",
-    rarity: "Epic" as const,
-    boost: "+30%",
-    note: "Legendary neural synchronisation.",
-  },
+const ACQUISITION = [
+  { emoji: "🏅", title: "Milestone rewards", body: "Free mints for a 7-day thriving streak or a top leaderboard placement." },
+  { emoji: "🛒", title: "Paid mints", body: `Limited waves priced in SOL or ${BRAND.valueToken}.` },
+  { emoji: "🔁", title: "Secondary market", body: "Fully tradeable on Magic Eden, Tensor and other Robinhood marketplaces." },
+  { emoji: "⚗️", title: "Craft & fusion", body: "Phase 2: light fusion, leveling, and dynamic metadata that reacts to agent state." },
 ];
 
 const CompanionsSection = () => (
   <Section
     id="companions"
-    index="04"
-    eyebrow="Companions"
-    tone="raised"
-    title={
-      <>
-        Three slots per agent.
-        <br className="hidden sm:block" /> Permanent buffs.
-      </>
-    }
+    eyebrow="Companion NFTs"
+    title={<>Every agent can equip 1–3 Companions.</>}
     intro={
       <>
-        Companions are ERC-721 collectibles on {BRAND.network}. Ownership is verified
-        on-chain; equipping is off-chain, instant and gasless, so the loop never waits on a
-        block.
+        Companions are Robinhood NFTs — compressed cNFTs for cost efficiency — that appear next to the
+        agent avatar, provide passive bonuses based on rarity and type, can be freely
+        equipped and unequipped, and trade on secondary markets. The nurturing loop stays primary;
+        Companions are the collectible enhancement layer on top of it.
       </>
     }
   >
-    <div className="grid gap-fib3 sm:grid-cols-2 lg:grid-cols-3">
-      {ROSTER.map((c, i) => {
-        const s = RARITY_STYLES[c.rarity];
-        return (
-          <Reveal key={c.slug} delay={(i % 3) * 0.08}>
-            {/* Both chips ride on the plate, so the caption below is name
-                over note on every tile and the notes share one baseline
-                across the row however long a name runs. */}
-            <article className="panel-raised raise flex h-full flex-col overflow-hidden">
-              <div className="relative aspect-square overflow-hidden border-b border-hair/8 bg-bench">
-                <img
-                  src={`/companions/${c.slug}.jpg`}
-                  alt={c.name}
-                  loading="lazy"
-                  className="h-full w-full object-cover"
-                />
-                <span
-                  className={`absolute left-fib2 top-fib2 rounded-sm border px-fib2 py-0.5 text-micro font-semibold uppercase ${s.border} ${s.bg} ${s.text}`}
-                >
-                  {c.rarity}
-                </span>
-                <span className="absolute right-fib2 top-fib2 rounded-sm border border-alive/35 bg-bench/85 px-fib2 py-0.5 font-mono text-micro font-semibold tabular-nums text-alive-lit backdrop-blur-sm">
-                  {c.boost}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col p-fib3">
-                <h3 className="font-display text-d1 text-paper">{c.name}</h3>
-                <p className="mt-fib2 text-label text-paper-3">{c.note}</p>
-              </div>
-            </article>
-          </Reveal>
-        );
-      })}
-    </div>
-
-    {/* The ladder. Five tiers read as a scale, left to right. */}
-    <Reveal delay={0.16}>
-      <div className="mt-fib5">
-        <h3 className="label-mono text-paper-3">Rarity ladder</h3>
-        <div className="mt-fib3 grid gap-fib2 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+      <table className="w-full min-w-[620px] bg-white rounded-3xl border-2 border-dashboard-border overflow-hidden">
+        <thead>
+          <tr className="bg-cream text-left">
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Rarity</th>
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Bonus range</th>
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Additional effects</th>
+          </tr>
+        </thead>
+        <tbody>
           {RARITY_ORDER.map((rarity) => {
             const s = RARITY_STYLES[rarity];
             return (
-              <div key={rarity} className="panel-raised p-fib3">
-                <span
-                  className={`inline-block rounded-sm border px-fib2 py-0.5 text-micro font-semibold uppercase ${s.border} ${s.bg} ${s.text}`}
-                >
-                  {rarity}
-                </span>
-                <div className="mt-fib2 font-mono text-label font-semibold tabular-nums text-brass">
-                  {s.bonus}
-                </div>
-                <p className="mt-fib1 text-label text-paper-3">{s.effect}</p>
-              </div>
+              <tr key={rarity} className="border-t-2 border-dashboard-border">
+                <td className="p-4">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-extrabold border-2 ${s.bg} ${s.text} ${s.border}`}>
+                    {rarity}
+                  </span>
+                </td>
+                <td className="p-4 text-sm font-bold text-claw-charcoal">{s.bonus}</td>
+                <td className="p-4 text-sm text-claw-gray-600">{s.effect}</td>
+              </tr>
             );
           })}
-        </div>
-        <p className="mt-fib3 max-w-[68ch] text-label text-paper-2">
-          Legendary abilities go further: <em>never fully fades</em>, a second nurture
-          reward once a day, or a boosted {BRAND.stockToken} allocation. Buffs apply only
-          while the Companion is equipped to an agent you are actively nurturing.
+        </tbody>
+      </table>
+    </div>
+
+    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4 mt-8">
+      {ACQUISITION.map((item, i) => (
+        <Reveal key={item.title} delay={i * 0.07}>
+          <article className="h-full bg-cream rounded-3xl border-2 border-dashboard-border p-5">
+            <div className="text-2xl mb-3">{item.emoji}</div>
+            <h3 className="text-sm font-extrabold text-claw-charcoal mb-1.5">{item.title}</h3>
+            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">{item.body}</p>
+          </article>
+        </Reveal>
+      ))}
+    </div>
+
+    <Reveal delay={0.15} className="mt-8">
+      <div className="rounded-3xl border-2 border-coral/30 bg-coral/10 p-6">
+        <h3 className="text-base sm:text-lg font-extrabold text-claw-charcoal mb-2">
+          Legendary abilities
+        </h3>
+        <ul className="text-sm text-claw-gray-600 space-y-1.5 leading-relaxed">
+          <li>🍌 “Never fully fades” — the agent stays at least Idle.</li>
+          <li>🐵 “Double nurture reward once per day.”</li>
+          <li>💎 “Bonus {BRAND.valueToken} claim multiplier.”</li>
+        </ul>
+        <p className="text-xs text-claw-gray-600 mt-4">
+          Bonuses apply only while a Companion is equipped to an active agent you are nurturing.
         </p>
       </div>
     </Reveal>

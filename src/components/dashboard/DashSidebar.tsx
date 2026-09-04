@@ -29,10 +29,10 @@ const DashSidebar = () => {
             <img
               src={monkiiMark}
               alt=""
-              className="h-12 w-12 rounded-md border border-hair/14 bg-bench object-cover"
+              className="h-12 w-12 rounded-xl border-2 border-dashboard-border object-cover"
             />
             {isAuthenticated && (
-              <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-act text-[10px] text-paper ring-2 ring-bench">
+              <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-act text-[10px] text-white ring-2 ring-white">
                 ✓
               </span>
             )}

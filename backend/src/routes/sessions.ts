@@ -6,6 +6,7 @@ import { requireAuth } from "../lib/auth";
 import { handler, parseBody } from "../lib/http";
 import { computeAccrual, issueChallenge, verifyAndConsume } from "../lib/pow";
 import { deriveState } from "../lib/power";
+import { LIVE_POWER_SQL } from "../lib/agents";
 import { difficultyFor, INTENSITIES, type Intensity } from "../lib/intensity";
 import { getAgentCompanionBuffs } from "../lib/companions";
 import { env } from "../lib/env";
@@ -189,8 +190,20 @@ sessionsRouter.post(
         healthy_threshold: string;
         warning_threshold: string;
       }>(
+        // Decay is virtual: reads derive live power from current_power and
+        // the age of updated_at, and the power-eval worker only materialises
+        // that every POWER_EVAL_INTERVAL_SECONDS. So current_power on the row
+        // is stale-high between ticks, and adding to it directly while also
+        // resetting updated_at discarded every bit of decay accrued since the
+        // last tick. On an agent that had decayed a long way (a restarted
+        // server, a gap in the worker) a single heartbeat snapped power back
+        // to the stale value and clamped at the 100 ceiling, so nurturing a
+        // dead agent appeared to jump it straight to full health.
+        //
+        // Decay first, then add, in the same statement, so the write starts
+        // from the same number the read path just showed the user.
         `UPDATE agents
-            SET current_power = LEAST(current_power + $1, 100),
+            SET current_power = LEAST(${LIVE_POWER_SQL} + $1, 100),
                 updated_at = now()
           WHERE id = $2
           RETURNING current_power, healthy_threshold, warning_threshold`,

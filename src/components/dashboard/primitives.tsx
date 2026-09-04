@@ -67,34 +67,19 @@ export function PanelHeader({
 }
 
 export function PageTitle({
-  index,
-  eyebrow,
   title,
   intro,
   action,
 }: {
-  index?: string;
-  eyebrow?: string;
   title: string;
   intro?: ReactNode;
   action?: ReactNode;
 }) {
   return (
     <header className="mb-6">
-      {(index || eyebrow) && (
-        <div className="flex items-center gap-2 text-xs">
-          {index && (
-            <span className="label-mono text-act-lit">{index}</span>
-          )}
-          <span className="h-px w-fib3 bg-hair/15" aria-hidden />
-          {eyebrow && (
-            <span className="label-mono text-paper-3">{eyebrow}</span>
-          )}
-        </div>
-      )}
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-display text-d1 text-paper sm:text-d2">{title}</h1>
+          <h1 className="text-d1 font-extrabold text-paper sm:text-d2">{title}</h1>
           {intro && <p className="mt-fib1 max-w-[64ch] text-label text-paper-2">{intro}</p>}
         </div>
         {action}

@@ -39,6 +39,28 @@ export const NATIVE_CURRENCY = { name: "Ether", symbol: "ETH", decimals: 18 } as
 export const PONS_TOKEN_ADDRESS = "0x39dbed3a2bd333467115de45665cc57f813c4571" as const;
 export const COMPANION_NFT_ADDRESS = "0xf478d04a5864d0d9bd9c942c41d6c900c11b43b4" as const;
 
+/* ---- Agent vitality ----------------------------------------------------
+   The server clamps an agent's power at 100 on every heartbeat
+   (backend/src/routes/sessions.ts), so 100 is the scale the meters must
+   be drawn against. They were using healthyThreshold (80) as the
+   denominator, which made a healthy agent read as over-full and the
+   numeric readout claim a maximum that was not the maximum. */
+
+export const AGENT_POWER_MAX = 100;
+
+/* ---- Proof-of-Life pacing ---------------------------------------------
+   The server refuses two heartbeats from the same session inside
+   HEARTBEAT_MIN_INTERVAL_SECONDS (backend/src/lib/env.ts, default 3) and
+   answers 429 `too_fast`. A fast machine solves a challenge well inside
+   that window, so the client paces its own submissions to this figure
+   rather than sprinting into the limiter. If the server is configured
+   with a longer interval, useNurture learns the real number from the
+   first 429 it sees and paces to that from then on. */
+
+export const HEARTBEAT_MIN_INTERVAL_SECONDS = Number(
+  import.meta.env.VITE_HEARTBEAT_MIN_INTERVAL_SECONDS ?? 3,
+);
+
 /* ---- Staking policy defaults ------------------------------------------
    The live values arrive on GET /api/staking/status; these are only the
    fallbacks used before that request resolves. */

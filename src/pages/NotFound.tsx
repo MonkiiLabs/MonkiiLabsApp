@@ -2,16 +2,18 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Heart } from "lucide-react";
 
 import { monkiiMark, BRAND } from "@/lib/brand";
+import CloudField from "@/components/CloudField";
 
 /** An agent that has gone dark, the product's own vocabulary for a 404. */
 const NotFound = () => (
-  <main className="grain-lit flex min-h-screen items-center justify-center bg-bench px-fib3 py-fib6">
+  <main className="hero-gradient relative flex min-h-screen items-center justify-center px-fib3 py-fib6">
+    <CloudField />
     <div className="panel w-full max-w-md p-fib5 text-center">
       <img
         src={monkiiMark}
         alt=""
         aria-hidden
-        className="mx-auto h-16 w-16 animate-decay rounded-full border border-hair/10 object-cover grayscale"
+        className="mx-auto h-16 w-16 animate-bounce-gentle rounded-2xl object-cover shadow-playful"
       />
       <p className="label-mono mt-fib3 text-act-lit">Error 404</p>
       <h1 className="mt-fib2 font-display text-d3 text-paper">This one went dark.</h1>

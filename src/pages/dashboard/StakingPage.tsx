@@ -166,7 +166,7 @@ const StakingInner = () => {
               type="button"
               disabled={!valid || parsed > available || stake.isPending}
               onClick={() => stake.mutate({ amount: parsed, token })}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-act py-3 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-act py-3 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
             >
               {stake.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -199,8 +199,6 @@ const StakingInner = () => {
 const StakingPage = () => (
   <>
     <PageTitle
-      index="03"
-      eyebrow="Staking & Yield"
       title="Epoch Staking & Multiplier Engine"
       intro="Stake $MONKI to boost your in-browser Proof-of-Life mining rewards up to ×3.00. Earn liquid $PONS utility tokens distributed across daily 24-hour snapshot epochs."
     />

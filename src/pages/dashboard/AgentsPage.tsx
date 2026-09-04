@@ -75,8 +75,6 @@ const AgentsPage = () => {
   return (
     <>
       <PageTitle
-        index="01"
-        eyebrow="Fleet Telemetry"
         title="Autonomous Agent Fleet"
         intro="Live agents synced from Virtuals Protocol on Robinhood Chain. Contribute Proof-of-Life compute to keep fading agents alive."
       />

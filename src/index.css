@@ -1,387 +1,468 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* =====================================================================
-   MONKII LABS, "The Bench"
+   MONKII LABS, sky, cloud, coral and cream.
 
-   The source art has two worlds, and the earlier build tried to live in
-   both: a bright sky-and-cream poster for the landing, a dark cockpit
-   for the app. That split is why the product read as a cartoon wearing a
-   dashboard. This system picks one world and commits.
+   This is the original monkiilabs-fe look, restored. The product is a
+   Tamagotchi for AI agents, so it reads as a bright, friendly place: a
+   sky-blue sky with clouds drifting across it, cream and white paper
+   panels floating on top, coral for anything you press, and Nunito set
+   heavy and round for everything.
 
-   It picks the bench. Look at the reward-case plate: a warm brown desk,
-   a deep blue wall, one pool of lamp light, a red case with brass
-   corners, cream paper. That is a dark scene, but it is a *warm* dark:
-   nothing in it is blue-black, and nothing in it glows acid. So the
-   ground here is warm graphite, the type is cream rather than white, and
-   the light is a lamp rather than a neon tube.
+   Colour, plainly:
 
-   Colour is rationed, and each hue means exactly one thing:
+     coral    the brand, and every primary action.
+     sky      the world. Background, gradients, clouds, links, chrome.
+     cream    the paper the content sits on.
+     green    good news, thriving agents, rewards, positive deltas.
+     amber    holding, idle agents, warnings.
+     charcoal the type. Never pure black.
 
-     red      ACT. Every button the user is meant to press. Monkii red is
-              the brand's own colour and it appears in every illustration;
-              on a warm dark ground it is the hottest thing on screen.
-     green    ALIVE. Vitality, heartbeat, thriving, live telemetry. It is
-              a *reading*, never a control. Nothing green is clickable.
-     amber    IDLE. Holding, but not gaining.
-     brass    VALUE. Balances, rewards, anything denominated.
-     cream    The type. Paper, in a room with no paper in it.
-
-   That split is the whole system: if it is green you are being told
-   something, if it is red you are being asked to do something.
-
-   Measure is unchanged from the previous build, because it was right.
-   The type ladder steps on phi (1.618), section rhythm runs on Fibonacci,
-   and two-column splits are 61.8 / 38.2 rather than 50/50.
+   NOTE ON THE TOKEN NAMES BELOW
+   -----------------------------
+   The dashboard was rebuilt against a dark "bench" palette whose token
+   names (--bench, --paper, --act, --alive, --hair) are used across
+   ~3000 lines of live, API-wired components. Rather than rewrite every
+   one of those class names, each bench token is redefined here to point
+   into the sky palette. So bg-bench-2 is now a white card, text-paper is
+   now charcoal, border-hair/10 is now a soft blue hairline. The
+   dashboard data wiring is untouched; only what the tokens resolve to
+   has changed.
    ===================================================================== */
 
 @layer base {
   :root {
-    /* ---- Ground: the bench ---------------------------------------- */
-    /* Four surfaces, each a few points of lightness apart. In isolation
-       you cannot see one step; stacked, the hierarchy appears. */
-    --bench:    20 10% 7%;             /* #141110 page ground          */
-    --bench-2:  20 9% 10%;             /* #1C1917 cards                */
-    --bench-3:  22 9% 13%;             /* #24201D raised / popover     */
-    --bench-4:  24 8% 17%;             /* #2E2A26 inputs, wells        */
+    /* ---- The sky: the world everything floats in ------------------ */
+    --sky-blue: 199 89% 65%;
+    --sky-blue-light: 199 89% 85%;
+    --sky-blue-dark: 199 89% 45%;
 
-    /* ---- Type: cream, never white --------------------------------- */
-    --paper:    38 47% 89%;            /* #F0E7D8 primary              */
-    --paper-2:  35 13% 62%;            /* #A79D90 secondary            */
-    --paper-3:  32 7% 51%;             /* #8A8279 tertiary / metadata  */
-    --paper-4:  28 7% 38%;             /* #675F58 disabled             */
+    /* ---- Coral: the brand, and every action ---------------------- */
+    --coral: 6 78% 57%;
+    --coral-light: 6 78% 75%;
+    --coral-dark: 6 78% 45%;
 
-    /* ---- Act: monkii red -------------------------------------------
-       The brand red (#E74435) carries only 3.98:1 against white, so a
-       filled button in it fails AA for label-sized text. The fill is a
-       step deeper (4.8:1 on cream type) and the brand red becomes the
-       hover and the accent, where it sits on the dark ground and clears
-       AA comfortably at 4.8:1. The identity is unchanged; it is just
-       used on the side of the contrast line where it works. */
-    --act:      4 63% 44%;             /* #B8342A fill                 */
-    --act-lit:  5 79% 56%;             /* #E74435 brand red, hover+text */
-    --act-deep: 4 63% 34%;             /* #8E2820 pressed              */
+    /* ---- Paper: cream and cloud-white surfaces ------------------- */
+    --cream: 40 33% 97%;
+    --cream-dark: 40 20% 93%;
+    --cloud-white: 0 0% 100%;
 
-    /* ---- Alive: robinhood green ----------------------------------- */
-    --alive:    122 100% 39%;          /* #00C805                      */
-    --alive-lit: 79 100% 55%;          /* #B7FF19 phosphor peak        */
-    --alive-dim: 122 45% 22%;          /* trace ground                 */
+    /* ---- Core shadcn contract ------------------------------------ */
+    --background: 0 0% 98%;
+    --foreground: 220 13% 18%;
 
-    /* ---- Readings -------------------------------------------------- */
-    --idle:     33 88% 59%;            /* #F2A93B holding              */
-    --brass:    35 51% 50%;            /* #C08A3E denominated value    */
-    --cream:    40 60% 87%;            /* #F0E4CB paper, in the art    */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
 
-    /* ---- Borders: warm hairlines, never a solid keyline ------------ */
-    /* Derived from the paper so every edge shares the room's warmth. */
-    --hair:     38 47% 89%;            /* used at 7 / 11 / 16% alpha   */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
 
-    --radius: 0.625rem;                /* 10px. Was 14, which read as toy. */
+    --primary: 6 78% 57%;
+    --primary-foreground: 0 0% 100%;
 
-    /* ---- shadcn contract ------------------------------------------- */
-    --background: var(--bench);
-    --foreground: var(--paper);
-    --card: var(--bench-2);
-    --card-foreground: var(--paper);
-    --popover: var(--bench-3);
-    --popover-foreground: var(--paper);
+    --secondary: 199 89% 65%;
+    --secondary-foreground: 0 0% 100%;
 
-    --primary: var(--act);
-    --primary-foreground: 38 47% 96%;
-    --secondary: var(--bench-3);
-    --secondary-foreground: var(--paper);
-    --muted: var(--bench-3);
-    --muted-foreground: var(--paper-3);
-    --accent: var(--bench-4);
-    --accent-foreground: var(--paper);
-    --destructive: var(--act);
-    --destructive-foreground: 38 47% 96%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    /* The resolved line colour, for the shadcn parts that consume
-       `border-border` / `bg-border` as an opaque value. Authored hairlines
-       use --hair with an alpha instead. */
-    --border: var(--bench-4);
-    --input: var(--bench-4);
-    --ring: var(--act);
+    --accent: 199 89% 95%;
+    --accent-foreground: 199 89% 40%;
 
-    /* ---- Vitality states ------------------------------------------- */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 6 78% 57%;
+
+    --radius: 1rem;
+
+    /* ---- Brand text and surface ---------------------------------- */
+    --claw-coral: 6 78% 57%;
+    --claw-coral-dark: 6 78% 45%;
+    --claw-sky: 199 89% 65%;
+    --claw-sky-dark: 199 89% 50%;
+    --claw-charcoal: 220 13% 18%;
+    --claw-gray-900: 220 13% 25%;
+    --claw-gray-600: 215 16% 47%;
+    --claw-gray-400: 215 14% 65%;
+
+    /* ---- Worker type --------------------------------------------- */
+    --ai-purple: 263 70% 55%;
+    --ai-purple-bg: 263 70% 95%;
+    --human-green: 160 84% 32%;
+    --human-green-bg: 160 60% 94%;
+
+    /* ---- Status --------------------------------------------------- */
+    --success: 142 72% 33%;
+    --success-foreground: 0 0% 100%;
+    --warning: 33 90% 42%;
+    --info: 199 89% 42%;
+    --purple: 263 70% 55%;
+    --reward-green: 160 84% 32%;
+    --notification-red: 6 78% 57%;
+    --error-red: 0 84% 55%;
+
+    /* ---- Dashboard ------------------------------------------------ */
+    --dashboard-bg: 199 40% 97%;
+    --dashboard-card: 0 0% 100%;
+    --dashboard-card-foreground: 220 13% 18%;
+    --dashboard-border: 199 30% 88%;
+    --dashboard-hover: 199 50% 95%;
+
+    --hero-from: 199 89% 70%;
+    --hero-via: 199 89% 60%;
+    --hero-to: 40 33% 97%;
+
+    --surface-dark: 199 89% 98%;
+    --surface-darker: 199 40% 95%;
+
+    --glass-bg: 0 0% 100%;
+    --glass-border: 199 89% 80%;
+
+    /* =================================================================
+       Bench-era token names, repointed into the sky palette.
+       Each one keeps its old role and changes its value, so every
+       dashboard component that references it lands in the light world.
+       ================================================================= */
+
+    /* Ground surfaces, were four steps of warm graphite, now four
+       steps of sky-tinted paper. */
+    --bench:   199 40% 97%;            /* page ground              */
+    --bench-2: 0 0% 100%;              /* cards                    */
+    --bench-3: 40 33% 97%;             /* raised / popover (cream) */
+    --bench-4: 199 30% 92%;            /* inputs, wells            */
+
+    /* Type, was cream on dark, now charcoal on light. */
+    --paper:   220 13% 18%;            /* primary                  */
+    --paper-2: 215 16% 40%;            /* secondary                */
+    --paper-3: 215 14% 50%;            /* tertiary / metadata      */
+    --paper-4: 215 14% 65%;            /* disabled                 */
+
+    /* Act, unchanged in meaning, still the only thing you press.
+       On a light ground the fill is the brand coral and the lit
+       variant goes darker, so text-act-lit stays legible on white. */
+    --act:      6 78% 57%;             /* #E74435 fill             */
+    --act-lit:  6 78% 45%;             /* text + hover             */
+    --act-deep: 6 78% 38%;             /* pressed                  */
+
+    /* Alive, green still means a reading rather than a control, but it
+       is darkened off the acid phosphor so it passes on white. */
+    --alive:     142 72% 33%;
+    --alive-lit: 160 84% 26%;          /* text weight              */
+    --alive-dim: 160 60% 94%;          /* tint ground              */
+
+    --idle:  33 90% 42%;
+    --brass: 35 62% 36%;
+
+    /* Hairlines, were warm cream at low alpha on dark, now a soft
+       blue-grey at low alpha on light. Same alphas, inverted hue. */
+    --hair: 205 30% 40%;
+
     --state-thriving: var(--alive);
     --state-idle: var(--idle);
-    --state-fading: var(--act-lit);
+    --state-fading: var(--act);
 
-    /* ---- Aliases -----------------------------------------------------
-       Kept so routes and dashboard components resolve while they migrate.
-       Every one of these now points into the bench palette, so a stale
-       class renders in the new world rather than punching a hole in it. */
-    --sky-blue: 211 40% 26%;           /* the wall behind the bench     */
-    --sky-blue-light: 211 32% 34%;
-    --sky-blue-dark: 211 53% 15%;
-    --coral: var(--act);
-    --coral-light: var(--act-lit);
-    --coral-dark: var(--act-deep);
-    --cream-dark: 40 30% 70%;
-    --cloud-white: var(--paper);
-    --chamber: var(--bench);
-    --chamber-2: var(--bench-2);
-    --chamber-3: var(--bench-3);
+    --chamber: 199 40% 97%;
+    --chamber-2: 0 0% 100%;
+    --chamber-3: 40 33% 97%;
     --vital: var(--alive);
-    --vital-deep: var(--alive);
+    --vital-deep: var(--alive-lit);
     --vital-dim: var(--alive-dim);
     --bone: var(--paper);
     --bone-2: var(--paper-2);
     --bone-3: var(--paper-3);
-    --claw-coral: var(--act);
-    --claw-coral-dark: var(--act-deep);
-    --claw-sky: var(--sky-blue);
-    --claw-sky-dark: var(--sky-blue-dark);
-    --claw-charcoal: var(--bench);
-    --claw-gray-900: var(--paper);
-    --claw-gray-600: var(--paper-2);
-    --claw-gray-400: var(--paper-3);
-    --ai-purple: 265 45% 68%;
-    --ai-purple-bg: 265 30% 18%;
-    --human-green: var(--alive);
-    --human-green-bg: 122 40% 12%;
-    --success: var(--alive);
-    --success-foreground: 20 10% 7%;
-    --warning: var(--idle);
-    --info: var(--brass);
-    --purple: 265 45% 68%;
-    --reward-green: var(--alive);
-    --notification-red: var(--act);
-    --error-red: var(--act-lit);
-    --dashboard-bg: var(--bench);
-    --dashboard-card: var(--bench-2);
-    --dashboard-card-foreground: var(--paper);
-    --dashboard-border: var(--bench-4);
-    --dashboard-hover: var(--bench-3);
-    --surface-dark: var(--bench-2);
-    --surface-darker: var(--bench);
-    --glass-bg: var(--bench-2);
-    --glass-border: var(--bench-4);
-    --hero-from: var(--bench);
-    --hero-via: var(--bench-2);
-    --hero-to: var(--bench);
 
-    /* ---- Measure: the phi ladder, in rem ----------------------------- */
-    --step--2: 0.625rem;   /* 10  */
-    --step--1: 0.8125rem;  /* 13  */
-    --step-0:  1rem;       /* 16  */
-    --step-1:  1.3125rem;  /* 21  */
-    --step-2:  1.625rem;   /* 26  */
-    --step-3:  2.0625rem;  /* 33  */
-    --step-4:  2.625rem;   /* 42  */
-    --step-5:  3.375rem;   /* 54  */
-    --step-6:  4.3125rem;  /* 69  */
-    --step-7:  5.4375rem;  /* 87  */
-    --step-8:  6.9375rem;  /* 111 */
+    /* ---- Measure --------------------------------------------------
+       The size ladder and spacing rhythm are kept. They are typographic
+       measure, not visual identity, and the dashboard layouts depend on
+       them. Only the faces, colours and textures change. */
+    --step--2: 0.625rem;
+    --step--1: 0.8125rem;
+    --step-0:  1rem;
+    --step-1:  1.3125rem;
+    --step-2:  1.625rem;
+    --step-3:  2.0625rem;
+    --step-4:  2.625rem;
+    --step-5:  3.375rem;
+    --step-6:  4.3125rem;
+    --step-7:  5.4375rem;
+    --step-8:  6.9375rem;
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--hair) / 0.11);
+    @apply border-border;
   }
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-background text-foreground;
-    -webkit-font-smoothing: antialiased;
-    font-family: 'Instrument Sans', system-ui, sans-serif;
-    font-size: var(--step-0);
-    line-height: 1.618;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Nunito', system-ui, sans-serif;
   }
 
-  /* Display is Bricolage Grotesque, an optical-size grotesk with a
-     mechanical, slightly irregular skeleton, equipment lettering rather
-     than a startup sans. Set tight and heavy; the optical axis keeps the
-     joins open at display size so it does not clot. */
+  /* Everything is Nunito, set heavy and round. Headings are extrabold
+     and only slightly tightened; this face is meant to look friendly,
+     not engineered. */
   h1, h2, h3 {
-    font-family: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
-    font-variation-settings: 'opsz' 48;
-    font-weight: 700;
-    letter-spacing: -0.026em;
-    line-height: 0.98;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
     text-wrap: balance;
+  }
+
+  h4, h5, h6 {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.02em;
   }
 
   p, li {
     text-wrap: pretty;
   }
 
-  /* Anything read as an instrument label, gauges, tickers, indices,
-     addresses, is monospaced. IBM Plex Mono stays: it was drawn for
-     equipment, and it is the one face here that should not change. */
-  h4, h5, h6 {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  /* Numbers never reflow. */
   [data-numeric], .tabular {
     font-variant-numeric: tabular-nums;
   }
 
   :focus-visible {
-    outline: 2px solid hsl(var(--act-lit));
+    outline: 2px solid hsl(var(--sky-blue-dark));
     outline-offset: 2px;
   }
 
   ::selection {
-    background: hsl(var(--act));
-    color: hsl(var(--paper));
+    background: hsl(var(--sky-blue-light));
+    color: hsl(var(--claw-charcoal));
   }
 
-  ::-webkit-scrollbar { width: 11px; height: 11px; }
-  ::-webkit-scrollbar-track { background: hsl(var(--bench)); }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--bench-4));
-    border: 3px solid hsl(var(--bench));
-    border-radius: 999px;
+  /* Playful scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--paper-4)); }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--cream));
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--sky-blue-light));
+    border-radius: 10px;
+    border: 2px solid hsl(var(--cream));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--sky-blue));
+  }
 }
 
 @layer utilities {
 
-  /* ---- Surfaces ------------------------------------------------------
-     One depth strategy: a warm hairline plus a lightness step. No drop
-     shadows, on a ground this dark they read as smudges, and the art
-     they sit beside casts none. */
+  /* ---- Sky, clouds and gradients ----------------------------------- */
+
+  .glass-panel {
+    background: linear-gradient(180deg,
+      hsl(var(--glass-bg) / 0.9) 0%,
+      hsl(var(--glass-bg) / 0.7) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid hsl(var(--glass-border) / 0.4);
+    box-shadow: 0 8px 32px hsl(var(--sky-blue) / 0.15);
+  }
+
+  .hero-gradient {
+    background: linear-gradient(180deg,
+      hsl(var(--sky-blue)) 0%,
+      hsl(var(--sky-blue-light)) 50%,
+      hsl(var(--cream)) 100%
+    );
+  }
+
+  .cta-gradient {
+    background: linear-gradient(135deg,
+      hsl(var(--coral)) 0%,
+      hsl(var(--coral-light)) 100%
+    );
+  }
+
+  .sky-gradient {
+    background: linear-gradient(180deg,
+      hsl(199 89% 70%) 0%,
+      hsl(199 89% 80%) 100%
+    );
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg,
+      hsl(var(--coral)) 0%,
+      hsl(var(--sky-blue-dark)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* A single puffy cloud, drawn entirely with box-shadow lobes. */
+  .cloud-shape {
+    display: block;
+    background: hsl(var(--cloud-white));
+    border-radius: 50%;
+    box-shadow:
+      30px -20px 0 0 hsl(var(--cloud-white)),
+      60px -10px 0 5px hsl(var(--cloud-white)),
+      90px -20px 0 -5px hsl(var(--cloud-white)),
+      120px 0 0 0 hsl(var(--cloud-white));
+  }
+
+  /* ---- Surfaces -----------------------------------------------------
+     Panels are white paper with a soft blue hairline and a diffuse
+     sky-tinted shadow, so they read as floating in front of the sky
+     rather than cut into a dark ground. */
 
   .panel {
-    background: hsl(var(--bench-2));
-    border: 1px solid hsl(var(--hair) / 0.09);
+    background: hsl(var(--cloud-white));
+    border: 2px solid hsl(var(--dashboard-border));
     border-radius: var(--radius);
+    box-shadow: 0 4px 20px -4px hsl(var(--sky-blue) / 0.18);
   }
 
   .panel-raised {
-    background: hsl(var(--bench-3));
-    border: 1px solid hsl(var(--hair) / 0.13);
+    background: hsl(var(--cloud-white));
+    border: 2px solid hsl(var(--dashboard-border));
     border-radius: var(--radius);
+    box-shadow: 0 12px 40px -8px hsl(var(--sky-blue) / 0.28);
   }
 
-  /* A panel that is reporting something alive. The only place a green
-     edge is allowed. */
+  /* A panel reporting something alive. */
   .panel-live {
-    background: hsl(var(--bench-2));
-    border: 1px solid hsl(var(--alive) / 0.28);
+    background: hsl(var(--human-green-bg) / 0.5);
+    border: 2px solid hsl(var(--human-green) / 0.35);
     border-radius: var(--radius);
+    box-shadow: 0 4px 20px -4px hsl(var(--human-green) / 0.15);
   }
 
-  /* An inset well: darker than its surroundings, because it receives
-     content rather than presenting it. */
+  /* An inset well, cream, because it receives content. */
   .well {
-    background: hsl(var(--bench) / 0.7);
-    border: 1px solid hsl(var(--hair) / 0.07);
+    background: hsl(var(--cream));
+    border: 2px solid hsl(var(--cream-dark));
     border-radius: calc(var(--radius) - 4px);
   }
 
   .raise {
-    transition: border-color 180ms cubic-bezier(0.23, 1, 0.32, 1),
-                background-color 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .raise:hover {
-    border-color: hsl(var(--hair) / 0.2);
-    background: hsl(var(--bench-3));
+    transform: translateY(-4px);
+    border-color: hsl(var(--sky-blue) / 0.5);
+    box-shadow: 0 12px 40px -8px hsl(var(--sky-blue) / 0.3);
   }
 
-  /* ---- Controls ------------------------------------------------------
-     Red fills are the only filled buttons on the site. Everything else
-     is a hairline. */
+  /* ---- Controls ------------------------------------------------------ */
 
   .act {
-    background: hsl(var(--act));
-    color: hsl(var(--paper));
-    border: 1px solid hsl(var(--act-lit) / 0.5);
-    border-radius: calc(var(--radius) - 2px);
-    transition: background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+    background: hsl(var(--coral));
+    color: hsl(var(--cloud-white));
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    font-weight: 800;
+    box-shadow: 0 4px 20px -4px hsl(var(--coral) / 0.45);
+    transition: background-color 0.2s ease, transform 0.15s ease,
+                box-shadow 0.2s ease;
   }
-  .act:hover { background: hsl(var(--act-lit)); }
-  .act:active { transform: scale(0.97); background: hsl(var(--act-deep)); }
+  .act:hover {
+    background: hsl(var(--coral-dark));
+    box-shadow: 0 8px 28px -6px hsl(var(--coral) / 0.55);
+  }
+  .act:active { transform: scale(0.95); }
 
   .act-quiet {
-    background: hsl(var(--hair) / 0.05);
-    color: hsl(var(--paper));
-    border: 1px solid hsl(var(--hair) / 0.13);
-    border-radius: calc(var(--radius) - 2px);
-    transition: background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+    background: hsl(var(--sky-blue) / 0.12);
+    color: hsl(var(--sky-blue-dark));
+    border: 2px solid hsl(var(--sky-blue) / 0.4);
+    border-radius: 9999px;
+    font-weight: 800;
+    transition: background-color 0.2s ease, color 0.2s ease,
+                transform 0.15s ease;
   }
   .act-quiet:hover {
-    background: hsl(var(--hair) / 0.1);
-    border-color: hsl(var(--hair) / 0.22);
+    background: hsl(var(--sky-blue));
+    color: hsl(var(--cloud-white));
   }
-  .act-quiet:active { transform: scale(0.97); }
+  .act-quiet:active { transform: scale(0.95); }
 
-  /* ---- Emission -------------------------------------------------------
-     Green is light, so where it appears it is allowed to actually emit.
-     Used on readings only. */
+  /* ---- Readings ------------------------------------------------------ */
 
-  .text-alive {
-    color: hsl(var(--alive-lit));
-    text-shadow: 0 0 14px hsl(var(--alive) / 0.4);
+  .text-alive,
+  .text-vital {
+    color: hsl(var(--human-green));
+    text-shadow: none;
   }
 
-  /* ---- Ground textures ------------------------------------------------ */
+  .marker-vital {
+    color: hsl(var(--human-green));
+  }
 
-  /* The lamp. One warm pool, top-centre, over the bench. This is the
-     page's only light source and it is why the ground reads as a room
-     rather than as a colour. */
+  .marker-sky {
+    color: hsl(var(--sky-blue-dark));
+  }
+
+  /* ---- Ground textures ------------------------------------------------
+     .lamp, .grain and .grain-lit were the dark bench pool of lamp light
+     and its machined grid. They are now the sky and its clouds, so every
+     surface that used to be lit graphite is now overcast sky. */
+
   .lamp {
+    background-color: hsl(var(--sky-blue-light));
     background-image:
-      radial-gradient(70% 55% at 50% -8%, hsl(35 40% 40% / 0.16), transparent 70%),
-      radial-gradient(45% 40% at 50% -2%, hsl(40 60% 60% / 0.09), transparent 70%);
+      radial-gradient(60% 45% at 12% 18%, hsl(0 0% 100% / 0.95), transparent 62%),
+      radial-gradient(52% 38% at 82% 12%, hsl(0 0% 100% / 0.85), transparent 60%),
+      radial-gradient(70% 45% at 50% 96%, hsl(0 0% 100% / 0.9), transparent 66%),
+      radial-gradient(46% 34% at 68% 52%, hsl(0 0% 100% / 0.6), transparent 62%),
+      linear-gradient(180deg, hsl(var(--sky-blue)) 0%, hsl(var(--sky-blue-light)) 55%, hsl(var(--cream)) 100%);
   }
 
-  /* Bench grain: the faint machined grid the instruments sit on.
-
-     Note that this and .lamp both write background-image, so an element
-     carrying both classes would keep only whichever is declared later.
-     They are composed here instead: .grain-lit is the pairing, and the
-     two singles stay available for elements that want one or the other. */
-  .grain {
+  .grain,
+  .grid-paper,
+  .grid-chamber {
+    background-color: hsl(var(--cream));
     background-image:
-      linear-gradient(to right, hsl(var(--hair) / 0.028) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--hair) / 0.028) 1px, transparent 1px);
-    background-size: 34px 34px;
+      radial-gradient(46% 36% at 18% 22%, hsl(0 0% 100% / 0.9), transparent 62%),
+      radial-gradient(40% 30% at 78% 30%, hsl(0 0% 100% / 0.8), transparent 60%),
+      radial-gradient(54% 38% at 46% 88%, hsl(0 0% 100% / 0.85), transparent 64%);
   }
 
   .grain-lit {
+    background-color: hsl(var(--sky-blue-light));
     background-image:
-      radial-gradient(70% 55% at 50% -8%, hsl(35 40% 40% / 0.16), transparent 70%),
-      radial-gradient(45% 40% at 50% -2%, hsl(40 60% 60% / 0.09), transparent 70%),
-      linear-gradient(to right, hsl(var(--hair) / 0.028) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--hair) / 0.028) 1px, transparent 1px);
-    background-size: auto, auto, 34px 34px, 34px 34px;
-    background-repeat: no-repeat, no-repeat, repeat, repeat;
+      radial-gradient(58% 44% at 14% 16%, hsl(0 0% 100% / 0.95), transparent 62%),
+      radial-gradient(50% 36% at 80% 10%, hsl(0 0% 100% / 0.88), transparent 60%),
+      radial-gradient(44% 32% at 62% 46%, hsl(0 0% 100% / 0.65), transparent 62%),
+      radial-gradient(68% 44% at 44% 98%, hsl(0 0% 100% / 0.92), transparent 66%),
+      linear-gradient(180deg, hsl(var(--sky-blue)) 0%, hsl(var(--sky-blue-light)) 58%, hsl(var(--cream)) 100%);
   }
 
-  /* Highlighter, for the one word per headline that carries the meaning.
-     Green, because the marked word in this product is always the live one. */
-  .marker-vital {
-    color: hsl(var(--alive-lit));
-    text-shadow: 0 0 22px hsl(var(--alive) / 0.45);
-  }
-
-  /* ---- Type roles ---------------------------------------------------- */
+  /* ---- Type roles ------------------------------------------------------ */
 
   .label-mono {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: var(--step--2);
-    font-weight: 600;
-    letter-spacing: 0.24em;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
@@ -389,62 +470,70 @@
   .display-2 { font-size: var(--step-4); }
 
   @media (min-width: 640px) {
-    .display-1 { font-size: var(--step-7); }
+    .display-1 { font-size: var(--step-6); }
     .display-2 { font-size: var(--step-5); }
   }
   @media (min-width: 1024px) {
-    .display-1 { font-size: var(--step-8); }
+    .display-1 { font-size: var(--step-7); }
     .display-2 { font-size: var(--step-6); }
   }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* ---- Aliases from the previous build --------------------------------
-     Mapped onto the bench so any class not yet migrated still lands in
-     the new world. None of these carry the old keyline or hard shadow. */
+  /* ---- Playful helpers -------------------------------------------------- */
 
-  .ink { border: 1px solid hsl(var(--hair) / 0.11); }
+  .card-playful {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-playful:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px hsl(var(--sky-blue) / 0.2);
+  }
+
+  .btn-bounce:active { transform: scale(0.95); }
+
+  /* ---- Bench-era utility aliases ---------------------------------------
+     Mapped onto the sky system so any class the dashboard still carries
+     renders as cloud-and-cream rather than punching a dark hole. */
+
+  .ink { border: 2px solid hsl(var(--dashboard-border)); }
   .ink-card { @apply panel; }
-  .ink-card-cream { @apply panel; }
+  .ink-card-cream { @apply well; }
   .ink-flat { @apply panel; }
-  .ink-raise { @apply raise; }
+  .ink-raise { @apply card-playful; }
   .ink-slab { @apply act; }
   .ink-slab-ghost { @apply act-quiet; }
-  .glass-panel { @apply panel; }
-  .chamber-ground { background: hsl(var(--bench)); color: hsl(var(--paper)); }
+  .chamber-ground { background: hsl(var(--dashboard-bg)); color: hsl(var(--claw-charcoal)); }
   .chamber-panel { @apply panel; }
   .chamber-panel-lit { @apply panel-live; }
-  .text-vital { @apply text-alive; }
-  .grid-paper { @apply grain; }
-  .grid-chamber { @apply grain; }
-  .marker-sky { color: hsl(var(--brass)); }
-  .hero-gradient { @apply lamp; background-color: hsl(var(--bench)); }
-  .sky-gradient { @apply lamp; background-color: hsl(var(--bench)); }
-  .cta-gradient { background: hsl(var(--act)); }
-  .text-gradient { color: hsl(var(--act)); }
-  .cloud-shape { display: none; }
-  .card-playful { @apply raise; }
-  .btn-bounce:active { transform: scale(0.97); }
 }
 
-/* ---- Motion -----------------------------------------------------------
-   The subject is a heartbeat, so the page has exactly one recurring
-   motion idea: something beating. Everything else holds still. Nothing
-   bounces, wiggles, or springs, those were the cartoon's tells.
-   ----------------------------------------------------------------------- */
+/* ---- Motion ------------------------------------------------------------
+   Back to the bouncy set: things float, drift, bob and wiggle. The
+   heartbeat and trace animations are kept because live telemetry in the
+   dashboard drives them, but nothing glows any more.
+   ------------------------------------------------------------------------ */
 
-/* The signature. A lit segment sweeping along the vitality trace, the
-   way a sweep runs along a cardiac monitor. */
-@keyframes trace-sweep {
-  from { stroke-dashoffset: var(--trace-len, 1000); }
-  to   { stroke-dashoffset: 0; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-20px); }
 }
 
-/* The dot that rides the leading edge of the sweep. */
-@keyframes trace-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50%      { opacity: 1;    transform: scale(1.25); }
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-5deg); }
+  75%      { transform: rotate(5deg); }
+}
+
+@keyframes cloud-drift {
+  0%   { transform: translateX(-30%); }
+  100% { transform: translateX(130vw); }
 }
 
 @keyframes heartbeat {
@@ -460,50 +549,61 @@
   to   { transform: translateX(-50%); }
 }
 
-/* A live indicator: present, not shouting. */
 @keyframes breathe {
-  0%, 100% { opacity: 0.85; }
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes decay {
+  0%, 100% { opacity: 0.8; }
   50%      { opacity: 0.4; }
 }
 
-/* A fading agent loses its glow before it loses its shape. */
-@keyframes decay {
-  0%, 100% { opacity: 0.7; }
-  50%      { opacity: 0.34; }
+@keyframes trace-sweep {
+  from { stroke-dashoffset: var(--trace-len, 1000); }
+  to   { stroke-dashoffset: 0; }
 }
 
-/* The lamp is a lamp, not a strobe, a very slow, very small drift. */
-@keyframes lamp-drift {
-  0%, 100% { opacity: 0.9; }
-  50%      { opacity: 1; }
+@keyframes trace-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.25); }
 }
 
-.animate-trace-sweep  { animation: trace-sweep 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-.animate-trace-pulse  { animation: trace-pulse 1.6s ease-in-out infinite; }
-.animate-heartbeat    { animation: heartbeat 2.6s ease-in-out infinite; }
-.animate-marquee      { animation: marquee 46s linear infinite; }
-.animate-breathe      { animation: breathe 3.4s ease-in-out infinite; }
-.animate-decay        { animation: decay 3.2s ease-in-out infinite; }
-.animate-lamp         { animation: lamp-drift 9s ease-in-out infinite; }
+@keyframes charge {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.08); opacity: 0.85; }
+}
 
-/* Aliases for the retired cartoon animations. They now do nothing, so a
-   stale class cannot reintroduce a bounce. */
-.animate-float,
-.animate-float-delayed,
-.animate-bounce-gentle,
-.animate-wiggle,
-.animate-cloud-drift,
-.animate-charge { animation: none; }
+.animate-float           { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed   { animation: float 6s ease-in-out infinite; animation-delay: 2s; }
+.animate-bounce-gentle   { animation: bounce-gentle 3s ease-in-out infinite; }
+.animate-wiggle          { animation: wiggle 0.5s ease-in-out; }
+.animate-cloud-drift     { animation: cloud-drift 60s linear infinite; }
+.animate-heartbeat       { animation: heartbeat 2.6s ease-in-out infinite; }
+.animate-marquee         { animation: marquee 46s linear infinite; }
+.animate-breathe         { animation: breathe 3.4s ease-in-out infinite; }
+.animate-decay           { animation: decay 3.2s ease-in-out infinite; }
+.animate-charge          { animation: charge 1.4s ease-in-out infinite; }
+.animate-trace-sweep     { animation: trace-sweep 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-trace-pulse     { animation: trace-pulse 1.6s ease-in-out infinite; }
+
+/* The lamp is gone; anything still asking for it just holds still. */
+.animate-lamp { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .animate-trace-sweep,
-  .animate-trace-pulse,
+  .animate-float,
+  .animate-float-delayed,
+  .animate-bounce-gentle,
+  .animate-wiggle,
+  .animate-cloud-drift,
   .animate-heartbeat,
   .animate-marquee,
   .animate-breathe,
   .animate-decay,
-  .animate-lamp {
+  .animate-charge,
+  .animate-trace-sweep,
+  .animate-trace-pulse {
     animation: none;
   }
 }

@@ -1,6 +1,6 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -23,29 +23,29 @@ const queryClient = new QueryClient();
 
 /**
  * RainbowKit's modal is the one connect surface in the product, so it is
- * themed to the bench rather than left on its stock palette. Accent is
- * monkii red, because inside that modal every control is an action, and
- * green would contradict the rule that green is only ever a reading.
+ * themed to match the rest of the site rather than left on its stock
+ * palette: white cloud panels, soft blue hairlines, coral for every
+ * action, and generous rounding to sit with the pill buttons.
  */
-const monkiiTheme = darkTheme({
+const monkiiTheme = lightTheme({
   accentColor: "#E74435",
-  accentColorForeground: "#F0E7D8",
-  borderRadius: "small",
+  accentColorForeground: "#FFFFFF",
+  borderRadius: "large",
   overlayBlur: "small",
   fontStack: "system",
 });
 
-monkiiTheme.colors.modalBackground = "#1C1917";
-monkiiTheme.colors.modalBorder = "rgba(240, 231, 216, 0.11)";
-monkiiTheme.colors.modalText = "#F0E7D8";
-monkiiTheme.colors.modalTextSecondary = "#A79D90";
-monkiiTheme.colors.profileForeground = "#24201D";
-monkiiTheme.colors.actionButtonBorder = "rgba(240, 231, 216, 0.11)";
-monkiiTheme.colors.closeButtonBackground = "rgba(240, 231, 216, 0.06)";
-monkiiTheme.colors.generalBorder = "rgba(240, 231, 216, 0.09)";
-monkiiTheme.colors.menuItemBackground = "rgba(240, 231, 216, 0.05)";
-monkiiTheme.colors.connectButtonBackground = "#1C1917";
-monkiiTheme.fonts.body = "'Instrument Sans', system-ui, sans-serif";
+monkiiTheme.colors.modalBackground = "#FFFFFF";
+monkiiTheme.colors.modalBorder = "hsl(199 30% 88%)";
+monkiiTheme.colors.modalText = "hsl(220 13% 18%)";
+monkiiTheme.colors.modalTextSecondary = "hsl(215 16% 47%)";
+monkiiTheme.colors.profileForeground = "hsl(40 33% 97%)";
+monkiiTheme.colors.actionButtonBorder = "hsl(199 30% 88%)";
+monkiiTheme.colors.closeButtonBackground = "hsl(199 50% 95%)";
+monkiiTheme.colors.generalBorder = "hsl(199 30% 88%)";
+monkiiTheme.colors.menuItemBackground = "hsl(199 50% 95%)";
+monkiiTheme.colors.connectButtonBackground = "#FFFFFF";
+monkiiTheme.fonts.body = "'Nunito', system-ui, sans-serif";
 
 const App = () => (
   <WagmiProvider config={wagmiConfig}>

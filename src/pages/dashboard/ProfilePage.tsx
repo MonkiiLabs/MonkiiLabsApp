@@ -66,7 +66,7 @@ const ProfileInner = () => {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <code className="rounded-xl border border-hair/10 bg-black/40 px-3 py-1.5 font-mono text-xs text-alive-lit">
+            <code className="rounded-xl border border-hair/10 bg-cream px-3 py-1.5 font-mono text-xs text-alive-lit">
               {address}
             </code>
             <button
@@ -150,8 +150,6 @@ const ProfileInner = () => {
 const ProfilePage = () => (
   <>
     <PageTitle
-      index="06"
-      eyebrow="Identity"
       title="Nurturer Profile & Telemetry"
       intro="Your verified Robinhood Chain account credentials and Proof-of-Life compute record."
     />

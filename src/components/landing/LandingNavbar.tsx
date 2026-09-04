@@ -1,135 +1,117 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Wordmark } from "@/components/landing/Section";
 import { WalletButton } from "@/components/dashboard/WalletButton";
 
+/**
+ * The landing navbar, back to the original floating pill treatment: it
+ * sits directly on the sky with no bar behind it, so the clouds drift
+ * past underneath.
+ *
+ * The one thing not reverted is the wallet control. The original used a
+ * hand-rolled WalletConnectModal; this keeps the current RainbowKit
+ * WalletButton, which is what actually connects to Robinhood Chain and
+ * signs the session.
+ */
 const SECTIONS = [
-  { id: "problem", label: "Problem" },
-  { id: "loop", label: "The Loop" },
-  { id: "agents", label: "Fleet" },
+  { id: "how-it-works", label: "How It Works" },
+  { id: "agents", label: "Agents" },
   { id: "companions", label: "Companions" },
-  { id: "tokens", label: "Tokenomics" },
+  { id: "tokens", label: "Tokens" },
 ];
 
-/**
- * The nav rail. It sits on the bench rather than floating above a
- * different world, so it takes a hairline and one lightness step, no
- * ring, no lift, no coloured border on scroll. The only thing that
- * changes when you scroll is that the hairline appears.
- */
 const LandingNavbar = () => {
-  const [open, setOpen] = useState(false);
-  const [lifted, setLifted] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setLifted(window.scrollY > 20);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollTo = useCallback((id: string) => {
-    setOpen(false);
+    setMobileMenuOpen(false);
     window.setTimeout(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
   }, []);
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6">
-      <nav
-        className={`mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-xl border bg-bench/85 px-fib2 py-2 backdrop-blur-xl transition-colors duration-200 ${
-          lifted ? "border-hair/12" : "border-transparent"
-        }`}
-      >
-        <Link to="/" className="shrink-0 transition-opacity hover:opacity-90" aria-label="Monkii Labs home">
-          <Wordmark size="sm" />
-        </Link>
+    <nav className="relative z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-7xl mx-auto">
+      <Link to="/" className="group">
+        <Wordmark size="md" />
+      </Link>
 
-        {/* Desktop Links */}
-        <div className="hidden items-center gap-6 lg:flex">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => scrollTo(s.id)}
-              className="label-mono text-paper-3 transition-colors hover:text-paper"
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Right action tools: Enter App + RainbowKit Connect */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/dashboard"
-            className="act-quiet hidden h-9 items-center gap-1.5 px-fib3 font-mono text-micro font-semibold uppercase tracking-[0.16em] text-paper-2 sm:inline-flex"
+      <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-bold text-claw-charcoal">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => scrollTo(s.id)}
+            className="hover:text-coral transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-coral after:transition-all hover:after:w-full"
           >
-            <LayoutDashboard className="h-3.5 w-3.5 text-paper-3" />
-            <span>Launch Cockpit</span>
-          </Link>
+            {s.label}
+          </button>
+        ))}
+      </div>
 
-          <WalletButton />
+      <div className="hidden sm:flex items-center gap-2 sm:gap-3">
+        <WalletButton />
 
-          {/* Mobile Sheet */}
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="Open menu"
-                className="act-quiet grid h-9 w-9 place-items-center text-paper-2 lg:hidden"
-              >
-                <Menu className="h-4 w-4" />
-              </button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[min(20rem,86vw)] border-l border-hair/10 bg-bench-2 p-0 text-paper"
+        <Button
+          size="sm"
+          className="rounded-full bg-coral hover:bg-coral-dark text-white font-bold shadow-coral transition-all duration-200 btn-bounce"
+          asChild
+        >
+          <Link to="/dashboard">Start Nurturing</Link>
+        </Button>
+      </div>
+
+      <div className="flex sm:hidden items-center gap-2">
+        <WalletButton />
+
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full p-2 bg-background/90 hover:bg-background shadow-sm border border-border backdrop-blur"
             >
-              <SheetTitle className="sr-only">Menu</SheetTitle>
-              <div className="flex items-center justify-between border-b border-hair/10 p-fib3">
+              <Menu className="w-5 h-5 text-claw-charcoal" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[280px] bg-white border-l-2 border-dashboard-border p-0">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 p-4 border-b border-dashboard-border">
                 <Wordmark size="sm" />
-                <button
-                  type="button"
-                  aria-label="Close menu"
-                  onClick={() => setOpen(false)}
-                  className="grid h-9 w-9 place-items-center rounded-md border border-hair/10 text-paper-3"
-                >
-                  <X className="h-4 w-4" />
-                </button>
               </div>
 
-              <nav className="flex flex-col p-fib3">
-                {SECTIONS.map((s, i) => (
+              <nav className="flex flex-col p-4 gap-2">
+                {SECTIONS.map((s) => (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => scrollTo(s.id)}
-                    className="flex items-baseline gap-fib2 border-b border-hair/[0.07] py-fib2 text-left label-mono text-paper-2 hover:text-paper"
+                    className="text-left py-3 px-4 rounded-xl font-bold text-claw-charcoal hover:bg-cream hover:text-coral transition-colors"
                   >
-                    <span className="text-paper-4">{String(i + 1).padStart(2, "0")}</span>
-                    <span>{s.label}</span>
+                    {s.label}
                   </button>
                 ))}
-
-                <Link
-                  to="/dashboard"
-                  onClick={() => setOpen(false)}
-                  className="act mt-fib4 flex h-11 items-center justify-center gap-2 font-mono text-micro font-semibold uppercase tracking-[0.16em]"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Launch Cockpit
-                </Link>
               </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </nav>
-    </div>
+
+              <div className="mt-auto p-4 border-t border-dashboard-border">
+                <Button
+                  className="w-full rounded-full bg-coral hover:bg-coral-dark text-white font-bold shadow-coral"
+                  asChild
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/dashboard">Start Nurturing</Link>
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </nav>
   );
 };
 

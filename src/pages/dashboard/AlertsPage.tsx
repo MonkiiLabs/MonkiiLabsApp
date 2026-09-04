@@ -83,7 +83,7 @@ const AlertsInner = () => {
                 </li>
                 <li>
                   <strong className="text-paper">3.</strong> Send:{" "}
-                  <code className="rounded border border-hair/15 bg-black/40 px-2 py-0.5 font-mono text-alive-lit">
+                  <code className="rounded border border-hair/15 bg-cream px-2 py-0.5 font-mono text-alive-lit">
                     /start {code ?? "YOUR_CODE"}
                   </code>
                 </li>
@@ -94,7 +94,7 @@ const AlertsInner = () => {
                   type="button"
                   disabled={linkCode.isPending}
                   onClick={() => linkCode.mutate()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-50"
                 >
                   <Send className="h-3.5 w-3.5" />
                   {code ? "Regenerate Code" : "Get Pairing Code"}
@@ -159,7 +159,7 @@ const AlertsInner = () => {
                     <StateChip state={agent.state} />
                     <Link
                       to={`/dashboard/agents/${agent.id}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-act px-3 py-1.5 font-mono text-micro font-semibold uppercase text-paper transition-colors hover:bg-act-lit"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-act px-3 py-1.5 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit"
                     >
                       <Heart className="h-3 w-3" />
                       Revive
@@ -178,8 +178,6 @@ const AlertsInner = () => {
 const AlertsPage = () => (
   <>
     <PageTitle
-      index="05"
-      eyebrow="Sentinel Telemetry"
       title="Vitality Alerts & Telegram Sentinel"
       intro="Connect @MonkiiLabsBot for instant automated notifications whenever your nurtured fleet agents slip into idle or fading states."
     />

@@ -5,6 +5,7 @@ import type { Agent } from "@/features/api/types";
 import { PowerMeter, StateChip, fmt } from "@/components/dashboard/primitives";
 import { monkiiMark } from "@/lib/brand";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { AGENT_POWER_MAX } from "@/lib/config";
 
 /**
  * Modern Agent Fleet Card.
@@ -71,7 +72,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
         </div>
         <PowerMeter
           power={agent.power}
-          max={agent.healthyThreshold || agent.power || 1}
+          max={AGENT_POWER_MAX}
           state={agent.state}
           showValue={false}
           segments={12}
