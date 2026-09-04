@@ -12,7 +12,7 @@ healthRouter.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-healthRouter.get("/network", (_req: Request, res: Response) => {
+healthRouter.get(["/network", "/api/network"], (_req: Request, res: Response) => {
   res.json({
     chain: "Robinhood Chain",
     chainId: 4663,
