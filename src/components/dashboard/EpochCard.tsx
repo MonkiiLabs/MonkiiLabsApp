@@ -1,74 +1,98 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useMonkii } from "@/features/monkii/store";
-import { POOL_STATS } from "@/features/monkii/data";
+import { Clock } from "lucide-react";
+
+import { useClaimable, useStakingStatus } from "@/features/api/hooks";
+import { fmt } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 
-export const useCountdown = (target: number) => {
-  const [now, setNow] = useState(Date.now());
+/** Live countdown to the next 00:00 UTC disbursal. */
+function useCountdown(target: string | null | undefined) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(t);
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
   }, []);
-  const ms = Math.max(0, target - now);
+
+  if (!target) return null;
+  const ms = new Date(target).getTime() - now;
+  if (Number.isNaN(ms)) return null;
+  if (ms <= 0) return { h: "00", m: "00", s: "00", done: true };
+
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
   const s = Math.floor((ms % 60_000) / 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
+  return {
+    h: String(h).padStart(2, "0"),
+    m: String(m).padStart(2, "0"),
+    s: String(s).padStart(2, "0"),
+    done: false,
+  };
+}
 
-const EpochCard = ({ compact = false }: { compact?: boolean }) => {
-  const { epochEndsAt, staked, pendingAnsem, claimAnsem } = useMonkii();
-  const countdown = useCountdown(epochEndsAt);
-  const qualifies = staked >= POOL_STATS.minStake;
+const EpochCard = () => {
+  const { data: staking } = useStakingStatus();
+  const { data: balances } = useClaimable();
+  const countdown = useCountdown(staking?.nextEpochAt);
 
   return (
-    <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-4">
-      <h3 className="text-xs font-extrabold uppercase tracking-wider text-claw-gray-600 mb-2">
-        Next {BRAND.valueToken} epoch
-      </h3>
-      <p className="text-2xl font-extrabold text-claw-charcoal tabular-nums">{countdown}</p>
-      <p className="text-[11px] text-claw-gray-600 leading-relaxed mt-1">
-        One fixed schedule shared by every staker. Staking or unstaking during a cycle forfeits that
-        cycle's payout.
-      </p>
-
-      {!compact && (
-        <dl className="mt-4 space-y-2 text-sm">
-          <div className="flex items-center justify-between">
-            <dt className="text-claw-gray-600 font-medium">Pool wallet balance</dt>
-            <dd className="font-extrabold text-claw-charcoal tabular-nums">
-              {POOL_STATS.poolBalance.toLocaleString()}
-            </dd>
+    <div className="space-y-4">
+      {/* 24-Hour Epoch Disbursal Clock */}
+      <section className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-[#0d130f]/90 p-5 shadow-xl shadow-black/40 backdrop-blur-md">
+        <header className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-emerald-400" />
+            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-300">
+              Next Epoch Disbursal
+            </h2>
           </div>
-          <div className="flex items-center justify-between">
-            <dt className="text-claw-gray-600 font-medium">Total distributed</dt>
-            <dd className="font-extrabold text-claw-charcoal tabular-nums">
-              {POOL_STATS.totalDistributed.toLocaleString()}
-            </dd>
-          </div>
-        </dl>
-      )}
+          <span className="font-mono text-[10px] text-emerald-400">00:00 UTC</span>
+        </header>
 
-      <Button
-        onClick={() => {
-          const amount = claimAnsem();
-          if (amount > 0) {
-            toast.success(`Claimed ${amount} ${BRAND.valueToken}`, {
-              description: "Sent from the pool wallet — the pool paid the network fee.",
-            });
-          } else {
-            toast.error(`Stake at least ${POOL_STATS.minStake} ${BRAND.rewardToken} to qualify.`);
-          }
-        }}
-        disabled={!qualifies}
-        className="w-full mt-4 rounded-full bg-coral hover:bg-coral-dark text-white font-bold shadow-coral disabled:opacity-60"
-      >
-        {qualifies ? `Claim ${pendingAnsem} ${BRAND.valueToken}` : "Not qualifying yet"}
-      </Button>
-    </Card>
+        <div className="pt-4">
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-white/5 bg-black/40 py-3 font-mono text-2xl font-bold tabular-nums text-emerald-400 shadow-inner">
+            {countdown ? (
+              <>
+                <span className="w-10 text-center">{countdown.h}</span>
+                <span className="text-slate-600">:</span>
+                <span className="w-10 text-center">{countdown.m}</span>
+                <span className="text-slate-600">:</span>
+                <span className="w-10 text-center">{countdown.s}</span>
+              </>
+            ) : (
+              <span className="text-slate-500">23:59:59</span>
+            )}
+          </div>
+          <p className="mt-2 text-center text-xs text-slate-400">
+            Automated snapshot & $PONS distribution cycle
+          </p>
+
+          <dl className="mt-4 space-y-2 border-t border-white/10 pt-3 text-xs">
+            <div className="flex items-center justify-between">
+              <dt className="text-slate-400">Cycle Eligibility</dt>
+              <dd
+                className={`font-mono text-xs font-semibold ${
+                  staking?.isEligibleForNextEpoch ? "text-emerald-400" : "text-amber-400"
+                }`}
+              >
+                {staking ? (staking.isEligibleForNextEpoch ? "Eligible ✓" : "Pending Next Cycle") : "—"}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-slate-400">Current Multiplier</dt>
+              <dd className="font-mono text-xs font-semibold tabular-nums text-white">
+                {staking ? `×${staking.rewardMultiplier.toFixed(2)}` : "×1.00"}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-slate-400">{BRAND.valueToken} Yield Accrued</dt>
+              <dd className="font-mono text-xs font-semibold tabular-nums text-emerald-400">
+                {fmt(balances?.claimablePons, 2)}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </div>
   );
 };
 

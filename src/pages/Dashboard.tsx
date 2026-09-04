@@ -1,7 +1,11 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
+
 import DashHeader from "@/components/dashboard/DashHeader";
 import DashSidebar from "@/components/dashboard/DashSidebar";
 import EpochCard from "@/components/dashboard/EpochCard";
+import WalletConnectModal from "@/components/WalletConnectModal";
+import { useWallet } from "@/hooks/useWallet";
+
 import HomePage from "@/pages/dashboard/HomePage";
 import AgentsPage from "@/pages/dashboard/AgentsPage";
 import AgentDetailPage from "@/pages/dashboard/AgentDetailPage";
@@ -10,28 +14,44 @@ import StakingPage from "@/pages/dashboard/StakingPage";
 import LeaderboardPage from "@/pages/dashboard/LeaderboardPage";
 import AlertsPage from "@/pages/dashboard/AlertsPage";
 import ProfilePage from "@/pages/dashboard/ProfilePage";
-import WalletConnectModal from "@/components/WalletConnectModal";
-import { useWallet } from "@/hooks/useWallet";
-import { MonkiiProvider } from "@/features/monkii/store";
 
-const DashboardShell = () => {
+/**
+ * Modern Robinhood Chain Laboratory Cockpit Shell.
+ * High-tech ambient dark aesthetic, precision three-column layout, and responsive telemetry.
+ */
+const Dashboard = () => {
   const location = useLocation();
   const { showConnectModal, setShowConnectModal, connect } = useWallet();
-  const wide = location.pathname.startsWith("/dashboard/staking");
+
+  const wide =
+    location.pathname.startsWith("/dashboard/staking") ||
+    location.pathname.startsWith("/dashboard/leaderboard") ||
+    location.pathname.startsWith("/dashboard/companions");
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <div className="min-h-screen bg-[#080c09] text-slate-100 relative selection:bg-emerald-500 selection:text-black">
+      {/* High-tech telemetry grid and ambient atmosphere */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_80%_at_50%_-10%,rgba(0,200,5,0.08),rgba(0,0,0,0))] opacity-80" />
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-15"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "36px 36px",
+        }}
+      />
+
       <DashHeader />
 
-      <main className="pt-[68px] sm:pt-[80px] max-w-[1180px] mx-auto px-3 sm:px-4">
-        <div className="flex gap-4 lg:gap-6 py-4 sm:py-6">
-          <aside className="hidden lg:block w-[230px] xl:w-[250px] shrink-0">
-            <div className="sticky top-[92px]">
+      <main className="mx-auto max-w-[1280px] px-4 pt-[76px] sm:px-6">
+        <div className="flex gap-6 py-6">
+          <aside className="hidden w-[260px] shrink-0 lg:block">
+            <div className="sticky top-[84px]">
               <DashSidebar />
             </div>
           </aside>
 
-          <div className={`flex-1 min-w-0 ${wide ? "" : "xl:max-w-[600px]"}`}>
+          <div className={`min-w-0 flex-1 ${wide ? "" : "xl:max-w-[700px]"}`}>
             <Routes>
               <Route index element={<HomePage />} />
               <Route path="agents" element={<AgentsPage />} />
@@ -45,8 +65,8 @@ const DashboardShell = () => {
           </div>
 
           {!wide && (
-            <aside className="hidden xl:block w-[280px] shrink-0">
-              <div className="sticky top-[92px] space-y-3">
+            <aside className="hidden w-[290px] shrink-0 xl:block">
+              <div className="sticky top-[84px]">
                 <EpochCard />
               </div>
             </aside>
@@ -54,15 +74,13 @@ const DashboardShell = () => {
         </div>
       </main>
 
-      <WalletConnectModal open={showConnectModal} onOpenChange={setShowConnectModal} onConnect={connect} />
+      <WalletConnectModal
+        open={showConnectModal}
+        onOpenChange={setShowConnectModal}
+        onConnect={connect}
+      />
     </div>
   );
 };
-
-const Dashboard = () => (
-  <MonkiiProvider>
-    <DashboardShell />
-  </MonkiiProvider>
-);
 
 export default Dashboard;

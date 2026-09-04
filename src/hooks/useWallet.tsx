@@ -1,251 +1,331 @@
-import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAccessToken, clearTokens } from "@/lib/tokenStorage";
-import { ensureAuth } from "@/features/auth/ensureAuth";
-import { getPhantomProvider, isMobileDevice, openInPhantomApp } from "@/lib/solana";
-import { getMetaMaskProvider, openInMetaMaskApp } from "@/lib/ethereum";
+import { useAccount, useDisconnect, useSignMessage } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+
+import { AUTH_EXPIRED_EVENT } from "@/lib/api";
+import { auth } from "@/features/api/endpoints";
+import {
+  ensureRobinhoodChain,
+  getProviderFor,
+  hasInjectedWallet,
+  isMetaMaskAvailable,
+  isRobinhoodWalletAvailable,
+  openInMetaMaskApp,
+  type WalletKind,
+} from "@/lib/ethereum";
+import { clearToken, getStoredAddress, getToken, setToken } from "@/lib/tokenStorage";
+
+/* =====================================================================
+   Wallet + session.
+   Powered by RainbowKit & Wagmi on Robinhood Chain (EVM Chain ID 4663).
+   Two gasless steps:
+   1. Wallet Connect (RainbowKit modal / Wagmi provider)
+   2. Monkii Labs Session (nonce → personal_sign → verify JWT token)
+   ===================================================================== */
+
+const WALLET_KEY = "monkii_wallet";
+
+export type ConnectResult = { success: boolean; address?: string; error?: string };
 
 interface WalletState {
   isConnected: boolean;
-  walletType: string | null;
+  /** True only once a valid JWT is held for the connected address. */
+  isAuthenticated: boolean;
+  isAuthenticating: boolean;
+  authError: string | null;
+  walletType: WalletKind | null;
   address: string | null;
   formatAddress: (addr: string) => string;
   showConnectModal: boolean;
   setShowConnectModal: (show: boolean) => void;
+  openRainbowModal: () => void;
   connect: (walletType: string, address: string) => void;
+  connectWallet: (kind: WalletKind) => Promise<ConnectResult>;
+  /** Runs the gasless nonce → personal_sign → verify handshake. */
+  signIn: () => Promise<boolean>;
   disconnect: () => void;
-  connectPhantom: () => Promise<{ success: boolean; address?: string; error?: string }>;
-  connectMetaMask: () => Promise<{ success: boolean; address?: string; error?: string }>;
-  isPhantomInstalled: boolean;
+  hasWallet: boolean;
+  isRobinhoodInstalled: boolean;
   isMetaMaskInstalled: boolean;
   isMobile: boolean;
-  openPhantomApp: () => void;
   openMetaMaskApp: () => void;
 }
 
 const WalletContext = createContext<WalletState | undefined>(undefined);
 
+function isMobileDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+}
+
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const qc = useQueryClient();
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletType, setWalletType] = useState<string | null>(null);
-  const [address, setAddress] = useState<string | null>(null);
-  const [showConnectModal, setShowConnectModal] = useState(false);
-  const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
-  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
-  const [isMobile] = useState(() => isMobileDevice());
+  const { address: wagmiAddress, isConnected: wagmiConnected, connector } = useAccount();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { signMessageAsync } = useSignMessage();
+  const { openConnectModal } = useConnectModal();
 
-  // Wallets inject late in some browsers; poll briefly after mount.
+  const [legacyConnected, setLegacyConnected] = useState(false);
+  const [legacyAddress, setLegacyAddress] = useState<string | null>(null);
+  const [walletType, setWalletType] = useState<WalletKind | null>(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getToken()));
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const [hasWallet, setHasWallet] = useState(false);
+  const [isRobinhoodInstalled, setIsRobinhoodInstalled] = useState(false);
+  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
+  const [isMobile] = useState(isMobileDevice);
+
+  // Active address is wagmiAddress if connected via RainbowKit, else fallback to legacy
+  const address = wagmiAddress ?? legacyAddress;
+  const isConnected = wagmiConnected || legacyConnected;
+
+  // Detect available browser extensions
   useEffect(() => {
     let cancelled = false;
     const check = () => {
       if (cancelled) return;
-      setIsPhantomInstalled(!!getPhantomProvider());
-      setIsMetaMaskInstalled(!!getMetaMaskProvider());
+      setHasWallet(hasInjectedWallet());
+      setIsRobinhoodInstalled(isRobinhoodWalletAvailable());
+      setIsMetaMaskInstalled(isMetaMaskAvailable());
     };
     check();
     const timers = [200, 600, 1200, 2000].map((ms) => window.setTimeout(check, ms));
-    window.addEventListener("phantom#initialized", check);
     window.addEventListener("ethereum#initialized", check);
     return () => {
       cancelled = true;
       timers.forEach(window.clearTimeout);
-      window.removeEventListener("phantom#initialized", check);
       window.removeEventListener("ethereum#initialized", check);
     };
   }, []);
 
-  const connect = useCallback((type: string, addr: string) => {
-    setWalletType(type);
-    setAddress(addr);
-    setIsConnected(true);
-    localStorage.setItem("monkii_wallet", JSON.stringify({ type, address: addr }));
+  // Sync authentication state whenever active address changes
+  useEffect(() => {
+    if (!address) {
+      setIsAuthenticated(false);
+      return;
+    }
+    const token = getToken();
+    const stored = getStoredAddress();
+    const isMatching =
+      Boolean(token) && (!stored || stored.toLowerCase() === address.toLowerCase());
+    setIsAuthenticated(isMatching);
+  }, [address]);
+
+  // apiFetch raises this on any 401 response
+  useEffect(() => {
+    const handler = () => {
+      setIsAuthenticated(false);
+      setAuthError("Session expired. Sign in again.");
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, handler);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handler);
   }, []);
 
-  // Restore a previous session, and silently re-approve with Phantom when it is trusted.
-  useEffect(() => {
-    const saved = localStorage.getItem("monkii_wallet");
-    if (saved) {
-      try {
-        const { type, address: savedAddress } = JSON.parse(saved) as { type: string; address: string };
-        setWalletType(type);
-        setAddress(savedAddress);
-        setIsConnected(true);
-      } catch {
-        localStorage.removeItem("monkii_wallet");
-      }
-    }
+  const formatAddress = useCallback((addr: string) => {
+    if (!addr) return "";
+    return addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
+  }, []);
 
-    const provider = getPhantomProvider();
-    if (!provider) return;
-    provider
-      .connect({ onlyIfTrusted: true })
-      .then((res) => connect("phantom", res.publicKey.toString()))
-      .catch(() => {});
-  }, [connect]);
+  const connect = useCallback((type: string, addr: string) => {
+    const kind = (type as WalletKind) ?? "injected";
+    setWalletType(kind);
+    setLegacyAddress(addr);
+    setLegacyConnected(true);
+    try {
+      localStorage.setItem(WALLET_KEY, JSON.stringify({ type: kind, address: addr }));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const disconnect = useCallback(() => {
-    // Tokens are tied to wallet auth; clear them on disconnect.
-    clearTokens();
+    clearToken();
     qc.clear();
     setWalletType(null);
-    setAddress(null);
-    setIsConnected(false);
-    localStorage.removeItem("monkii_wallet");
-    getPhantomProvider()?.disconnect?.().catch(() => {});
-  }, [qc]);
-
-  // Auto-disconnect when auth expires (apiFetch dispatches this)
-  useEffect(() => {
-    const handler = () => disconnect();
-    window.addEventListener("monkii:authExpired", handler as EventListener);
-    return () => window.removeEventListener("monkii:authExpired", handler as EventListener);
-  }, [disconnect]);
-
-  // Phantom account/disconnect events
-  useEffect(() => {
-    const provider = getPhantomProvider();
-    if (!provider || walletType !== "phantom") return;
-
-    const handleAccountChanged = (publicKey: unknown) => {
-      const next = (publicKey as { toString(): string } | null)?.toString?.();
-      if (!next) {
-        disconnect();
-        return;
-      }
-      if (next === address) return;
-      setAddress(next);
-      localStorage.setItem("monkii_wallet", JSON.stringify({ type: "phantom", address: next }));
-      // Auth tokens belong to the previous key — reset and re-auth for the new one.
-      clearTokens();
-      qc.clear();
-      ensureAuth({ walletType: "phantom", walletAddress: next }).catch(() => {});
-    };
-    const handleDisconnect = () => disconnect();
-
-    provider.on("accountChanged", handleAccountChanged);
-    provider.on("disconnect", handleDisconnect);
-    return () => {
-      provider.removeListener?.("accountChanged", handleAccountChanged);
-      provider.removeListener?.("disconnect", handleDisconnect);
-    };
-  }, [walletType, address, disconnect, qc]);
-
-  const formatAddress = (addr: string) =>
-    addr.length > 12 ? `${addr.slice(0, 4)}...${addr.slice(-4)}` : addr;
-
-  const connectPhantom = async (): Promise<{ success: boolean; address?: string; error?: string }> => {
-    const provider = getPhantomProvider();
-
-    if (!provider) {
-      // On a phone's normal browser there is no provider — hand off to the Phantom app browser.
-      if (isMobileDevice()) {
-        openInPhantomApp();
-        return { success: false, error: "Opening Phantom… continue in the Phantom app browser." };
-      }
-      return {
-        success: false,
-        error: "Phantom is not installed. Add the Phantom browser extension, then reload.",
-      };
+    setLegacyAddress(null);
+    setLegacyConnected(false);
+    setIsAuthenticated(false);
+    setAuthError(null);
+    try {
+      localStorage.removeItem(WALLET_KEY);
+    } catch {
+      /* ignore */
     }
+    wagmiDisconnect();
+  }, [qc, wagmiDisconnect]);
+
+  /** Gasless nonce → personal_sign → verify authentication handshake */
+  const signIn = useCallback(async (): Promise<boolean> => {
+    const targetAddr = address;
+    if (!targetAddr) {
+      setAuthError("No wallet connected. Connect your wallet first.");
+      return false;
+    }
+
+    setIsAuthenticating(true);
+    setAuthError(null);
 
     try {
-      const res = await provider.connect();
-      const fullAddress = res.publicKey.toString();
-      connect("phantom", fullAddress);
-      if (!getAccessToken()) {
-        ensureAuth({ walletType: "phantom", walletAddress: fullAddress }).catch(() => {});
+      // 1. Request nonce and sign-in message from backend
+      const { message } = await auth.nonce(targetAddr);
+
+      // 2. Request user signature via Wagmi / RainbowKit signer
+      let signature: string;
+      try {
+        signature = await signMessageAsync({ message });
+      } catch (wagmiErr) {
+        // Fallback to injected provider if wagmi connector sign message fails
+        const provider = getProviderFor("injected");
+        if (provider) {
+          const { personalSign } = await import("@/lib/ethereum");
+          signature = await personalSign(provider, targetAddr, message);
+        } else {
+          throw wagmiErr;
+        }
       }
-      return { success: true, address: fullAddress };
-    } catch (error) {
-      const err = error as { code?: number; message?: string };
-      if (err.code === 4001) return { success: false, error: "Connection request was rejected" };
-      return { success: false, error: err.message || "Failed to connect to Phantom" };
+
+      // 3. Verify signature with backend to receive JWT token
+      const { token } = await auth.verify(targetAddr, signature);
+      setToken(token, targetAddr);
+      setIsAuthenticated(true);
+      qc.invalidateQueries();
+      return true;
+    } catch (err) {
+      const code = (err as { code?: number })?.code;
+      setAuthError(
+        code === 4001
+          ? "Signature declined. Sign message to open your Monkii Labs session."
+          : (err as Error)?.message || "Could not sign in.",
+      );
+      setIsAuthenticated(false);
+      return false;
+    } finally {
+      setIsAuthenticating(false);
     }
-  };
+  }, [address, signMessageAsync, qc]);
 
-  const connectMetaMask = async (): Promise<{ success: boolean; address?: string; error?: string }> => {
-    const provider = getMetaMaskProvider();
-
-    if (!provider) {
-      if (isMobileDevice()) {
-        openInMetaMaskApp();
-        return { success: false, error: "Opening MetaMask… continue in the MetaMask app browser." };
-      }
-      return {
-        success: false,
-        error: "MetaMask is not installed. Add the MetaMask browser extension, then reload.",
-      };
+  const openRainbowModal = useCallback(() => {
+    if (openConnectModal) {
+      openConnectModal();
+    } else {
+      setShowConnectModal(true);
     }
+  }, [openConnectModal]);
 
-    try {
-      const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
-      const fullAddress = accounts?.[0];
-      if (!fullAddress) return { success: false, error: "No MetaMask account was shared" };
-      connect("metamask", fullAddress);
-      if (!getAccessToken()) {
-        ensureAuth({ walletType: "metamask", walletAddress: fullAddress }).catch(() => {});
+  const handleSetShowConnectModal = useCallback(
+    (show: boolean) => {
+      if (show && openConnectModal) {
+        openConnectModal();
+      } else {
+        setShowConnectModal(show);
       }
-      return { success: true, address: fullAddress };
-    } catch (error) {
-      const err = error as { code?: number; message?: string };
-      if (err.code === 4001) return { success: false, error: "Connection request was rejected" };
-      return { success: false, error: err.message || "Failed to connect to MetaMask" };
-    }
-  };
-
-  // MetaMask account/chain events
-  useEffect(() => {
-    const provider = getMetaMaskProvider();
-    if (!provider || walletType !== "metamask") return;
-
-    const handleAccountsChanged = (...args: unknown[]) => {
-      const next = (args[0] as string[] | undefined)?.[0];
-      if (!next) {
-        disconnect();
-        return;
-      }
-      if (next === address) return;
-      setAddress(next);
-      localStorage.setItem("monkii_wallet", JSON.stringify({ type: "metamask", address: next }));
-      clearTokens();
-      qc.clear();
-      ensureAuth({ walletType: "metamask", walletAddress: next }).catch(() => {});
-    };
-
-    provider.on?.("accountsChanged", handleAccountsChanged);
-    return () => provider.removeListener?.("accountsChanged", handleAccountsChanged);
-  }, [walletType, address, disconnect, qc]);
-
-  return (
-    <WalletContext.Provider
-      value={{
-        isConnected,
-        walletType,
-        address,
-        formatAddress,
-        showConnectModal,
-        setShowConnectModal,
-        connect,
-        disconnect,
-        connectPhantom,
-        connectMetaMask,
-        isPhantomInstalled,
-        isMetaMaskInstalled,
-        isMobile,
-        openPhantomApp: openInPhantomApp,
-        openMetaMaskApp: openInMetaMaskApp,
-      }}
-    >
-      {children}
-    </WalletContext.Provider>
+    },
+    [openConnectModal],
   );
+
+  const connectWallet = useCallback(
+    async (kind: WalletKind): Promise<ConnectResult> => {
+      // If RainbowKit modal is available, open it
+      if (openConnectModal) {
+        openConnectModal();
+        return { success: true };
+      }
+
+      const provider = getProviderFor(kind);
+      if (!provider) {
+        if (isMobileDevice() && kind === "metamask") {
+          openInMetaMaskApp();
+          return { success: false, error: "Opening MetaMask… continue in its in-app browser." };
+        }
+        return {
+          success: false,
+          error:
+            kind === "robinhood"
+              ? "Robinhood Wallet not detected. Open this page in the Robinhood app browser."
+              : "No EVM wallet detected.",
+        };
+      }
+
+      try {
+        const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+        const account = accounts?.[0];
+        if (!account) return { success: false, error: "No account was shared." };
+
+        await ensureRobinhoodChain(provider).catch(() => {});
+        connect(kind, account);
+        return { success: true, address: account };
+      } catch (error) {
+        const err = error as { code?: number; message?: string };
+        if (err.code === 4001) return { success: false, error: "Connection request was rejected." };
+        return { success: false, error: err.message || "Failed to connect." };
+      }
+    },
+    [connect, openConnectModal],
+  );
+
+  const value = useMemo<WalletState>(
+    () => ({
+      isConnected,
+      isAuthenticated,
+      isAuthenticating,
+      authError,
+      walletType: (connector?.id as WalletKind) ?? walletType,
+      address,
+      formatAddress,
+      showConnectModal,
+      setShowConnectModal: handleSetShowConnectModal,
+      openRainbowModal,
+      connect,
+      connectWallet,
+      signIn,
+      disconnect,
+      hasWallet,
+      isRobinhoodInstalled,
+      isMetaMaskInstalled,
+      isMobile,
+      openMetaMaskApp: openInMetaMaskApp,
+    }),
+    [
+      isConnected,
+      isAuthenticated,
+      isAuthenticating,
+      authError,
+      connector,
+      walletType,
+      address,
+      formatAddress,
+      showConnectModal,
+      handleSetShowConnectModal,
+      openRainbowModal,
+      connect,
+      connectWallet,
+      signIn,
+      disconnect,
+      hasWallet,
+      isRobinhoodInstalled,
+      isMetaMaskInstalled,
+      isMobile,
+    ],
+  );
+
+  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
 
 export const useWallet = (): WalletState => {
   const context = useContext(WalletContext);
-  if (!context) {
-    throw new Error("useWallet must be used within a WalletProvider");
-  }
+  if (!context) throw new Error("useWallet must be used within a WalletProvider");
   return context;
 };

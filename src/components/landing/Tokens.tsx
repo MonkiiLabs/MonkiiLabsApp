@@ -1,93 +1,135 @@
-import { Section, Reveal } from "./Section";
-import { BRAND } from "@/lib/brand";
-import { TOKEN_MINT } from "@/features/monkii/data";
+import { ArrowRight } from "lucide-react";
 
-const BENEFITS = [
-  { emoji: "✖️", title: "Reward multiplier", body: `Staking ${BRAND.rewardToken} linearly raises your per-heartbeat earn rate, up to a capped maximum.` },
-  { emoji: "🔓", title: "Premium access", body: "Staking above a threshold unlocks premium agents." },
-  { emoji: "⏳", title: "Epoch reward", body: `A qualifying stake held unchanged through a full cycle earns a flat ${BRAND.valueToken} payout on the shared global schedule.` },
-  { emoji: "🔎", title: "Transparency", body: `The reward-pool dashboard shows the pool wallet's real on-chain ${BRAND.valueToken} balance and total distributed — not a claimed number.` },
+import { Section, Reveal } from "./Section";
+import { BRAND, rewardsCase } from "@/lib/brand";
+import { PONS_TOKEN_ADDRESS } from "@/lib/config";
+
+/* =====================================================================
+   05 — Tokens.
+
+   Golden split, flipped: the reward case takes the minor third and the
+   argument takes the major. Two cards, not four — the earning asset and
+   the value-capture asset are the whole story, and the phase-2 equity
+   split is a footnote on the second one rather than a third column
+   competing for attention.
+   ===================================================================== */
+
+const FLOW = [
+  "Nurture",
+  `${BRAND.rewardToken} earned`,
+  "Staked",
+  "24h epoch",
+  `${BRAND.valueToken} + ${BRAND.stockToken}`,
 ];
 
 const Tokens = () => (
   <Section
     id="tokens"
+    index="05"
     eyebrow="Tokens"
-    title={<>Two tokens, two jobs. The tokens serve the loop, not the reverse.</>}
-    intro={
+    tone="paper"
+    title={
       <>
-        Neither token is issued for merely holding, trading, or speculating in isolation — both flow
-        from genuine participation.
+        One earns the work.
+        <br className="hidden sm:block" /> The other holds value.
       </>
     }
-    className="bg-cream"
+    intro={
+      <>
+        Neither is issued for holding or trading in isolation. Both come out of
+        participation that can be checked.
+      </>
+    }
   >
-    <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
+    <div className="grid gap-fib5 lg:grid-cols-golden-flip lg:items-start lg:gap-fib6">
+      {/* The case, in the minor third. */}
       <Reveal>
-        <article className="h-full bg-white rounded-3xl border-2 border-sky/40 p-6 card-playful">
-          <h3 className="text-xl font-extrabold text-sky-dark mb-2">{BRAND.rewardToken}</h3>
-          <p className="text-xs font-extrabold uppercase tracking-wider text-claw-gray-600 mb-3">
-            Reward token · pre-launch
-          </p>
-          <p className="text-sm text-claw-gray-600 leading-relaxed">
-            The receipt for real compute work — earned exclusively through verified heartbeat
-            sessions. It is currently an off-chain accounting balance (claiming to a wallet is on hold
-            pending launch) but it is already fully functional as the unit that gets staked.
-          </p>
-        </article>
+        <figure className="lg:sticky lg:top-fib6">
+          <div className="overflow-hidden rounded-[1.25rem] border-2 border-ink bg-sky-dark shadow-ink">
+            <img
+              src={rewardsCase}
+              alt="A Monkii Labs reward case of minted coins beside a signed proof-of-life card"
+              loading="lazy"
+              className="block h-auto w-full"
+              width={1280}
+              height={853}
+            />
+          </div>
+          <figcaption className="mt-fib2 text-label text-claw-gray-600">
+            Proof of life in, rewards out. The pool wallet pays the network fee.
+          </figcaption>
+        </figure>
       </Reveal>
-      <Reveal delay={0.08}>
-        <article className="h-full bg-white rounded-3xl border-2 border-coral/40 p-6 card-playful">
-          <h3 className="text-xl font-extrabold text-coral-dark mb-2">{BRAND.valueToken}</h3>
-          <p className="text-xs font-extrabold uppercase tracking-wider text-claw-gray-600 mb-3">
-            Value-capture token · live
-          </p>
-          <p className="text-sm text-claw-gray-600 leading-relaxed">
-            A real Robinhood SPL token with its own pre-existing liquidity and community. Staking
-            {" "}{BRAND.rewardToken} is the only way to earn it, and claiming is live today: the
-            platform's pool wallet sends it straight to your wallet and pays the network fee itself.
-          </p>
-          <p className="mt-4 text-[11px] font-mono break-all text-claw-gray-600 bg-cream rounded-xl border-2 border-dashboard-border p-3">
-            {TOKEN_MINT}
-          </p>
-        </article>
-      </Reveal>
-    </div>
 
-    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4 mt-6">
-      {BENEFITS.map((b, i) => (
-        <Reveal key={b.title} delay={i * 0.06}>
-          <article className="h-full bg-white rounded-3xl border-2 border-dashboard-border p-5">
-            <div className="text-2xl mb-3">{b.emoji}</div>
-            <h3 className="text-sm font-extrabold text-claw-charcoal mb-1.5">{b.title}</h3>
-            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">{b.body}</p>
+      {/* The two assets, in the major. */}
+      <div className="grid gap-fib3">
+        <Reveal delay={0.08}>
+          <article className="ink-card p-fib4">
+            <div className="flex flex-wrap items-baseline justify-between gap-fib2">
+              <h3 className="font-display text-d2 text-ink">{BRAND.rewardToken}</h3>
+              <span className="label-mono text-claw-gray-600">Earning token</span>
+            </div>
+            <p className="mt-fib2 max-w-[60ch] text-body text-claw-gray-600">
+              The receipt for verified compute. It cannot be bought — the only way to hold
+              it is to have done the work — and it is the asset you stake.
+            </p>
           </article>
         </Reveal>
-      ))}
+
+        <Reveal delay={0.14}>
+          <article className="ink-card p-fib4">
+            <div className="flex flex-wrap items-baseline justify-between gap-fib2">
+              <h3 className="font-display text-d2 text-coral">{BRAND.valueToken}</h3>
+              <span className="label-mono text-claw-gray-600">Value capture · live</span>
+            </div>
+            <p className="mt-fib2 max-w-[60ch] text-body text-claw-gray-600">
+              The launchpad token on {BRAND.network}, with its own liquidity and burn
+              mechanics. Distributed to stakers each 24-hour epoch from the platform
+              reserve.
+            </p>
+
+            <div className="mt-fib3 rounded-xl border-2 border-ink bg-cream p-fib3">
+              <div className="label-mono text-claw-gray-600">Phase 2 · 50:50 split</div>
+              <p className="mt-fib1 max-w-[58ch] text-label text-claw-gray-600">
+                Rewards move to half {BRAND.valueToken} and half tokenized{" "}
+                {BRAND.stockToken} stock — real equity exposure, settled on the same chain,
+                on the same epoch schedule.
+              </p>
+            </div>
+
+            <p className="mt-fib3 break-all rounded-lg border-2 border-ink/15 bg-muted px-fib2 py-fib2 font-mono text-[0.6875rem] leading-relaxed tracking-normal text-claw-gray-900">
+              {PONS_TOKEN_ADDRESS}
+            </p>
+          </article>
+        </Reveal>
+      </div>
     </div>
 
-    <Reveal delay={0.15} className="mt-8">
-      <div className="bg-white rounded-3xl border-2 border-dashboard-border p-6 sm:p-8">
-        <h3 className="text-base sm:text-lg font-extrabold text-claw-charcoal mb-4">The sustainable loop</h3>
-        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold text-claw-charcoal">
-          {[
-            "Nurture (heartbeat)",
-            `${BRAND.rewardToken} earned`,
-            `Stake ${BRAND.rewardToken}`,
-            `${BRAND.valueToken} epoch reward`,
-            "More reason to nurture",
-          ].map((node, i, arr) => (
-            <span key={node} className="flex items-center gap-2">
-              <span className="px-3 py-2 rounded-full bg-cream border-2 border-dashboard-border">{node}</span>
-              {i < arr.length - 1 && <span className="text-coral">→</span>}
-            </span>
+    {/* The loop, restated as a rail. Last item is the payoff, so it is
+        the only one that carries colour. */}
+    <Reveal delay={0.2}>
+      <div className="mt-fib5 border-t-2 border-ink/20 pt-fib4">
+        <h3 className="label-mono text-claw-gray-600">The sustainable loop</h3>
+        <ol className="mt-fib3 flex flex-wrap items-center gap-fib2">
+          {FLOW.map((step, i) => (
+            <li key={step} className="flex items-center gap-fib2">
+              <span
+                className={`rounded-full border-2 border-ink px-fib3 py-1.5 font-mono text-label font-semibold ${
+                  i === FLOW.length - 1 ? "bg-vital text-ink" : "bg-white text-ink"
+                }`}
+              >
+                {step}
+              </span>
+              {i < FLOW.length - 1 && (
+                <ArrowRight className="h-4 w-4 shrink-0 text-coral" strokeWidth={2.5} />
+              )}
+            </li>
           ))}
-        </div>
-        <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed mt-5">
-          Planned revenue sources — LP/trading fees, developer fees, premium-feature fees, and
-          Companion mints and royalties — feed open-market buybacks into the pool wallet. Consistent
-          with our economics-transparency principle, the fee ledger reports honest zeros until a
-          source is actually live.
+        </ol>
+        <p className="mt-fib3 max-w-[72ch] text-label text-claw-gray-600">
+          Revenue sources — LP and trading fees, developer fees, premium features,
+          Companion mints and royalties — fund open-market buybacks into the pool wallet.
+          The fee ledger reports honest zeros until a source is actually live.
         </p>
       </div>
     </Reveal>

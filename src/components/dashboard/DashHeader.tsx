@@ -1,127 +1,114 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Radar, Sparkles, Coins, Trophy, Bell, Menu, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Coins, Flame, Home, Menu, Radar, Sparkles, Trophy } from "lucide-react";
+
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useWallet } from "@/hooks/useWallet";
-import { useMonkii } from "@/features/monkii/store";
-import { BRAND, monkiiLogo } from "@/lib/brand";
+import { useClaimable } from "@/features/api/hooks";
+import { Wordmark } from "@/components/landing/Section";
+import { fmt } from "@/components/dashboard/primitives";
+import { BRAND } from "@/lib/brand";
+import { WalletButton } from "@/components/dashboard/WalletButton";
+import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
 
 export const NAV_ITEMS = [
   { icon: Home, label: "Home", path: "/dashboard" },
-  { icon: Radar, label: "Agents", path: "/dashboard/agents" },
+  { icon: Radar, label: "Fleet", path: "/dashboard/agents" },
   { icon: Sparkles, label: "Companions", path: "/dashboard/companions" },
   { icon: Coins, label: "Staking", path: "/dashboard/staking" },
   { icon: Trophy, label: "Leaderboard", path: "/dashboard/leaderboard" },
-  { icon: Bell, label: "Alerts", path: "/dashboard/alerts" },
+  { icon: Flame, label: "Alerts", path: "/dashboard/alerts" },
 ];
 
 const DashHeader = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { isConnected, address, formatAddress, setShowConnectModal, disconnect } = useWallet();
-  const { agentsBalance, unreadCount, activeAgentId } = useMonkii();
+  const { isAuthenticated } = useWallet();
+  const { data: balances } = useClaimable();
 
   const isActive = (path: string) =>
     path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[60px] sm:h-[68px] bg-white border-b-2 border-dashboard-border z-[1000] shadow-sm">
-      <div className="max-w-[1180px] mx-auto h-full flex items-center justify-between gap-3 px-3 sm:px-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0 hover:scale-105 transition-transform">
-          <img src={monkiiLogo} alt="MONKII LABS" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-sm" />
-          <span className="hidden md:inline text-sm font-extrabold tracking-tight">
-            <span className="text-coral">{BRAND.first}</span>
-            <span className="text-claw-charcoal"> {BRAND.second}</span>
-          </span>
+    <header className="fixed inset-x-0 top-0 z-[1000] h-[64px] border-b border-white/10 bg-[#0a0e0b]/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-full max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6">
+        <Link to="/" className="shrink-0 transition-opacity hover:opacity-90" aria-label="Monkii Labs — home">
+          <Wordmark size="sm" />
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        {/* Desktop Nav */}
+        <nav className="hidden min-w-0 items-center gap-1.5 lg:flex">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl text-[11px] font-bold transition-colors ${
+              className={`flex items-center gap-2 rounded-xl px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
                 isActive(item.path)
-                  ? "text-coral bg-coral/10"
-                  : "text-claw-gray-600 hover:text-coral hover:bg-cream"
+                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-sm"
+                  : "border border-transparent text-slate-400 hover:border-white/10 hover:bg-white/5 hover:text-white"
               }`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="h-3.5 w-3.5 shrink-0" />
               {item.label}
-              {item.label === "Alerts" && unreadCount > 0 && (
-                <span className="absolute top-0 right-2 min-w-[16px] h-4 px-1 rounded-full bg-coral text-white text-[10px] font-extrabold flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2 h-9 px-3 rounded-full bg-cream border-2 border-dashboard-border">
-            <span className="text-sm">🍌</span>
-            <span className="text-xs font-extrabold text-claw-charcoal tabular-nums">
-              {Math.floor(agentsBalance).toLocaleString()} {BRAND.rewardToken}
-            </span>
-            {activeAgentId && (
-              <span className="w-2 h-2 rounded-full bg-human-green animate-pulse" title="Heartbeat running" />
-            )}
-          </div>
+        {/* Right Section: Telemetry, Alerts, RainbowKit Wallet */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          {isAuthenticated && (
+            <div className="hidden items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 sm:flex">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="whitespace-nowrap font-mono text-xs font-semibold tabular-nums text-emerald-400">
+                {fmt(balances?.claimableMonki, 1)} {BRAND.rewardToken}
+              </span>
+            </div>
+          )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => (isConnected ? disconnect() : setShowConnectModal(true))}
-            className="rounded-full border-2 border-dashboard-border bg-white text-claw-charcoal hover:text-coral hover:border-coral font-bold"
-          >
-            {isConnected ? (
-              <>
-                <span className="mr-1.5">🐒</span>
-                <span className="max-w-[110px] truncate">{address ? formatAddress(address) : "Connected"}</span>
-              </>
-            ) : (
-              <>
-                <Wallet className="w-4 h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Connect</span>
-              </>
-            )}
-          </Button>
+          {/* In-app Notifications Bell */}
+          <NotificationsBell />
 
+          {/* RainbowKit Connected Wallet Button */}
+          <WalletButton />
+
+          {/* Mobile hamburger */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden rounded-full p-2 border-2 border-dashboard-border">
-                <Menu className="w-5 h-5 text-claw-charcoal" />
-              </Button>
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-white border-l-2 border-dashboard-border p-0">
+            <SheetContent
+              side="right"
+              className="w-[min(20rem,86vw)] border-l border-white/15 bg-[#0a0e0b] p-0 text-white"
+            >
               <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
-              <nav className="flex flex-col p-4 gap-1.5 pt-6">
+              <div className="border-b border-white/10 p-4">
+                <Wordmark size="sm" />
+              </div>
+              <nav className="flex flex-col p-4 gap-1">
                 {NAV_ITEMS.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors ${
-                      isActive(item.path) ? "bg-coral/10 text-coral" : "text-claw-charcoal hover:bg-cream"
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      isActive(item.path)
+                        ? "border border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
+                        : "text-slate-300 hover:bg-white/5"
                     }`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="h-4 w-4" />
                     {item.label}
-                    {item.label === "Alerts" && unreadCount > 0 && (
-                      <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-coral text-white text-[11px] font-extrabold flex items-center justify-center">
-                        {unreadCount}
-                      </span>
-                    )}
                   </Link>
                 ))}
-                <Link
-                  to="/dashboard/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-claw-charcoal hover:bg-cream"
-                >
-                  🐒 My profile
-                </Link>
               </nav>
             </SheetContent>
           </Sheet>

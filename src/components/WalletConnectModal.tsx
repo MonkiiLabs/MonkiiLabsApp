@@ -1,218 +1,186 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Wallet, Check, Loader2, ExternalLink, AlertCircle, Smartphone } from "lucide-react";
-import { toast } from "sonner";
+import { AlertTriangle, ExternalLink, Loader2, ShieldCheck, Sparkles, Wallet } from "lucide-react";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useWallet } from "@/hooks/useWallet";
+import type { WalletKind } from "@/lib/ethereum";
+import { BRAND } from "@/lib/brand";
+import { CHAIN_ID, CHAIN_NAME } from "@/lib/config";
 
 interface WalletConnectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConnect: (wallet: string, address: string) => void;
+  onConnect?: (walletType: string, address: string) => void;
 }
 
-const WALLETS = [
+interface Option {
+  kind: WalletKind;
+  name: string;
+  blurb: string;
+  glyph: string;
+}
+
+const OPTIONS: Option[] = [
   {
-    id: "phantom",
-    name: "Phantom",
-    icon: "👻",
-    description: "Connect your Robinhood wallet",
-    color: "bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20",
-    installUrl: "https://phantom.app/download",
+    kind: "robinhood",
+    name: "Robinhood Wallet",
+    blurb: `Native to ${CHAIN_NAME}. High-speed Arbitrum Orbit L2.`,
+    glyph: "🪶",
   },
   {
-    id: "metamask",
+    kind: "metamask",
     name: "MetaMask",
-    icon: "🦊",
-    description: "Connect with the MetaMask extension",
-    color: "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20",
-    installUrl: "https://metamask.io/download/",
+    blurb: "Automatic network prompt and RPC switch.",
+    glyph: "🦊",
   },
-] as const;
+  {
+    kind: "injected",
+    name: "Browser EVM Wallet",
+    blurb: "Rabby, Coinbase, Brave, or any injected connector.",
+    glyph: "🔌",
+  },
+];
 
 const WalletConnectModal = ({ open, onOpenChange, onConnect }: WalletConnectModalProps) => {
-  const [connectingId, setConnectingId] = useState<string | null>(null);
-  const [connectedId, setConnectedId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
   const {
-    connectPhantom,
-    connectMetaMask,
-    isPhantomInstalled,
+    connectWallet,
+    isAuthenticating,
+    isRobinhoodInstalled,
     isMetaMaskInstalled,
+    hasWallet,
     isMobile,
-    openPhantomApp,
     openMetaMaskApp,
   } = useWallet();
 
-  const installedMap: Record<string, boolean> = {
-    phantom: isPhantomInstalled,
+  const { openConnectModal } = useConnectModal();
+  const [pending, setPending] = useState<WalletKind | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const availability: Record<WalletKind, boolean> = {
+    robinhood: isRobinhoodInstalled,
     metamask: isMetaMaskInstalled,
-  };
-  const openAppMap: Record<string, () => void> = {
-    phantom: openPhantomApp,
-    metamask: openMetaMaskApp,
+    injected: hasWallet,
   };
 
-  const handleConnect = async (id: string) => {
-    setConnectingId(id);
+  const handle = async (kind: WalletKind) => {
+    // If RainbowKit modal is ready, prefer RainbowKit
+    if (openConnectModal) {
+      onOpenChange(false);
+      openConnectModal();
+      return;
+    }
+
+    setPending(kind);
     setError(null);
-
-    const result = id === "phantom" ? await connectPhantom() : await connectMetaMask();
-    setConnectingId(null);
+    const result = await connectWallet(kind);
+    setPending(null);
 
     if (result.success && result.address) {
-      setConnectedId(id);
-      toast.success(`${id === "phantom" ? "Phantom" : "MetaMask"} connected!`, {
-        description: `Address: ${result.address}`,
-      });
-      setTimeout(() => {
-        onConnect(id, result.address!);
-        onOpenChange(false);
-        setConnectedId(null);
-      }, 900);
-    } else {
-      setError(result.error || "Failed to connect");
-      toast.error("Connection failed", { description: result.error });
+      onConnect?.(kind, result.address);
+      onOpenChange(false);
+      return;
     }
-  };
-
-  const handleSkip = () => {
-    onOpenChange(false);
-    setError(null);
-    toast.info("You can connect your wallet anytime from the navbar");
+    setError(result.error ?? "Could not establish connection.");
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        onOpenChange(next);
-        if (!next) {
-          setError(null);
-          setConnectingId(null);
-          setConnectedId(null);
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-md bg-white border-2 border-dashboard-border rounded-3xl p-0 overflow-hidden">
-        <div className="bg-gradient-to-br from-sky/20 to-coral/10 p-6 pb-4">
-          <DialogHeader>
-            <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-playful flex items-center justify-center">
-              <Wallet className="w-8 h-8 text-coral" />
-            </div>
-            <DialogTitle className="text-2xl font-extrabold text-center text-claw-charcoal">
-              Connect a wallet
-            </DialogTitle>
-            <DialogDescription className="text-center text-claw-gray-600 mt-2">
-              Your Robinhood wallet is your account here — it holds your Companions and receives your
-              rewards.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md border border-white/15 bg-[#0e1310] p-6 text-white shadow-2xl backdrop-blur-2xl">
+        <DialogTitle className="font-display text-xl font-bold tracking-tight text-white">
+          Connect to Monkii Labs
+        </DialogTitle>
 
-        <div className="p-6 pt-4 space-y-3">
-          {error && (
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+        <p className="text-xs leading-relaxed text-slate-400">
+          Deployed on {CHAIN_NAME} (Chain ID {CHAIN_ID}). Authentication is gasless and does not initiate on-chain transactions.
+        </p>
 
-          {WALLETS.map((wallet) => {
-            const installed = installedMap[wallet.id];
-            const connecting = connectingId === wallet.id;
-            const connected = connectedId === wallet.id;
+        {openConnectModal && (
+          <button
+            type="button"
+            onClick={() => {
+              onOpenChange(false);
+              openConnectModal();
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-emerald-400 active:scale-[0.98]"
+          >
+            <Sparkles className="h-4 w-4" />
+            Open RainbowKit Connector
+          </button>
+        )}
 
-            if (installed) {
-              return (
-                <button
-                  key={wallet.id}
-                  onClick={() => handleConnect(wallet.id)}
-                  disabled={connectingId !== null}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 ${wallet.color} ${
-                    connecting ? "ring-2 ring-sky" : ""
-                  } ${connected ? "bg-green-500/10 border-green-500/30" : ""}`}
-                >
-                  <span className="text-3xl">{wallet.icon}</span>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-bold text-claw-charcoal">{wallet.name}</h3>
-                    <p className="text-sm text-claw-gray-600">{wallet.description}</p>
-                  </div>
-                  {connecting && <Loader2 className="w-5 h-5 text-sky animate-spin" />}
-                  {connected && <Check className="w-5 h-5 text-green-500" />}
-                </button>
-              );
-            }
-
-            if (isMobile) {
-              return (
-                <button
-                  key={wallet.id}
-                  onClick={openAppMap[wallet.id]}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 ${wallet.color}`}
-                >
-                  <span className="text-3xl">{wallet.icon}</span>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-bold text-claw-charcoal">Open in {wallet.name} app</h3>
-                    <p className="text-sm text-claw-gray-600">
-                      We'll reopen this page inside {wallet.name} to connect.
-                    </p>
-                  </div>
-                  <Smartphone className="w-5 h-5 text-claw-gray-600" />
-                </button>
-              );
-            }
-
+        <ul className="space-y-2 pt-1">
+          {OPTIONS.map((option) => {
+            const available = availability[option.kind];
+            const busy = pending === option.kind;
             return (
-              <div
-                key={wallet.id}
-                className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 ${wallet.color} opacity-90`}
-              >
-                <span className="text-3xl">{wallet.icon}</span>
-                <div className="flex-1 text-left">
-                  <h3 className="font-bold text-claw-charcoal">{wallet.name}</h3>
-                  <p className="text-sm text-claw-gray-600">Extension not detected</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(wallet.installUrl, "_blank")}
-                  className="rounded-full border-2 text-xs font-bold gap-1"
+              <li key={option.kind}>
+                <button
+                  type="button"
+                  disabled={Boolean(pending) || isAuthenticating}
+                  onClick={() => handle(option.kind)}
+                  className="flex w-full items-center gap-3.5 rounded-xl border border-white/10 bg-white/5 p-3.5 text-left transition-all hover:border-emerald-500/30 hover:bg-white/10 active:scale-[0.99] disabled:opacity-50"
                 >
-                  Install
-                  <ExternalLink className="w-3 h-3" />
-                </Button>
-              </div>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-black/40 text-lg">
+                    {option.glyph}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display text-sm font-bold text-white">
+                      {option.name}
+                    </span>
+                    <span className="block text-xs text-slate-400">{option.blurb}</span>
+                  </span>
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin text-emerald-400" />
+                  ) : (
+                    <span
+                      className={`shrink-0 rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${
+                        available
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                          : "border-white/10 bg-white/5 text-slate-500"
+                      }`}
+                    >
+                      {available ? "Detected" : "Ready"}
+                    </span>
+                  )}
+                </button>
+              </li>
             );
           })}
+        </ul>
 
-          {isMobile && (
-            <p className="text-xs text-center text-claw-gray-600">
-              Already have the app installed? Tap it above — it opens the wallet's built-in browser.
-            </p>
-          )}
-
-          <div className="pt-4 border-t border-dashboard-border">
-            <Button
-              variant="ghost"
-              onClick={handleSkip}
-              className="w-full text-claw-gray-600 hover:text-claw-charcoal hover:bg-cream rounded-xl"
-            >
-              Skip for now
-            </Button>
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+            <div className="min-w-0">
+              <p>{error}</p>
+              {isMobile && !hasWallet && (
+                <button
+                  type="button"
+                  onClick={openMetaMaskApp}
+                  className="mt-1.5 inline-flex items-center gap-1 font-semibold text-rose-400 hover:underline"
+                >
+                  Open in wallet browser
+                  <ExternalLink className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
+        )}
 
-          <p className="text-xs text-center text-claw-gray-400 pt-2">
-            By connecting, you agree to our Terms of Service and Privacy Policy
+        <div className="flex items-start gap-2.5 border-t border-white/10 pt-3 text-xs text-slate-400">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+          <p>
+            You will sign a plain-text cryptographic message proving address ownership. 100% gasless.
           </p>
         </div>
+
+        {isAuthenticating && (
+          <p className="flex items-center justify-center gap-2 font-mono text-xs text-emerald-400">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Waiting for wallet signature…
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );

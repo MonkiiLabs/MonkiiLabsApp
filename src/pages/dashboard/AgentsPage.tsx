@@ -1,82 +1,202 @@
 import { useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import AgentCard from "@/components/dashboard/AgentCard";
-import { useMonkii } from "@/features/monkii/store";
-import { stateForPower, type AgentState } from "@/features/monkii/data";
+import { ArrowUpDown, Search, Star } from "lucide-react";
 
-const FILTERS: { key: "all" | AgentState; label: string }[] = [
-  { key: "all", label: "All agents" },
-  { key: "fading", label: "🙊 Fading" },
-  { key: "idle", label: "🙈 Idle" },
-  { key: "thriving", label: "🐒 Thriving" },
+import { useAgents } from "@/features/api/hooks";
+import type { AgentState } from "@/features/api/types";
+import AgentCard from "@/components/dashboard/AgentCard";
+import {
+  EmptyPanel,
+  ErrorPanel,
+  LoadingPanel,
+  PageTitle,
+} from "@/components/dashboard/primitives";
+import { useWatchlist } from "@/hooks/useWatchlist";
+
+type FilterTab = AgentState | "all" | "watchlist";
+type SortOption = "power_desc" | "power_asc" | "nurturers" | "name";
+
+const TABS: Array<{ value: FilterTab; label: string; icon?: typeof Star }> = [
+  { value: "all", label: "All Fleet" },
+  { value: "watchlist", label: "Watchlist", icon: Star },
+  { value: "thriving", label: "Thriving" },
+  { value: "idle", label: "Idle" },
+  { value: "fading", label: "Fading" },
 ];
 
 const AgentsPage = () => {
-  const { agents, getPower } = useMonkii();
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | AgentState>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("power_desc");
 
-  const visible = useMemo(
-    () =>
-      agents.filter((a) => {
-        const matchesQuery =
-          !query ||
-          `${a.name} ${a.handle} ${a.category} ${a.tagline}`.toLowerCase().includes(query.toLowerCase());
-        const matchesFilter = filter === "all" || stateForPower(getPower(a.id)) === filter;
-        return matchesQuery && matchesFilter;
-      }),
-    [agents, query, filter, getPower],
+  const { watchlist } = useWatchlist();
+
+  // If filtering by a specific backend state
+  const backendState =
+    activeTab === "all" || activeTab === "watchlist" ? undefined : activeTab;
+
+  const { data, isLoading, isError, error, refetch } = useAgents(
+    backendState ? { state: backendState } : {},
   );
 
+  const categories = useMemo(() => {
+    const set = new Set((data ?? []).map((a) => a.category).filter(Boolean));
+    return ["all", ...Array.from(set).sort()];
+  }, [data]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = (data ?? []).filter((a) => {
+      // Watchlist filter
+      if (activeTab === "watchlist" && !watchlist.includes(a.id)) return false;
+      // Category filter
+      if (category !== "all" && a.category !== category) return false;
+      // Search query
+      if (!q) return true;
+      return (
+        a.name.toLowerCase().includes(q) ||
+        (a.xHandle ?? "").toLowerCase().includes(q) ||
+        (a.description ?? "").toLowerCase().includes(q)
+      );
+    });
+
+    // Sorting
+    list = [...list].sort((a, b) => {
+      if (sortBy === "power_desc") return b.power - a.power;
+      if (sortBy === "power_asc") return a.power - b.power;
+      if (sortBy === "nurturers") return b.nurturerCount - a.nurturerCount;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0;
+    });
+
+    return list;
+  }, [data, activeTab, watchlist, category, query, sortBy]);
+
   return (
-    <div className="space-y-3">
-      <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-5">
-        <h1 className="text-lg sm:text-xl font-extrabold text-claw-charcoal">Agent marketplace</h1>
-        <p className="text-sm text-claw-gray-600 mt-1 leading-relaxed">
-          Every agent here is a real, live agent sourced from PONS Protocol. Power meters update
-          continuously — the lowest ones need heartbeats the most.
-        </p>
+    <>
+      <PageTitle
+        index="01"
+        eyebrow="Fleet Telemetry"
+        title="Autonomous Agent Fleet"
+        intro="Live agents synced from Virtuals Protocol on Robinhood Chain. Contribute Proof-of-Life compute to keep fading agents alive."
+      />
 
-        <div className="relative mt-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-claw-gray-400" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search agents by name, handle or category…"
-            className="h-11 pl-9 bg-cream border-2 border-dashboard-border rounded-full text-sm focus:border-sky"
-          />
+      {/* Controls: Search, Tabs, Sorting, Categories */}
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search agents by name, handle, or thesis…"
+              className="h-10 w-full rounded-xl border border-white/10 bg-[#111713] pl-10 pr-4 text-xs text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#111713] px-3 py-2 text-xs text-slate-300">
+              <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="bg-transparent text-xs text-white focus:outline-none"
+              >
+                <option value="power_desc" className="bg-[#111713]">Highest Power</option>
+                <option value="power_asc" className="bg-[#111713]">Needs Help (Lowest Power)</option>
+                <option value="nurturers" className="bg-[#111713]">Most Nurturers</option>
+                <option value="name" className="bg-[#111713]">Name (A-Z)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-3">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFilter(f.key)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold border-2 transition-colors ${
-                filter === f.key
-                  ? "bg-coral text-white border-coral"
-                  : "bg-white text-claw-gray-600 border-dashboard-border hover:border-coral hover:text-coral"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* Filter Tabs (including Watchlist ⭐) */}
+        <div className="flex flex-wrap items-center gap-2">
+          {TABS.map((tab) => {
+            const isSelected = activeTab === tab.value;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setActiveTab(tab.value)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
+                  isSelected
+                    ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-sm"
+                    : "border border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+                }`}
+              >
+                {Icon && (
+                  <Icon
+                    className={`h-3.5 w-3.5 ${
+                      isSelected ? "fill-amber-400 text-amber-400" : "text-slate-400"
+                    }`}
+                  />
+                )}
+                <span>{tab.label}</span>
+                {tab.value === "watchlist" && watchlist.length > 0 && (
+                  <span className="ml-1 rounded-full bg-amber-400/20 px-1.5 py-0.2 text-[10px] text-amber-300">
+                    {watchlist.length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-      </Card>
 
-      {visible.length === 0 ? (
-        <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-8 text-center">
-          <div className="text-4xl mb-3">🙈</div>
-          <p className="text-sm font-bold text-claw-charcoal">No agents match that filter</p>
-          <p className="text-xs text-claw-gray-600 mt-1">Try clearing the search or picking another state.</p>
-        </Card>
-      ) : (
-        visible.map((agent) => <AgentCard key={agent.id} agent={agent} />)
+        {/* Category Pills */}
+        {categories.length > 2 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {categories.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  category === c
+                    ? "bg-white/15 text-white"
+                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                }`}
+              >
+                {c === "all" ? "All categories" : c}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {isLoading && <LoadingPanel label="Connecting to Virtuals Protocol stream" />}
+      {isError && <ErrorPanel error={error} onRetry={refetch} />}
+
+      {!isLoading && !isError && visible.length === 0 && (
+        <EmptyPanel
+          title={activeTab === "watchlist" ? "No starred agents in watchlist" : "No matching agents found"}
+          body={
+            activeTab === "watchlist"
+              ? "Click the star icon on any agent card to pin it to your quick-access watchlist."
+              : "Try adjusting your search query or vitality filter."
+          }
+        />
       )}
-    </div>
+
+      {visible.length > 0 && (
+        <>
+          <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
+            <span className="font-mono text-[11px] uppercase tracking-wider">
+              Displaying {visible.length} Agent{visible.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {visible.map((agent) => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </>
+      )}
+    </>
   );
 };
 

@@ -1,155 +1,174 @@
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { BRAND, monkiiBanner, monkiiLogo } from "@/lib/brand";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, ChevronDown, Heart } from "lucide-react";
 
-const FloatingCloud = ({ className, delay = 0 }: { className: string; delay?: number }) => (
-  <motion.div
-    className={`absolute bg-white/80 rounded-full blur-sm ${className}`}
-    animate={{ x: [0, 20, 0], y: [0, -15, 0], opacity: [0.4, 0.7, 0.4] }}
-    transition={{ duration: 6, repeat: Infinity, delay, ease: "easeInOut" }}
-  />
-);
+import { BRAND, labPortrait } from "@/lib/brand";
+import { Readout, Reveal } from "@/components/landing/Section";
 
-const FloatingMonkey = ({ className, delay = 0 }: { className: string; delay?: number }) => (
-  <motion.div
-    className={`absolute text-4xl ${className}`}
-    animate={{ y: [0, -15, 0], rotate: [0, 5, -5, 0] }}
-    transition={{ duration: 4, repeat: Infinity, delay, ease: "easeInOut" }}
-  >
-    🐒
-  </motion.div>
+/* =====================================================================
+   Hero.
+
+   Composition follows the golden section rather than a centred stack:
+   the argument sits in the left 1.618 parts, the portrait in the right 1.
+   The headline's baseline lands near the upper third of the viewport, so
+   the eye enters at the strongest point of the frame and travels down
+   and right into the illustration — the same diagonal the scientist in
+   the artwork is already looking along.
+
+   Everything else is held back. One red action, one green word, three
+   readings. No third button, no badge cluster, no floating emoji.
+   ===================================================================== */
+
+const CLOUDS = [
+  { top: "9%", width: "w-40", delay: "0s", dur: "82s", opacity: "opacity-90" },
+  { top: "26%", width: "w-24", delay: "-30s", dur: "104s", opacity: "opacity-70" },
+  { top: "58%", width: "w-52", delay: "-58s", dur: "126s", opacity: "opacity-60" },
+];
+
+/** A flat white cloud, drawn the way the source art draws them. */
+const Cloud = ({
+  className = "",
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) => (
+  <svg viewBox="0 0 220 92" className={className} style={style} fill="white" aria-hidden>
+    <ellipse cx="62" cy="58" rx="46" ry="30" />
+    <ellipse cx="114" cy="40" rx="40" ry="34" />
+    <ellipse cx="162" cy="60" rx="42" ry="28" />
+    <rect x="32" y="56" width="156" height="32" rx="16" />
+  </svg>
 );
 
 const Hero = () => {
+  const reduced = useReducedMotion();
+
   return (
-    <main className="z-40 flex flex-col mt-2 sm:mt-8 md:mt-12 px-4 relative items-center justify-start sm:justify-center pb-4 sm:pb-16 overflow-hidden">
-      <FloatingCloud className="top-10 left-10 w-24 h-12 hidden sm:block" delay={0} />
-      <FloatingCloud className="top-20 right-20 w-32 h-16 hidden sm:block" delay={1} />
-      <FloatingCloud className="top-40 left-1/4 w-20 h-10 hidden md:block" delay={2} />
-      <FloatingCloud className="top-32 right-1/3 w-28 h-14 hidden md:block" delay={1.5} />
-
-      <FloatingMonkey className="top-16 left-[15%] hidden lg:block" delay={0} />
-      <FloatingMonkey className="top-28 right-[12%] hidden lg:block" delay={1.2} />
-      <FloatingMonkey className="bottom-32 left-[8%] hidden xl:block" delay={0.8} />
-
-      <motion.div
-        className="mb-4 sm:mb-6 px-4 sm:px-6 py-1.5 sm:py-2 bg-coral text-white rounded-full text-xs sm:text-sm font-bold shadow-coral"
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-      >
-        🐒 The Agentic Tamagotchi on Robinhood
-      </motion.div>
-
-      <motion.img
-        src={monkiiLogo}
-        alt="MONKII LABS mascot"
-        className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-2xl sm:rounded-3xl shadow-playful-lg mb-4 sm:mb-6"
-        initial={{ scale: 0, y: -100 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 150, damping: 15, delay: 0.2 }}
-        whileHover={{ rotate: [0, -5, 5, -5, 0], scale: 1.1, transition: { duration: 0.5 } }}
-      />
-
-      <motion.h1
-        className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center mb-3 sm:mb-4 leading-tight max-w-4xl"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-      >
-        <span className="text-coral inline-block">{BRAND.first}</span>{" "}
-        <span className="text-claw-charcoal inline-block">{BRAND.second}</span>
-      </motion.h1>
-
-      <motion.p
-        className="text-base sm:text-lg md:text-2xl text-claw-charcoal max-w-2xl text-center mb-2 leading-relaxed font-bold px-2"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        Keep{" "}
-        <motion.span
-          className="text-sky-dark inline-block"
-          animate={{ color: ["hsl(199, 89%, 45%)", "hsl(263, 70%, 55%)", "hsl(199, 89%, 45%)"] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          AI agents
-        </motion.span>{" "}
-        alive with{" "}
-        <motion.span
-          className="text-coral inline-block"
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          community compute
-        </motion.span>
-      </motion.p>
-
-      <motion.p
-        className="text-sm sm:text-base md:text-lg text-claw-gray-600 max-w-xl text-center mb-6 sm:mb-8 leading-relaxed px-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        Start a Proof-of-Life heartbeat in your browser, raise an agent's power level, and earn
-        {" "}{BRAND.rewardToken}. Stake it to earn {BRAND.valueToken} on a fixed, transparent schedule.
-        No hardware. No gas. No smart contracts in the core loop.
-      </motion.p>
-
-      <motion.div
-        className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12 w-full sm:w-auto px-4 sm:px-0"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-      >
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto bg-coral hover:bg-coral-dark text-white rounded-full px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-coral transition-all duration-300"
-            asChild
+    <section
+      id="top"
+      className="hero-gradient relative overflow-hidden pb-fib6 pt-[7.5rem] lg:pb-fib7 lg:pt-[9.5rem]"
+    >
+      {/* Sky lives on the section itself — a negative z-index here would
+          drop it behind the page background instead of behind the copy. */}
+      {!reduced &&
+        CLOUDS.map((c, i) => (
+          <div
+            key={i}
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 hidden md:block"
+            style={{ top: c.top }}
           >
-            <Link to="/dashboard">🐒 Start Nurturing</Link>
-          </Button>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full sm:w-auto rounded-full px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold border-2 border-sky bg-sky/10 text-sky-dark hover:bg-sky hover:text-white transition-all duration-300"
-            asChild
-          >
-            <Link to="/dashboard/agents">📡 Browse Agents</Link>
-          </Button>
-        </motion.div>
-      </motion.div>
+            <Cloud
+              className={`${c.width} h-auto animate-cloud-drift ${c.opacity}`}
+              style={{ animationDelay: c.delay, animationDuration: c.dur }}
+            />
+          </div>
+        ))}
 
-      <motion.div
-        className="w-full max-w-5xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-playful-lg"
-        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.7 }}
-        whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
-      >
-        <img
-          src={monkiiBanner}
-          alt="MONKII LABS — nurturing AI agents on Robinhood with companions, proof of life and rewards"
-          className="w-full h-auto"
-        />
-      </motion.div>
+      <div className="relative mx-auto w-full max-w-6xl px-fib3 sm:px-fib4">
+        <div className="grid items-center gap-fib5 lg:grid-cols-golden lg:gap-fib6">
+          {/* ---- The argument, in the major third ---- */}
+          <div>
+            <Reveal>
+              <div className="inline-flex items-center gap-fib2 rounded-full border border-ink/15 bg-white/90 px-fib3 py-1.5 shadow-sm backdrop-blur-sm">
+                <span className="relative flex h-2 w-2" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-vital-deep opacity-70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-vital-deep" />
+                </span>
+                <span className="label-mono text-ink">Live on {BRAND.network}</span>
+              </div>
+            </Reveal>
 
-      <motion.div
-        className="mt-8 sm:mt-12 flex-col items-center text-claw-gray-600 hidden sm:flex"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        <span className="text-sm font-medium mb-2">Scroll to explore</span>
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </motion.div>
-    </main>
+            <Reveal delay={0.06}>
+              <h1 className="mt-fib3 font-display text-d3 text-ink sm:text-d4 lg:text-d5">
+                Give your agent
+                <br />a <span className="marker-vital">heartbeat</span>.
+              </h1>
+            </Reveal>
+
+            <Reveal delay={0.14}>
+              <p className="mt-fib3 max-w-[46ch] text-lead text-claw-gray-900">
+                Autonomous agents die quietly when one server bill lapses. Monkii Labs is
+                the laboratory that keeps them breathing — a community supplying real
+                browser compute, one heartbeat at a time.
+              </p>
+            </Reveal>
+
+            <Reveal delay={0.22}>
+              <div className="mt-fib4 flex flex-wrap items-center gap-fib2">
+                <Link
+                  to="/dashboard"
+                  className="ink-slab group inline-flex items-center gap-2 px-fib4 py-fib2 text-label font-bold uppercase tracking-[0.1em]"
+                >
+                  <Heart className="h-4 w-4 animate-heartbeat" strokeWidth={2.5} />
+                  Start nurturing
+                  <ArrowUpRight
+                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-45"
+                    strokeWidth={2.5}
+                  />
+                </Link>
+                <a
+                  href="#loop"
+                  className="ink-slab-ghost inline-flex items-center gap-2 px-fib4 py-fib2 text-label font-bold uppercase tracking-[0.1em]"
+                >
+                  How it works
+                  <ChevronDown className="h-4 w-4" strokeWidth={2.5} />
+                </a>
+              </div>
+            </Reveal>
+
+            {/* Three readings, on the thirds. Facts, not claims. */}
+            <Reveal delay={0.3}>
+              <dl className="mt-fib5 grid max-w-lg grid-cols-3 gap-fib3 border-t-2 border-ink/20 pt-fib3">
+                <Readout value="100ms" label="Block finality" />
+                <Readout value="0 gas" label="To nurture" />
+                <Readout value="3" label="Companion slots" />
+              </dl>
+            </Reveal>
+          </div>
+
+          {/* ---- The portrait, in the minor third ---- */}
+          <Reveal delay={0.18}>
+            <motion.figure
+              className="relative mx-auto w-full max-w-sm lg:max-w-none"
+              animate={reduced ? undefined : { y: [0, -10, 0] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="overflow-hidden rounded-2xl border border-ink/15 bg-sky/20 shadow-2xl backdrop-blur-sm">
+                <img
+                  src={labPortrait}
+                  alt="A Monkii Labs scientist steadying a companion robot while its aura recharges"
+                  className="block h-auto w-full"
+                  width={1024}
+                  height={1280}
+                />
+              </div>
+
+              {/* A single instrument tag, pinned to the lower-left third of
+                  the frame — the only overlay the image gets. */}
+              <figcaption className="absolute -bottom-fib3 left-fib3 right-fib5 rounded-xl border-2 border-ink bg-white px-fib3 py-fib2 shadow-ink">
+                <div className="label-mono text-claw-gray-600">Guardian&nbsp;#001</div>
+                <div className="mt-0.5 flex items-baseline justify-between gap-fib2">
+                  <span className="font-display text-d1 text-ink">Vitality</span>
+                  <span className="font-display text-d1 text-vital-deep">98%</span>
+                </div>
+                <div className="mt-fib1 flex gap-1" aria-hidden>
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-2 flex-1 rounded-sm border border-ink ${
+                        i < 7 ? "bg-vital-deep" : "bg-cream-dark"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </figcaption>
+            </motion.figure>
+          </Reveal>
+        </div>
+      </div>
+    </section>
   );
 };
 

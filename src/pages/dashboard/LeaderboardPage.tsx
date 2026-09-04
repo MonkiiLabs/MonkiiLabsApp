@@ -1,128 +1,206 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { useMonkii } from "@/features/monkii/store";
-import { AGENT_STATE_META, NURTURER_LEADERBOARD } from "@/features/monkii/data";
-import PowerMeter from "@/components/dashboard/PowerMeter";
-import { BRAND } from "@/lib/brand";
+import { ArrowUpRight, Award, Flame, Heart, Medal, Trophy } from "lucide-react";
+
+import { useTopAgents, useTopNurturers } from "@/features/api/hooks";
+import { useWallet } from "@/hooks/useWallet";
+import {
+  EmptyPanel,
+  ErrorPanel,
+  LoadingPanel,
+  Panel,
+  PanelHeader,
+  PageTitle,
+  StateChip,
+  fmt,
+} from "@/components/dashboard/primitives";
+import { BRAND, monkiiMark } from "@/lib/brand";
+
+type Tab = "nurturers" | "agents";
+
+function rankBadge(rank: number) {
+  if (rank === 1) {
+    return (
+      <span className="grid h-8 w-8 place-items-center rounded-xl border border-amber-400/50 bg-amber-400/20 font-mono text-xs font-bold text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]">
+        1
+      </span>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <span className="grid h-8 w-8 place-items-center rounded-xl border border-slate-300/40 bg-slate-400/20 font-mono text-xs font-bold text-slate-200">
+        2
+      </span>
+    );
+  }
+  if (rank === 3) {
+    return (
+      <span className="grid h-8 w-8 place-items-center rounded-xl border border-amber-700/50 bg-amber-700/20 font-mono text-xs font-bold text-amber-500">
+        3
+      </span>
+    );
+  }
+  return (
+    <span className="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/5 font-mono text-xs font-medium text-slate-400">
+      {rank}
+    </span>
+  );
+}
 
 const LeaderboardPage = () => {
-  const [tab, setTab] = useState<"nurturers" | "agents">("nurturers");
-  const { agents, getPower, getState, totalHeartbeats } = useMonkii();
+  const [tab, setTab] = useState<Tab>("nurturers");
+  const nurturers = useTopNurturers();
+  const agentsQuery = useTopAgents();
+  const { address, formatAddress } = useWallet();
 
-  const healthiest = [...agents].sort((a, b) => getPower(b.id) - getPower(a.id));
+  const active = tab === "nurturers" ? nurturers : agentsQuery;
 
   return (
-    <div className="space-y-3">
-      <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-5">
-        <h1 className="text-lg sm:text-xl font-extrabold text-claw-charcoal">Leaderboard</h1>
-        <p className="text-sm text-claw-gray-600 mt-1 leading-relaxed">
-          Celebrating the most dedicated nurturers and the healthiest agents. Top placements also
-          unlock free milestone Companion mints.
-        </p>
-        <div className="flex gap-2 mt-4">
-          {(["nurturers", "agents"] as const).map((t) => (
+    <>
+      <PageTitle
+        index="04"
+        eyebrow="Fleet Standings"
+        title="Leaderboard & High-Power Telemetry"
+        intro="Recognizing the top distributed compute nodes sustaining the autonomous agent ecosystem on Robinhood Chain."
+      />
+
+      <div className="mb-6 flex gap-2">
+        {[
+          { value: "nurturers" as const, label: "Top Compute Nurturers", icon: Trophy },
+          { value: "agents" as const, label: "Top Agents by Power", icon: Flame },
+        ].map((t) => {
+          const Icon = t.icon;
+          return (
             <button
-              key={t}
+              key={t.value}
               type="button"
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-full text-xs font-extrabold border-2 transition-colors ${
-                tab === t
-                  ? "bg-coral text-white border-coral"
-                  : "bg-white text-claw-gray-600 border-dashboard-border hover:text-coral hover:border-coral"
+              onClick={() => setTab(t.value)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
+                tab === t.value
+                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-sm"
+                  : "border border-white/10 bg-white/5 text-slate-400 hover:text-white"
               }`}
             >
-              {t === "nurturers" ? "🐒 Top nurturers" : "📡 Healthiest agents"}
+              <Icon className="h-3.5 w-3.5" />
+              {t.label}
             </button>
-          ))}
-        </div>
-      </Card>
+          );
+        })}
+      </div>
 
-      {tab === "nurturers" ? (
-        <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-2 sm:p-4">
-          <ul className="divide-y-2 divide-dashboard-border">
-            {NURTURER_LEADERBOARD.map((row) => (
-              <li key={row.rank} className="flex items-center gap-3 p-3">
-                <span
-                  className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center text-xs font-extrabold ${
-                    row.rank <= 3 ? "bg-coral text-white" : "bg-cream text-claw-gray-600 border-2 border-dashboard-border"
-                  }`}
-                >
-                  {row.rank}
-                </span>
-                <span className="w-10 h-10 shrink-0 rounded-xl bg-cream border-2 border-dashboard-border flex items-center justify-center text-lg">
-                  {row.emoji}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-extrabold text-claw-charcoal font-mono">{row.wallet}</span>
-                  <span className="block text-xs text-claw-gray-600 font-medium">
-                    {row.heartbeats.toLocaleString()} heartbeats · {row.streak}-day streak
-                  </span>
-                </span>
-                <span className="shrink-0 text-sm font-extrabold text-human-green tabular-nums">
-                  {row.agentsEarned.toLocaleString()}
-                </span>
-              </li>
-            ))}
-            <li className="flex items-center gap-3 p-3 bg-sky/10 rounded-2xl">
-              <span className="w-8 h-8 shrink-0 rounded-xl bg-sky text-white flex items-center justify-center text-xs font-extrabold">
-                —
-              </span>
-              <span className="w-10 h-10 shrink-0 rounded-xl bg-white border-2 border-dashboard-border flex items-center justify-center text-lg">
-                🐒
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-extrabold text-claw-charcoal">You</span>
-                <span className="block text-xs text-claw-gray-600 font-medium">
-                  {totalHeartbeats.toLocaleString()} heartbeats · keep a session running to climb
-                </span>
-              </span>
-              <Link to="/dashboard" className="shrink-0 text-xs font-extrabold text-sky-dark hover:text-coral">
-                Nurture →
-              </Link>
-            </li>
-          </ul>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {healthiest.map((agent, i) => {
-            const meta = AGENT_STATE_META[getState(agent.id)];
-            return (
-              <Card key={agent.id} className="border-2 border-dashboard-border bg-white rounded-2xl p-4">
-                <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 shrink-0 rounded-xl bg-cream border-2 border-dashboard-border flex items-center justify-center text-xs font-extrabold text-claw-gray-600">
-                    {i + 1}
-                  </span>
-                  <Link
-                    to={`/dashboard/agents/${agent.id}`}
-                    className="w-11 h-11 shrink-0 rounded-2xl bg-cream border-2 border-dashboard-border flex items-center justify-center text-xl"
+      {active.isLoading && <LoadingPanel label="Querying fleet rankings" />}
+      {active.isError && <ErrorPanel error={active.error} onRetry={active.refetch} />}
+
+      {tab === "nurturers" && nurturers.data && (
+        <Panel raised>
+          <PanelHeader title={`Lifetime $${BRAND.rewardToken} Compute Receipts`} />
+          {nurturers.data.length === 0 ? (
+            <div className="p-5">
+              <EmptyPanel
+                title="No nurturer entries recorded"
+                body="Submit your first Proof-of-Life heartbeat to take the #1 podium position."
+              />
+            </div>
+          ) : (
+            <ol className="divide-y divide-white/5 px-5">
+              {nurturers.data.map((row) => {
+                const isYou = address && row.walletAddress.toLowerCase() === address.toLowerCase();
+                return (
+                  <li
+                    key={row.walletAddress}
+                    className={`flex items-center gap-4 py-3.5 ${
+                      isYou ? "-mx-3 rounded-xl bg-emerald-500/10 px-3 border border-emerald-500/20" : ""
+                    }`}
                   >
-                    {agent.emoji}
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      to={`/dashboard/agents/${agent.id}`}
-                      className="text-sm font-extrabold text-claw-charcoal hover:text-coral"
-                    >
-                      {agent.name}
-                    </Link>
-                    <p className={`text-xs font-extrabold ${meta.text}`}>
-                      {meta.label} · {agent.nurturers.toLocaleString()} nurturers
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <PowerMeter power={getPower(agent.id)} showLabel={false} />
-                </div>
-              </Card>
-            );
-          })}
-          <p className="text-xs text-claw-gray-600 px-2">
-            Healthiest agents earn their nurturers more {BRAND.rewardToken} per heartbeat over time.
-          </p>
-        </div>
+                    {rankBadge(row.rank)}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate font-mono text-xs font-semibold text-white">
+                          {row.displayName || formatAddress(row.walletAddress)}
+                        </span>
+                        {isYou && (
+                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 font-mono text-[10px] font-bold text-emerald-400">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                      {row.agentsNurtured != null && (
+                        <p className="text-xs text-slate-400">
+                          {fmt(row.agentsNurtured)} agents maintained
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-mono text-sm font-bold tabular-nums text-emerald-400">
+                        {fmt(row.totalMonkiEarned, 1)}
+                      </span>
+                      <span className="block font-mono text-[10px] uppercase text-slate-500">
+                        {BRAND.rewardToken}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </Panel>
       )}
-    </div>
+
+      {tab === "agents" && agentsQuery.data && (
+        <Panel raised>
+          <PanelHeader title="Live Fleet Power Ranking" />
+          {agentsQuery.data.length === 0 ? (
+            <div className="p-5">
+              <EmptyPanel
+                title="No agents ranked"
+                body="Power rankings compute once agent heartbeat sessions are active."
+              />
+            </div>
+          ) : (
+            <ol className="divide-y divide-white/5 px-5">
+              {agentsQuery.data.map((row) => (
+                <li key={row.id} className="py-3">
+                  <Link
+                    to={`/dashboard/agents/${row.id}`}
+                    className="flex items-center gap-4 group transition-colors hover:bg-white/[0.02] rounded-xl -mx-2 px-2"
+                  >
+                    {rankBadge(row.rank)}
+                    <img
+                      src={row.avatarUrl ?? monkiiMark}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-xl border border-white/15 bg-white/5 object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-xs font-bold text-white group-hover:text-emerald-300">
+                          {row.name}
+                        </span>
+                        <StateChip state={row.state} />
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        {fmt(row.nurturerCount)} active nurturers
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-mono text-sm font-bold tabular-nums text-white">
+                        {Math.round(row.power)}
+                      </span>
+                      <span className="block font-mono text-[10px] uppercase text-slate-500">
+                        power
+                      </span>
+                    </div>
+
+                    <ArrowUpRight className="h-4 w-4 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Panel>
+      )}
+    </>
   );
 };
 

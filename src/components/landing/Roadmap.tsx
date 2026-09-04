@@ -1,64 +1,100 @@
 import { Section, Reveal } from "./Section";
 import { BRAND } from "@/lib/brand";
 
-const QUARTERS = [
+/* =====================================================================
+   06 — Roadmap.
+
+   A bench, not a timeline. Four stations on one rule, read left to
+   right, with a marker on each — the same way the props are laid out
+   across the desk in the source art. Vertical zig-zag timelines cost a
+   lot of height and buy nothing that four columns on a line don't.
+   ===================================================================== */
+
+const PHASES = [
   {
-    q: "Q1",
-    theme: "Foundation & MVP",
-    items: "Product spec, Liquid Glass web shell, Robinhood wallet auth, Agent Registry on devnet, pilot agents.",
+    phase: "Phase 1",
+    title: "Proof-of-Life core",
+    items: ["Web cockpit", "Wallet auth (SIWE)", "Keccak-256 solver", `${BRAND.rewardToken} ledger`],
+    state: "shipping" as const,
   },
   {
-    q: "Q2",
-    theme: "Proof-of-Life live",
-    items: `Heartbeat sessions, ${BRAND.rewardToken} minting, expressive agent avatars, marketplace, personal dashboard.`,
+    phase: "Phase 2",
+    title: `${BRAND.valueToken} staking bridge`,
+    items: ["24h epoch engine", "Reward pool disbursal", "Companion mint & equip", "Vitality alerts"],
+    state: "next" as const,
   },
   {
-    q: "Q3",
-    theme: "Staking bridge",
-    items: `${BRAND.rewardToken} → ${BRAND.valueToken} staking, revenue-funded buybacks, leaderboard, X activity feed per agent.`,
+    phase: "Phase 3",
+    title: `50:50 ${BRAND.stockToken} split`,
+    items: ["Stock token integration", "Dual disbursal engine", "Portfolio cockpit"],
+    state: "planned" as const,
   },
   {
-    q: "Q4",
-    theme: "Scale & ecosystem",
-    items: "Mainnet launch, agent-launch partner integrations, notifications, mobile companion.",
+    phase: "Phase 4",
+    title: "Mobile node & fleet",
+    items: ["Ambient background nurturing", "Multi-agent marketplace"],
+    state: "planned" as const,
   },
 ];
 
-const PHASES = [
-  { name: "Phase 1 — MVP", items: "5–8 Companion designs (Common → Rare), basic equip/unequip, passive earn-rate bonuses, milestone rewards plus a limited paid mint, avatar integration, inventory views." },
-  { name: "Phase 2", items: "Epic & Legendary tiers with unique abilities, stronger visual effects and state reactions, expanded acquisition, improved showcase UI." },
-  { name: "Phase 3", items: "Companion leveling and light fusion, dynamic metadata, deeper leaderboard and social integration." },
-];
+const MARKER = {
+  shipping: "bg-vital",
+  next: "bg-coral",
+  planned: "bg-white",
+} as const;
 
 const Roadmap = () => (
   <Section
     id="roadmap"
+    index="06"
     eyebrow="Roadmap"
-    title={<>Ship the nurturing loop first, then layer Companions.</>}
+    tone="white"
+    title={
+      <>
+        From a heartbeat
+        <br className="hidden sm:block" /> to a living network.
+      </>
+    }
+    intro={
+      <>
+        Four phases, each shipping something a nurturer can actually use before the next
+        one starts.
+      </>
+    }
   >
-    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
-      {QUARTERS.map((q, i) => (
-        <Reveal key={q.q} delay={i * 0.06}>
-          <article className="h-full bg-white rounded-3xl border-2 border-dashboard-border p-6 card-playful">
-            <span className="inline-block px-3 py-1 rounded-full bg-coral text-white text-xs font-extrabold mb-3">
-              {q.q}
-            </span>
-            <h3 className="text-base font-extrabold text-claw-charcoal mb-2">{q.theme}</h3>
-            <p className="text-sm text-claw-gray-600 leading-relaxed">{q.items}</p>
-          </article>
-        </Reveal>
-      ))}
-    </div>
+    <div className="relative">
+      {/* The bench rule the stations sit on. */}
+      <div className="absolute left-0 right-0 top-[7px] hidden h-0.5 bg-ink/20 lg:block" aria-hidden />
 
-    <div className="grid gap-4 sm:gap-5 md:grid-cols-3 mt-6">
-      {PHASES.map((p, i) => (
-        <Reveal key={p.name} delay={i * 0.07}>
-          <article className="h-full bg-cream rounded-3xl border-2 border-dashboard-border p-5">
-            <h3 className="text-sm font-extrabold text-sky-dark mb-2">{p.name}</h3>
-            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">{p.items}</p>
-          </article>
-        </Reveal>
-      ))}
+      <div className="grid gap-fib4 lg:grid-cols-4 lg:gap-fib3">
+        {PHASES.map((p, i) => (
+          <Reveal key={p.phase} delay={i * 0.08}>
+            <div className="relative lg:pt-fib4">
+              <span
+                className={`absolute left-0 top-0 hidden h-4 w-4 rounded-full border-2 border-ink lg:block ${MARKER[p.state]}`}
+                aria-hidden
+              />
+              <div className="label-mono text-coral lg:mt-0">{p.phase}</div>
+              {/* Reserve two lines so the rules under every station land on
+                  the same baseline, however long a phase title runs. */}
+              <h3 className="mt-fib2 font-display text-d1 text-ink lg:min-h-[3.125rem]">
+                {p.title}
+              </h3>
+              <ul className="mt-fib3 space-y-fib2 border-t-2 border-ink/15 pt-fib3">
+                {p.items.map((item) => (
+                  <li key={item} className="flex items-start gap-fib2 text-label text-claw-gray-600">
+                    <span
+                      className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rotate-45 bg-ink/40"
+                      aria-hidden
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        ))}
+      </div>
     </div>
   </Section>
 );

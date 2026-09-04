@@ -1,102 +1,161 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =====================================================================
+   MONKII LABS — "The Lab and the Chamber"
+
+   The identity is lifted off the source illustrations, which are built
+   from exactly three moves: a flat fill, a heavy charcoal outline, and
+   a hard shadow with no blur in it. Nothing in the art glows softly,
+   nothing is glassy, nothing fades. So nothing here does either — every
+   surface is a flat fill inside a 2px charcoal keyline sitting on a hard
+   offset shadow. Corners stay generous, because the robots, the tablet,
+   the reward case and the companion card in the art all have generous
+   corners.
+
+   The art also has two worlds, and the product is the passage between
+   them: the Day Lab (sky, cream paper, charcoal ink, monkii red) where
+   an agent rests, and the Activation Chamber (near-black, phosphor
+   green) where it is brought back to life. The page uses that literally
+   — it runs bright, drops into the chamber once, and comes back up. The
+   single inversion lands at roughly the first third of the scroll.
+
+   Colour is rationed, and each hue means one thing only:
+     sky       atmosphere and ground. never an action.
+     cream     paper. the surface you read on.
+     charcoal  ink. every outline, every word of body copy.
+     red       the single call to action. a few per screen at most.
+     green     alive. vitality, activation, thriving. never decorative.
+
+   Measure is golden. The type ladder steps on phi (1.618) — 10, 16, 26,
+   42, 69, 111 are exact phi jumps, with 13 / 21 / 33 / 54 / 87 filling
+   between them at sqrt(phi). Body copy is set 16/1.618. Section rhythm
+   and grid gaps run on Fibonacci, which converges on the same ratio.
+   Two-column splits are 61.8 / 38.2, never 50/50, and section headers
+   put the title in the left two thirds with the standfirst in the right.
+   ===================================================================== */
+
 @layer base {
   :root {
-    /* MONKII LABS palette — sky blue, coral, cream */
-    --background: 0 0% 98%;
-    --foreground: 220 13% 18%;
-    
-    /* Cards - Cream/White tones */
+    /* ---- Ground --------------------------------------------------- */
+    --background: 41 67% 96%;          /* paper, a step lighter than cream */
+    --foreground: 0 0% 9%;             /* charcoal ink #171717 */
+
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
-    
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
-    
-    /* Primary - Coral Red (from the monkii mark) */
-    --primary: 6 78% 57%;
+    --popover-foreground: 0 0% 9%;
+
+    /* ---- Action --------------------------------------------------- */
+    --primary: 5 79% 56%;              /* monkii red #E74435 */
     --primary-foreground: 0 0% 100%;
-    
-    /* Secondary - Sky Blue (from banner sky) */
-    --secondary: 199 89% 65%;
-    --secondary-foreground: 0 0% 100%;
-    
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    
-    --accent: 199 89% 95%;
-    --accent-foreground: 199 89% 40%;
-    
-    --destructive: 0 84% 60%;
+
+    --secondary: 201 79% 57%;          /* sky #39A9E8 */
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 41 40% 93%;
+    --muted-foreground: 0 0% 38%;
+
+    --accent: 201 79% 92%;
+    --accent-foreground: 201 79% 28%;
+
+    --destructive: 5 79% 56%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 6 78% 57%;
-    
-    --radius: 1rem;
-    
-    /* Playful brand colors */
-    --sky-blue: 199 89% 65%;
-    --sky-blue-light: 199 89% 85%;
-    --sky-blue-dark: 199 89% 45%;
-    
-    --coral: 6 78% 57%;
-    --coral-light: 6 78% 75%;
-    --coral-dark: 6 78% 45%;
-    
-    --cream: 40 33% 97%;
-    --cream-dark: 40 20% 93%;
-    
+
+    /* Borders are ink. The keyline is the whole system. */
+    --border: 0 0% 9%;
+    --input: 0 0% 9%;
+    --ring: 5 79% 56%;
+
+    --radius: 0.875rem;
+
+    /* ---- Day Lab palette ------------------------------------------ */
+    --sky-blue: 201 79% 57%;
+    --sky-blue-light: 201 79% 78%;
+    --sky-blue-dark: 201 79% 38%;
+
+    --coral: 5 79% 56%;                /* monkii red */
+    --coral-light: 5 79% 70%;
+    --coral-dark: 3 61% 41%;           /* dark red #A92F29 */
+
+    --cream: 41 67% 87%;               /* warm cream paper #F4E6C8 */
+    --cream-dark: 41 45% 79%;
     --cloud-white: 0 0% 100%;
-    
-    /* Brand text & surface colors */
-    --claw-coral: 6 78% 57%;
-    --claw-coral-dark: 6 78% 45%;
-    --claw-sky: 199 89% 65%;
-    --claw-sky-dark: 199 89% 50%;
-    --claw-charcoal: 220 13% 18%;
-    --claw-gray-900: 220 13% 25%;
-    --claw-gray-600: 215 16% 47%;
-    --claw-gray-400: 215 14% 65%;
-    
-    /* Worker Type Colors */
-    --ai-purple: 263 70% 55%;
-    --ai-purple-bg: 263 70% 95%;
-    --human-green: 160 84% 39%;
-    --human-green-bg: 160 60% 92%;
-    
-    /* Status Colors */
-    --success: 142 76% 36%;
+
+    /* ---- Activation Chamber palette -------------------------------- */
+    --chamber: 0 0% 3%;                /* near-black #080808 */
+    --chamber-2: 96 12% 8%;            /* lifted, with a trace of green */
+    --chamber-3: 96 10% 13%;
+    --vital: 79 100% 55%;              /* phosphor green #B7FF19 */
+    --vital-deep: 122 100% 39%;        /* robinhood green #00C805 */
+    --vital-dim: 96 60% 24%;
+    --bone: 60 22% 92%;                /* type on the chamber ground */
+    --bone-2: 84 8% 66%;
+    --bone-3: 90 6% 45%;
+
+    /* ---- Vitality states ------------------------------------------- */
+    --state-thriving: 122 100% 39%;
+    --state-idle: 38 92% 50%;
+    --state-fading: 5 79% 56%;
+
+    /* ---- Brand text & surface aliases ------------------------------ */
+    --claw-coral: 5 79% 56%;
+    --claw-coral-dark: 3 61% 41%;
+    --claw-sky: 201 79% 57%;
+    --claw-sky-dark: 201 79% 38%;
+    --claw-charcoal: 0 0% 9%;
+    --claw-gray-900: 0 0% 16%;
+    --claw-gray-600: 0 0% 38%;
+    --claw-gray-400: 0 0% 58%;
+
+    /* ---- Worker / category colours ---------------------------------- */
+    --ai-purple: 263 60% 48%;
+    --ai-purple-bg: 263 60% 94%;
+    --human-green: 122 60% 30%;
+    --human-green-bg: 122 45% 92%;
+
+    /* ---- Status ----------------------------------------------------- */
+    --success: 122 100% 32%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --info: 199 89% 48%;
-    --purple: 263 70% 55%;
-    --reward-green: 160 84% 39%;
-    --notification-red: 6 78% 57%;
-    --error-red: 0 84% 60%;
-    
-    /* Dashboard Design System - Light & Playful */
-    --dashboard-bg: 199 40% 97%;
-    --dashboard-card: 0 0% 100%;
-    --dashboard-card-foreground: 220 13% 18%;
-    --dashboard-border: 199 30% 88%;
-    --dashboard-hover: 199 50% 95%;
-    
-    /* Hero gradient - Sky blue to cream */
-    --hero-from: 199 89% 70%;
-    --hero-via: 199 89% 60%;
-    --hero-to: 40 33% 97%;
-    
-    --surface-dark: 199 89% 98%;
-    --surface-darker: 199 40% 95%;
-    
-    --glass-bg: 0 0% 100%;
-    --glass-border: 199 89% 80%;
+    --info: 201 79% 45%;
+    --purple: 263 60% 48%;
+    --reward-green: 122 100% 32%;
+    --notification-red: 5 79% 56%;
+    --error-red: 5 79% 50%;
+
+    /* ---- Dashboard Modern Telemetry Palette -------------------------- */
+    --dashboard-bg: 140 20% 5%;
+    --dashboard-card: 140 15% 8%;
+    --dashboard-card-foreground: 120 15% 95%;
+    --dashboard-border: 140 10% 20%;
+    --dashboard-hover: 140 15% 12%;
+
+    --hero-from: 201 79% 62%;
+    --hero-via: 201 79% 74%;
+    --hero-to: 140 20% 5%;
+
+    --surface-dark: 140 15% 8%;
+    --surface-darker: 140 20% 5%;
+
+    --glass-bg: 140 15% 8%;
+    --glass-border: 140 10% 20%;
+
+    /* ---- Measure: the phi ladder, in rem ----------------------------- */
+    --step--2: 0.625rem;   /* 10  */
+    --step--1: 0.8125rem;  /* 13  */
+    --step-0:  1rem;       /* 16  */
+    --step-1:  1.3125rem;  /* 21  */
+    --step-2:  1.625rem;   /* 26  */
+    --step-3:  2.0625rem;  /* 33  */
+    --step-4:  2.625rem;   /* 42  */
+    --step-5:  3.375rem;   /* 54  */
+    --step-6:  4.3125rem;  /* 69  */
+    --step-7:  5.4375rem;  /* 87  */
+    --step-8:  6.9375rem;  /* 111 */
   }
 }
 
@@ -104,169 +163,328 @@
   * {
     @apply border-border;
   }
-  
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Nunito', system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: var(--step-0);
+    line-height: 1.618;              /* golden leading on running text */
   }
-  
-  /* Playful scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+
+  /* Display type is Archivo, set tight and heavy — the weight of the
+     source lettering without the cartoon rounding, which reads as a toy
+     at paragraph scale. */
+  h1, h2, h3 {
+    font-family: 'Archivo', 'Inter', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.028em;
+    line-height: 0.96;
   }
-  
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--cream));
-    border-radius: 10px;
+
+  /* Anything the user reads as an instrument label — gauges, tickers,
+     section indices, contract addresses — is monospaced. */
+  h4, h5, h6 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
-  
+
+  ::selection {
+    background: hsl(var(--vital));
+    color: hsl(var(--chamber));
+  }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--cream)); }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--sky-blue-light));
-    border-radius: 10px;
-    border: 2px solid hsl(var(--cream));
+    background: hsl(var(--claw-charcoal));
+    border: 3px solid hsl(var(--cream));
+    border-radius: 999px;
   }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--sky-blue));
-  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--coral)); }
 }
 
 @layer utilities {
+
+  /* ---- The ink system ------------------------------------------------
+     One keyline weight, one shadow offset, no blur. Everything else in
+     the UI is a variation on these three. */
+
+  .ink {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .ink-card {
+    background: rgba(17, 23, 19, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px);
+  }
+
+  .ink-card-cream {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Flat variant for dense grids */
+  .ink-flat {
+    background: rgba(17, 23, 19, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+  }
+
+  /* Cards lift gracefully on hover with subtle glow */
+  .ink-raise {
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1),
+                box-shadow 180ms cubic-bezier(0.2, 0, 0, 1),
+                border-color 180ms ease;
+  }
+  .ink-raise:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 200, 5, 0.3);
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.35), 0 0 16px -4px rgba(0, 200, 5, 0.15);
+  }
+
+  /* Primary action: electric accent fill, smooth lift */
+  .ink-slab {
+    background: #00C805;
+    color: #060806;
+    border: 1px solid #00C805;
+    border-radius: 999px;
+    box-shadow: 0 2px 12px -2px rgba(0, 200, 5, 0.4);
+    transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  }
+  .ink-slab:hover {
+    background: #00b004;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px 0 rgba(0, 200, 5, 0.5);
+  }
+  .ink-slab:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px 0 rgba(0, 200, 5, 0.3);
+  }
+
+  .ink-slab-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
+  }
+  .ink-slab-ghost:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.2);
+  }
+  .ink-slab-ghost:active {
+    transform: scale(0.98);
+  }
+
+  /* ---- The chamber ----------------------------------------------------
+     The single inversion. Emission replaces the ink shadow, because in
+     the dark half of the art the light comes off the subject. */
+
+  .chamber-ground {
+    background: hsl(var(--chamber));
+    color: hsl(var(--bone));
+  }
+
+  .chamber-panel {
+    background: hsl(var(--chamber-2));
+    border: 1px solid hsl(var(--vital) / 0.22);
+    border-radius: var(--radius);
+  }
+
+  .chamber-panel-lit {
+    background: hsl(var(--chamber-2));
+    border: 1px solid hsl(var(--vital) / 0.45);
+    border-radius: var(--radius);
+    box-shadow: 0 0 40px -12px hsl(var(--vital) / 0.45),
+                inset 0 0 48px -34px hsl(var(--vital));
+  }
+
+  .text-vital {
+    color: hsl(var(--vital));
+    text-shadow: 0 0 6px hsl(var(--vital) / 0.55),
+                 0 0 26px hsl(var(--vital) / 0.30);
+  }
+
+  /* ---- Ground textures --------------------------------------------- */
+
+  /* Lab paper: the faint blueprint grid the props sit on. */
+  .grid-paper {
+    background-image:
+      linear-gradient(to right, hsl(var(--claw-charcoal) / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--claw-charcoal) / 0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .grid-chamber {
+    background-image:
+      linear-gradient(to right, hsl(var(--vital) / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--vital) / 0.07) 1px, transparent 1px);
+    background-size: 55px 55px;
+  }
+
+  /* Highlighter, for the one word per headline that carries the meaning.
+     Green, because the marked word in this product is always the live one. */
+  .marker-vital {
+    background-image: linear-gradient(hsl(var(--vital)), hsl(var(--vital)));
+    background-repeat: no-repeat;
+    background-size: 100% 0.32em;
+    background-position: 0 84%;
+  }
+
+  .marker-sky {
+    background-image: linear-gradient(hsl(var(--sky-blue-light)), hsl(var(--sky-blue-light)));
+    background-repeat: no-repeat;
+    background-size: 100% 0.32em;
+    background-position: 0 84%;
+  }
+
+  /* ---- Type roles ---------------------------------------------------- */
+
+  .label-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: var(--step--2);
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  .display-1 { font-size: var(--step-5); }
+  .display-2 { font-size: var(--step-4); }
+
+  @media (min-width: 640px) {
+    .display-1 { font-size: var(--step-7); }
+    .display-2 { font-size: var(--step-5); }
+  }
+  @media (min-width: 1024px) {
+    .display-1 { font-size: var(--step-8); }
+    .display-2 { font-size: var(--step-6); }
+  }
+
+  /* ---- Legacy utilities ------------------------------------------------
+     Carried from the previous build so the dashboard and static routes
+     keep rendering while each is migrated onto the ink system. */
+
   .glass-panel {
-    background: linear-gradient(180deg, 
-      hsl(var(--glass-bg) / 0.9) 0%, 
-      hsl(var(--glass-bg) / 0.7) 100%
-    );
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 2px solid hsl(var(--glass-border) / 0.4);
-    box-shadow: 0 8px 32px hsl(var(--sky-blue) / 0.15);
+    background: hsl(var(--cloud-white));
+    border: 2px solid hsl(var(--claw-charcoal));
+    border-radius: var(--radius);
+    box-shadow: 4px 4px 0 0 hsl(var(--claw-charcoal));
   }
-  
+
   .hero-gradient {
-    background: linear-gradient(180deg, 
-      hsl(var(--sky-blue)) 0%, 
-      hsl(var(--sky-blue-light)) 50%, 
-      hsl(var(--cream)) 100%
-    );
+    background:
+      linear-gradient(180deg,
+        hsl(var(--sky-blue)) 0%,
+        hsl(var(--sky-blue-light)) 62%,
+        hsl(var(--background)) 100%);
   }
-  
-  .cta-gradient {
-    background: linear-gradient(135deg, 
-      hsl(var(--coral)) 0%, 
-      hsl(var(--coral-light)) 100%
-    );
-  }
-  
+
+  .cta-gradient { background: hsl(var(--coral)); }
+
   .sky-gradient {
-    background: linear-gradient(180deg,
-      hsl(199 89% 70%) 0%,
-      hsl(199 89% 80%) 100%
-    );
+    background: linear-gradient(180deg, hsl(var(--sky-blue)) 0%, hsl(var(--sky-blue-light)) 100%);
   }
-  
-  .text-gradient {
-    background: linear-gradient(135deg, 
-      hsl(var(--coral)) 0%, 
-      hsl(var(--sky-blue-dark)) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
+
+  .text-gradient { color: hsl(var(--coral)); }
+
   .cloud-shape {
     background: hsl(var(--cloud-white));
-    border-radius: 50%;
-    box-shadow: 
-      30px -20px 0 0 hsl(var(--cloud-white)),
-      60px -10px 0 5px hsl(var(--cloud-white)),
-      90px -20px 0 -5px hsl(var(--cloud-white)),
-      120px 0 0 0 hsl(var(--cloud-white));
+    border-radius: 999px;
   }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-float-delayed {
-    animation: float 6s ease-in-out infinite;
-    animation-delay: 2s;
-  }
-  
-  .animate-bounce-gentle {
-    animation: bounce-gentle 3s ease-in-out infinite;
-  }
-  
-  .animate-wiggle {
-    animation: wiggle 0.5s ease-in-out;
-  }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-  
-  @keyframes bounce-gentle {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-  
-  @keyframes wiggle {
-    0%, 100% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(-5deg);
-    }
-    75% {
-      transform: rotate(5deg);
-    }
-  }
-  
-  @keyframes cloud-drift {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100vw);
-    }
-  }
-  
-  .animate-cloud-drift {
-    animation: cloud-drift 60s linear infinite;
-  }
-  
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  /* Playful card hover effect */
+
   .card-playful {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1),
+                box-shadow 180ms cubic-bezier(0.2, 0, 0, 1);
   }
-  
   .card-playful:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px hsl(var(--sky-blue) / 0.2);
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 0 hsl(var(--claw-charcoal));
   }
-  
-  /* Button bounce on click */
-  .btn-bounce:active {
-    transform: scale(0.95);
+
+  .btn-bounce:active { transform: translate(3px, 3px); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ---- Motion -----------------------------------------------------------
+   The art is drawn, not rendered, so motion is limited to things that
+   would actually move inside it: a drifting cloud, a beating heart, a
+   charging beam, a ticker. Nothing bounces or springs. */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-4deg); }
+  75%      { transform: rotate(4deg); }
+}
+@keyframes cloud-drift {
+  from { transform: translateX(-20%); }
+  to   { transform: translateX(120%); }
+}
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  12%      { transform: scale(1.16); }
+  24%      { transform: scale(1); }
+  36%      { transform: scale(1.09); }
+  48%      { transform: scale(1); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+/* The chamber beam charging and settling. */
+@keyframes charge {
+  0%, 100% { opacity: 0.72; }
+  50%      { opacity: 1; }
+}
+/* A fading agent loses its glow before it loses its shape. */
+@keyframes decay {
+  0%, 100% { opacity: 0.70; }
+  50%      { opacity: 0.34; }
+}
+
+.animate-float         { animation: float 7s ease-in-out infinite; }
+.animate-float-delayed { animation: float 7s ease-in-out infinite; animation-delay: 2.2s; }
+.animate-bounce-gentle { animation: bounce-gentle 3.4s ease-in-out infinite; }
+.animate-wiggle        { animation: wiggle 0.5s ease-in-out; }
+.animate-cloud-drift   { animation: cloud-drift 70s linear infinite; }
+.animate-heartbeat     { animation: heartbeat 2.6s ease-in-out infinite; }
+.animate-marquee       { animation: marquee 44s linear infinite; }
+.animate-charge        { animation: charge 3.6s ease-in-out infinite; }
+.animate-decay         { animation: decay 3.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-delayed,
+  .animate-bounce-gentle,
+  .animate-wiggle,
+  .animate-cloud-drift,
+  .animate-heartbeat,
+  .animate-marquee,
+  .animate-charge,
+  .animate-decay {
+    animation: none;
   }
 }

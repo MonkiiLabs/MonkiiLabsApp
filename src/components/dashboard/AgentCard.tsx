@@ -1,102 +1,98 @@
 import { Link } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Lock, Users } from "lucide-react";
-import PowerMeter from "./PowerMeter";
-import { useMonkii } from "@/features/monkii/store";
-import { POOL_STATS, type Agent } from "@/features/monkii/data";
+import { ArrowUpRight, Heart, Star, Users } from "lucide-react";
 
-const AgentCard = ({ agent }: { agent: Agent }) => {
-  const { getPower, toggleNurture, activeAgentId, equippedFor, bonusFor, staked, heartbeats } = useMonkii();
-  const power = getPower(agent.id);
-  const isActive = activeAgentId === agent.id;
-  const companions = equippedFor(agent.id);
-  const bonus = bonusFor(agent.id);
-  const locked = agent.premium && staked < POOL_STATS.minStake * 4;
+import type { Agent } from "@/features/api/types";
+import { PowerMeter, StateChip, fmt } from "@/components/dashboard/primitives";
+import { monkiiMark } from "@/lib/brand";
+import { useWatchlist } from "@/hooks/useWatchlist";
+
+/**
+ * Modern Agent Fleet Card.
+ * Precision telemetry gauge, live vitality indicator, and watchlist star.
+ */
+const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean }) => {
+  const { isStarred, toggleStar } = useWatchlist();
+  const starred = isStarred(agent.id);
 
   return (
-    <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-4 sm:p-5 card-playful">
-      <div className="flex items-start gap-3">
-        <Link
-          to={`/dashboard/agents/${agent.id}`}
-          className="w-14 h-14 shrink-0 rounded-2xl bg-cream border-2 border-dashboard-border flex items-center justify-center text-2xl hover:scale-105 transition-transform"
-        >
-          {agent.emoji}
-        </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link
-              to={`/dashboard/agents/${agent.id}`}
-              className="text-base font-extrabold text-claw-charcoal hover:text-coral transition-colors"
-            >
-              {agent.name}
-            </Link>
-            <span className="text-xs font-bold text-claw-gray-600">{agent.handle}</span>
-            {agent.premium && (
-              <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ai-purple-bg text-ai-purple">
-                Premium
-              </span>
-            )}
+    <article className="group relative flex h-full flex-col rounded-2xl border border-white/10 bg-[#111713]/90 p-4 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/30 hover:bg-[#141b16] hover:shadow-xl hover:shadow-black/50">
+      <div className="flex items-start justify-between gap-3">
+        <Link to={`/dashboard/agents/${agent.id}`} className="flex items-start gap-3 min-w-0 flex-1">
+          <img
+            src={agent.avatarUrl ?? monkiiMark}
+            alt={agent.name}
+            loading="lazy"
+            className="h-11 w-11 shrink-0 rounded-xl border border-white/15 bg-white/5 object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h3 className="truncate font-display text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                {agent.name}
+              </h3>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-400" />
+            </div>
+            <p className="mt-0.5 truncate font-mono text-[11px] text-slate-400">
+              {agent.xHandle ? `@${agent.xHandle}` : agent.category}
+            </p>
           </div>
-          <p className="text-sm text-claw-gray-600 mt-1 leading-relaxed">{agent.tagline}</p>
-        </div>
+        </Link>
+
+        {/* Watchlist star toggle */}
+        <button
+          type="button"
+          aria-label={starred ? "Remove from watchlist" : "Add to watchlist"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleStar(agent.id);
+          }}
+          className={`grid h-8 w-8 place-items-center rounded-lg border transition-all ${
+            starred
+              ? "border-amber-400/50 bg-amber-400/15 text-amber-300"
+              : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+          }`}
+        >
+          <Star className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : ""}`} />
+        </button>
       </div>
 
-      <div className="mt-4">
-        <PowerMeter power={power} />
-      </div>
-
-      <div className="flex items-center gap-3 mt-3 text-xs font-bold text-claw-gray-600 flex-wrap">
-        <span className="flex items-center gap-1">
-          <Users className="w-3.5 h-3.5" /> {agent.nurturers.toLocaleString()} nurturers
-        </span>
-        <span>🫀 {(heartbeats[agent.id] ?? 0).toLocaleString()} your heartbeats</span>
-        {bonus > 0 && <span className="text-human-green">+{bonus}% bonus</span>}
-      </div>
-
-      {companions.length > 0 && (
-        <div className="flex items-center gap-1.5 mt-3">
-          {companions.map((c) => (
-            <span
-              key={c.id}
-              title={`${c.name} — ${c.bonusLabel}`}
-              className="w-8 h-8 rounded-xl bg-cream border-2 border-dashboard-border flex items-center justify-center text-sm"
-            >
-              {c.emoji}
-            </span>
-          ))}
-        </div>
+      {!compact && agent.description && (
+        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-400">
+          {agent.description}
+        </p>
       )}
 
-      <div className="flex items-center gap-2 mt-4">
-        {locked ? (
-          <Button
-            disabled
-            className="flex-1 rounded-full bg-cream-dark text-claw-gray-600 font-bold border-2 border-dashboard-border"
-          >
-            <Lock className="w-4 h-4 mr-1.5" /> Stake to unlock
-          </Button>
-        ) : (
-          <Button
-            onClick={() => toggleNurture(agent.id)}
-            className={`flex-1 rounded-full font-bold transition-all duration-200 ${
-              isActive
-                ? "bg-human-green hover:bg-human-green/90 text-white"
-                : "bg-coral hover:bg-coral-dark text-white shadow-coral"
-            }`}
-          >
-            {isActive ? "🫀 Heartbeat running" : "🫀 Nurture"}
-          </Button>
-        )}
-        <Button
-          asChild
-          variant="outline"
-          className="rounded-full font-bold border-2 border-dashboard-border text-claw-charcoal hover:text-coral hover:border-coral bg-white"
-        >
-          <Link to={`/dashboard/agents/${agent.id}`}>Details</Link>
-        </Button>
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <StateChip state={agent.state} />
+          <span className="font-mono text-[11px] font-semibold text-slate-400">
+            {Math.round(agent.power)} pw
+          </span>
+        </div>
+        <PowerMeter
+          power={agent.power}
+          max={agent.healthyThreshold || agent.power || 1}
+          state={agent.state}
+          showValue={false}
+          segments={12}
+        />
       </div>
-    </Card>
+
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/5 pt-3 text-xs text-slate-400">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[11px]">
+          <Users className="h-3.5 w-3.5 text-slate-500" />
+          {fmt(agent.nurturerCount)} nurturers
+        </span>
+
+        <Link
+          to={`/dashboard/agents/${agent.id}`}
+          className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-400 transition-all hover:border-emerald-400/40 hover:bg-emerald-500/20"
+        >
+          <Heart className="h-3 w-3" />
+          <span>Nurture</span>
+        </Link>
+      </div>
+    </article>
   );
 };
 

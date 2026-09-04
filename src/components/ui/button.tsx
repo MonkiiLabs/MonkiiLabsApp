@@ -5,22 +5,31 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  // Ink system: a 2px charcoal keyline over a hard, blur-free shadow that
+  // collapses on press, so a button physically travels when you hit it.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-label font-bold ring-offset-background transition-[transform,box-shadow,background-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "border-2 border-ink bg-coral text-white shadow-ink hover:bg-coral-dark hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+        destructive:
+          "border-2 border-ink bg-destructive text-white shadow-ink hover:bg-coral-dark hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+        outline:
+          "border-2 border-ink bg-white text-ink shadow-ink hover:bg-cream hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+        secondary:
+          "border-2 border-ink bg-sky text-ink shadow-ink hover:bg-sky-dark hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+        // Vital = alive. Reserved for actions that restore or pay out.
+        vital:
+          "border-2 border-ink bg-vital text-ink shadow-ink hover:brightness-105 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-ink-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
+        ghost: "text-ink hover:bg-cream",
+        link: "text-coral underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-11 px-fib3 py-2",
+        sm: "h-9 px-fib3 text-micro tracking-[0.1em]",
+        lg: "h-12 px-fib4",
+        icon: "h-10 w-10 p-0",
       },
     },
     defaultVariants: {

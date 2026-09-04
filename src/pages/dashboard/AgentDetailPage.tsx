@@ -1,234 +1,468 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Lock, Users } from "lucide-react";
-import { motion } from "framer-motion";
-import PowerMeter from "@/components/dashboard/PowerMeter";
-import EpochCard from "@/components/dashboard/EpochCard";
-import { useMonkii } from "@/features/monkii/store";
-import { AGENT_STATE_META, MAX_EQUIPPED, POOL_STATS, RARITY_STYLES } from "@/features/monkii/data";
-import { BRAND } from "@/lib/brand";
+import {
+  ArrowLeft,
+  Cpu,
+  Heart,
+  Share2,
+  Square,
+  Star,
+  Trash2,
+  Volume2,
+  VolumeX,
+  Zap,
+} from "lucide-react";
+import { toast } from "sonner";
 
-const AgentDetailPage = () => {
-  const { id = "" } = useParams();
-  const {
-    getAgent,
-    getPower,
-    getState,
-    toggleNurture,
-    activeAgentId,
-    equippedFor,
-    bonusFor,
-    ownedCompanions,
-    isEquippedAnywhere,
-    equip,
-    unequip,
-    staked,
-    heartbeats,
-    earnMultiplier,
-  } = useMonkii();
+import {
+  useAgent,
+  useInventory,
+  useEquipCompanion,
+  useUnequipCompanion,
+} from "@/features/api/hooks";
+import { useNurture } from "@/features/monkii/useNurture";
+import { useWallet } from "@/hooks/useWallet";
+import { useWatchlist } from "@/hooks/useWatchlist";
+import { playHeartbeatSound } from "@/lib/sound";
+import type { Intensity } from "@/features/api/types";
+import {
+  AuthGate,
+  EmptyPanel,
+  ErrorPanel,
+  LoadingPanel,
+  Panel,
+  PanelHeader,
+  PowerMeter,
+  Stat,
+  StateChip,
+  fmt,
+} from "@/components/dashboard/primitives";
+import { BRAND, monkiiMark } from "@/lib/brand";
 
-  const agent = getAgent(id);
+const INTENSITIES: Array<{ value: Intensity; label: string; blurb: string }> = [
+  { value: "light", label: "Light", blurb: "Low CPU/GPU overhead" },
+  { value: "standard", label: "Standard", blurb: "Optimal compute loop" },
+  { value: "max", label: "Max", blurb: "Maximum $MONKI throughput" },
+];
 
-  if (!agent) {
-    return (
-      <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-8 text-center">
-        <div className="text-4xl mb-3">🙊</div>
-        <h1 className="text-lg font-extrabold text-claw-charcoal">Agent not found</h1>
-        <Button asChild className="mt-4 rounded-full bg-coral hover:bg-coral-dark text-white font-bold">
-          <Link to="/dashboard/agents">Back to marketplace</Link>
-        </Button>
-      </Card>
+const MAX_SLOTS = 3;
+
+const AgentDetailInner = ({ agentId }: { agentId: string }) => {
+  const { data, isLoading, isError, error, refetch } = useAgent(agentId);
+  const inventory = useInventory();
+  const equip = useEquipCompanion();
+  const unequip = useUnequipCompanion();
+  const { isStarred, toggleStar } = useWatchlist();
+
+  const [intensity, setIntensity] = useState<Intensity>("standard");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [elapsedSecs, setElapsedSecs] = useState(0);
+
+  const nurture = useNurture(agentId);
+  const starred = isStarred(agentId);
+  const lastHeartbeatRef = useRef(nurture.stats.heartbeats);
+
+  // Sound feedback on heartbeat increment
+  useEffect(() => {
+    if (nurture.stats.heartbeats > lastHeartbeatRef.current) {
+      lastHeartbeatRef.current = nurture.stats.heartbeats;
+      playHeartbeatSound(!soundEnabled);
+    }
+  }, [nurture.stats.heartbeats, soundEnabled]);
+
+  // Session elapsed timer
+  useEffect(() => {
+    if (!nurture.isRunning) {
+      setElapsedSecs(0);
+      return;
+    }
+    const timer = setInterval(() => setElapsedSecs((s) => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, [nurture.isRunning]);
+
+  // Auto-pause when user switches away from tab (like ansem)
+  useEffect(() => {
+    if (!nurture.isRunning) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && nurture.isRunning) {
+        void nurture.stop();
+        toast.info("Nurturing paused", {
+          description: "Proof-of-life compute was paused to protect your device resources.",
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [nurture]);
+
+  if (isLoading) return <LoadingPanel label="Connecting to agent stream" />;
+  if (isError) return <ErrorPanel error={error} onRetry={refetch} />;
+  if (!data) return null;
+
+  const { agent, companionBuffs } = data;
+  const power = nurture.power ?? agent.power;
+  const state = nurture.state ?? agent.state;
+  const max = agent.healthyThreshold || agent.power || 1;
+
+  const equipped = companionBuffs?.companions ?? [];
+  const freeSlots = MAX_SLOTS - equipped.length;
+  const spare = (inventory.data ?? []).filter((c) => !c.equippedAgentId);
+
+  // Format elapsed time MM:SS
+  const formatTimer = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  // Share to X intent (from ansem inspiration)
+  const shareToX = () => {
+    const text = encodeURIComponent(
+      `I'm keeping @${agent.xHandle || agent.name} alive on @MonkiiLabs on Robinhood Chain! 🧬\n\nVitality: ${Math.round(
+        power,
+      )} pw (${state.toUpperCase()}) · Earned: ${fmt(
+        nurture.stats.monkiEarned,
+        1,
+      )} $MONKI · Join the Proof-of-Life compute network:`,
     );
-  }
-
-  const power = getPower(agent.id);
-  const meta = AGENT_STATE_META[getState(agent.id)];
-  const equipped = equippedFor(agent.id);
-  const bonus = bonusFor(agent.id);
-  const isActive = activeAgentId === agent.id;
-  const locked = agent.premium && staked < POOL_STATS.minStake * 4;
-  const perTick = (agent.earnRate * (1 + bonus / 100) * earnMultiplier).toFixed(2);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+  };
 
   return (
-    <div className="space-y-3">
-      <Link
-        to="/dashboard/agents"
-        className="inline-flex items-center gap-1.5 text-xs font-extrabold text-claw-gray-600 hover:text-coral transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> All agents
-      </Link>
+    <div className="space-y-5">
+      {/* Top Profile Card */}
+      <Panel raised>
+        <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            <div className="relative">
+              <img
+                src={agent.avatarUrl ?? monkiiMark}
+                alt={agent.name}
+                className="h-16 w-16 shrink-0 rounded-2xl border border-white/15 bg-white/5 object-cover shadow-md"
+              />
+              <span className="absolute -bottom-1 -right-1">
+                <StateChip state={state} />
+              </span>
+            </div>
 
-      <Card className="border-2 border-dashboard-border bg-white rounded-2xl overflow-hidden">
-        <div className="h-24 sm:h-28 sky-gradient" />
-        <div className="px-5 pb-5 -mt-10">
-          <motion.div
-            className={`w-20 h-20 rounded-3xl bg-white border-4 border-white shadow-playful flex items-center justify-center text-4xl ring-4 ${meta.ring}`}
-            animate={isActive ? { y: [0, -8, 0] } : {}}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            {agent.emoji}
-          </motion.div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  {agent.name}
+                </h1>
+                {agent.xHandle && (
+                  <a
+                    href={`https://x.com/${agent.xHandle}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:underline"
+                  >
+                    @{agent.xHandle}
+                  </a>
+                )}
+              </div>
+              {agent.description && (
+                <p className="mt-2 max-w-[64ch] text-xs leading-relaxed text-slate-400">
+                  {agent.description}
+                </p>
+              )}
+            </div>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-claw-charcoal">{agent.name}</h1>
-            <span className={`text-xs font-extrabold px-2.5 py-1 rounded-full ${meta.bg} ${meta.text}`}>
-              {meta.emoji} {meta.label}
+          {/* Action Tools: Star & Share */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              aria-label={starred ? "Remove from watchlist" : "Add to watchlist"}
+              onClick={() => toggleStar(agentId)}
+              className={`grid h-9 w-9 place-items-center rounded-xl border transition-all ${
+                starred
+                  ? "border-amber-400/50 bg-amber-400/15 text-amber-300"
+                  : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"
+              }`}
+            >
+              <Star className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : ""}`} />
+            </button>
+
+            <button
+              type="button"
+              onClick={shareToX}
+              title="Share to X"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Vitality Gauge */}
+        <div className="border-t border-white/10 px-5 py-4">
+          <PowerMeter power={power} max={max} state={state} segments={16} />
+        </div>
+
+        {/* Telemetry Metrics */}
+        <div className="grid grid-cols-3 gap-4 border-t border-white/10 p-5 text-center sm:text-left">
+          <Stat value={fmt(agent.nurturerCount)} label="Nurturers" />
+          <Stat value={`−${fmt(agent.powerDecayRate, 1)}/m`} label="Power Decay" tone="coral" />
+          <Stat
+            value={`+${fmt(companionBuffs?.totalBonusEarnPct ?? 0, 0)}%`}
+            label="Companion Buff"
+            tone="vital"
+          />
+        </div>
+      </Panel>
+
+      {/* Proof-of-Life Activation Chamber Console */}
+      <section className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-[#0a0e0b] shadow-2xl backdrop-blur-md">
+        <header className="flex items-center justify-between border-b border-emerald-500/20 px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${
+                  nurture.isRunning ? "animate-ping opacity-75" : "opacity-20"
+                }`}
+              />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            {agent.premium && (
-              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-ai-purple-bg text-ai-purple">
-                Premium
+            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-emerald-400">
+              Proof-of-Life Activation Chamber
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {nurture.isRunning && (
+              <span className="font-mono text-xs font-bold text-emerald-400">
+                {formatTimer(elapsedSecs)}
+              </span>
+            )}
+            <button
+              type="button"
+              aria-label={soundEnabled ? "Mute audio feedback" : "Enable audio feedback"}
+              onClick={() => setSoundEnabled((v) => !v)}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400" /> : <VolumeX className="h-4 w-4" />}
+            </button>
+          </div>
+        </header>
+
+        <div className="p-5">
+          {/* Real-time Telemetry Grid */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-emerald-400">
+                {nurture.stats.heartbeats}
+              </div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                Heartbeats Sent
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-white">
+                +{fmt(nurture.stats.monkiEarned, 2)}
+              </div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                {BRAND.rewardToken} Earned
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-emerald-400">
+                ×{nurture.stats.lastMultiplier.toFixed(2)}
+              </div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                Epoch Multiplier
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
+              <div className="font-display text-2xl font-bold tabular-nums text-white">
+                {nurture.stats.hashRate ? `${fmt(nurture.stats.hashRate)} H/s` : "—"}
+              </div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                Compute Hash Rate
+              </div>
+            </div>
+          </div>
+
+          {/* Intensity Selector */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-slate-400">Load Intensity:</span>
+              <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
+                {INTENSITIES.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={nurture.isRunning}
+                    onClick={() => setIntensity(opt.value)}
+                    title={opt.blurb}
+                    className={`rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-all disabled:opacity-40 ${
+                      intensity === opt.value
+                        ? "bg-emerald-500 text-black shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {nurture.difficulty != null && (
+              <span className="font-mono text-[11px] text-slate-500">
+                Target Difficulty: {nurture.difficulty} bits
               </span>
             )}
           </div>
-          <p className="text-sm text-claw-gray-600 mt-2 leading-relaxed max-w-2xl">{agent.description}</p>
 
-          <div className="flex flex-wrap items-center gap-3 mt-3 text-xs font-bold text-claw-gray-600">
-            <span className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" /> {agent.nurturers.toLocaleString()} nurturers
-            </span>
-            <span>🗂️ {agent.category}</span>
-            <a
-              href={`https://x.com/${agent.handle.replace("@", "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 text-sky-dark hover:text-coral transition-colors"
+          {/* Action Trigger Button */}
+          <button
+            type="button"
+            onClick={() => void nurture.toggle(intensity)}
+            disabled={nurture.phase === "starting" || nurture.phase === "stopping"}
+            className={`mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-xl py-3 text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.99] disabled:opacity-50 ${
+              nurture.isRunning
+                ? "border border-rose-500/40 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
+                : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-950/40"
+            }`}
+          >
+            {nurture.isRunning ? (
+              <>
+                <Square className="h-4 w-4" /> Stop Proof-of-Life Session
+              </>
+            ) : (
+              <>
+                <Heart className="h-4 w-4 animate-pulse" /> Start Nurturing (Prove Presence)
+              </>
+            )}
+          </button>
+
+          <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[11px] text-slate-500">
+            <Cpu className="h-3.5 w-3.5 text-slate-500" />
+            Runs client-side in a Web Worker · Zero UI blocking · Auto-pauses on background tab
+          </p>
+          {nurture.error && <p className="mt-2 text-center text-xs text-rose-400">{nurture.error}</p>}
+        </div>
+      </section>
+
+      {/* Companion Collectibles Slots */}
+      <Panel>
+        <PanelHeader
+          title={`Companion Slots · ${equipped.length}/${MAX_SLOTS}`}
+          hint="Off-chain equipment is instantaneous and 100% gasless on Robinhood Chain."
+        />
+        <div className="space-y-3 p-5">
+          {equipped.map((c) => (
+            <div
+              key={c.userCompanionId}
+              className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-white/5 p-3"
             >
-              {agent.handle} <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <div className="mt-5">
-            <PowerMeter power={power} size="lg" />
-            <p className="text-xs text-claw-gray-600 mt-2 leading-relaxed">{meta.note}</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-5">
-            {[
-              { label: "Your heartbeats", value: (heartbeats[agent.id] ?? 0).toLocaleString() },
-              { label: "Companion bonus", value: `+${bonus}%` },
-              { label: `${BRAND.rewardToken} / heartbeat`, value: perTick },
-            ].map((s) => (
-              <div key={s.label} className="rounded-xl bg-cream border-2 border-dashboard-border p-3">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-claw-gray-600">{s.label}</p>
-                <p className="text-base font-extrabold text-claw-charcoal tabular-nums">{s.value}</p>
+              <img
+                src={c.imageUrl ?? `/companions/${c.companionId}.jpg`}
+                alt=""
+                className="h-12 w-12 shrink-0 rounded-lg border border-white/15 object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-white">{c.name}</p>
+                <p className="text-[11px] text-slate-400">
+                  +{c.bonusEarnPct}% Earn Boost · {c.decayReductionPct}% Power Decay Shield
+                </p>
               </div>
-            ))}
-          </div>
-
-          {locked ? (
-            <div className="mt-5 rounded-2xl border-2 border-ai-purple/30 bg-ai-purple-bg p-4">
-              <p className="text-sm font-extrabold text-ai-purple flex items-center gap-1.5">
-                <Lock className="w-4 h-4" /> Premium agent
-              </p>
-              <p className="text-xs text-claw-gray-600 mt-1 leading-relaxed">
-                Stake at least {(POOL_STATS.minStake * 4).toLocaleString()} {BRAND.rewardToken} to
-                nurture this agent.
-              </p>
-              <Button asChild className="mt-3 rounded-full bg-ai-purple hover:bg-ai-purple/90 text-white font-bold">
-                <Link to="/dashboard/staking">Go to staking</Link>
-              </Button>
+              <button
+                type="button"
+                aria-label={`Unequip ${c.name}`}
+                onClick={() => unequip.mutate(c.userCompanionId)}
+                disabled={unequip.isPending}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
-          ) : (
-            <Button
-              onClick={() => toggleNurture(agent.id)}
-              className={`w-full sm:w-auto mt-5 rounded-full px-8 py-6 font-bold text-base ${
-                isActive
-                  ? "bg-human-green hover:bg-human-green/90 text-white"
-                  : "bg-coral hover:bg-coral-dark text-white shadow-coral"
-              }`}
-            >
-              {isActive ? "🫀 Stop heartbeat session" : "🫀 Start heartbeat session"}
-            </Button>
+          ))}
+
+          {equipped.length === 0 && (
+            <EmptyPanel
+              title="No companions equipped"
+              body="Companions grant permanent passive earn rate boosts and power decay resistance to this agent."
+            />
+          )}
+
+          {freeSlots > 0 && spare.length > 0 && (
+            <div className="rounded-xl border border-dashed border-white/15 p-4">
+              <p className="font-mono text-xs uppercase tracking-wider text-slate-400">
+                Equip from your Inventory
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {spare.slice(0, 6).map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={equip.isPending}
+                    onClick={() =>
+                      equip.mutate({
+                        userCompanionId: c.id,
+                        agentId,
+                        slotIndex: equipped.length + 1,
+                      })
+                    }
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-3 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-500/30 hover:bg-white/10 disabled:opacity-50"
+                  >
+                    <img
+                      src={c.imageUrl ?? `/companions/${c.slug}.jpg`}
+                      alt=""
+                      className="h-6 w-6 rounded-lg object-cover"
+                    />
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {freeSlots > 0 && spare.length === 0 && (
+            <p className="text-xs text-slate-400">
+              No unequipped companions in inventory.{" "}
+              <Link to="/dashboard/companions" className="font-semibold text-emerald-400 hover:underline">
+                Mint free companions
+              </Link>{" "}
+              (standard ETH network gas only).
+            </p>
           )}
         </div>
-      </Card>
-
-      {/* Companions */}
-      <Card className="border-2 border-dashboard-border bg-white rounded-2xl p-5">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-extrabold text-claw-charcoal">
-            Equipped Companions
-            <span className="text-claw-gray-600 font-bold"> · {equipped.length}/{MAX_EQUIPPED}</span>
-          </h2>
-          <Link to="/dashboard/companions" className="text-xs font-extrabold text-sky-dark hover:text-coral">
-            Inventory →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 mt-4">
-          {Array.from({ length: MAX_EQUIPPED }).map((_, i) => {
-            const c = equipped[i];
-            if (!c) {
-              return (
-                <div
-                  key={`empty-${i}`}
-                  className="rounded-2xl border-2 border-dashed border-dashboard-border bg-cream/60 p-4 text-center text-xs font-bold text-claw-gray-600"
-                >
-                  Empty slot
-                </div>
-              );
-            }
-            const s = RARITY_STYLES[c.rarity];
-            return (
-              <div key={c.id} className={`rounded-2xl border-2 ${s.border} ${s.bg} p-3 text-center`}>
-                <div className="text-2xl">{c.emoji}</div>
-                <p className="text-xs font-extrabold text-claw-charcoal mt-1 truncate">{c.name}</p>
-                <p className={`text-[10px] font-extrabold ${s.text}`}>{c.rarity}</p>
-                <button
-                  type="button"
-                  onClick={() => unequip(agent.id, c.id)}
-                  className="mt-2 text-[11px] font-extrabold text-coral hover:underline"
-                >
-                  Unequip
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
-        <h3 className="text-xs font-extrabold uppercase tracking-wider text-claw-gray-600 mt-5 mb-2">
-          Available to equip
-        </h3>
-        <ul className="space-y-2">
-          {ownedCompanions.map((c) => {
-            const holder = isEquippedAnywhere(c.id);
-            const here = holder === agent.id;
-            const s = RARITY_STYLES[c.rarity];
-            return (
-              <li
-                key={c.id}
-                className="flex items-center gap-3 rounded-2xl border-2 border-dashboard-border p-3"
-              >
-                <span className={`w-10 h-10 rounded-xl ${s.bg} border-2 ${s.border} flex items-center justify-center text-lg`}>
-                  {c.emoji}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-extrabold text-claw-charcoal truncate">{c.name}</span>
-                  <span className="block text-xs text-claw-gray-600">{c.bonusLabel}</span>
-                </span>
-                {here ? (
-                  <span className="text-xs font-extrabold text-human-green shrink-0">Equipped</span>
-                ) : (
-                  <Button
-                    size="sm"
-                    onClick={() => equip(agent.id, c.id)}
-                    disabled={equipped.length >= MAX_EQUIPPED}
-                    className="shrink-0 rounded-full bg-coral hover:bg-coral-dark text-white font-bold disabled:opacity-60"
-                  >
-                    {holder ? "Move here" : "Equip"}
-                  </Button>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
-
-      <div className="xl:hidden">
-        <EpochCard compact />
-      </div>
+      </Panel>
     </div>
+  );
+};
+
+const AgentDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useWallet();
+
+  return (
+    <>
+      <Link
+        to="/dashboard/agents"
+        className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-slate-400 hover:text-emerald-400 transition-colors"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Fleet Telemetry
+      </Link>
+
+      {!id ? (
+        <ErrorPanel error={new Error("No agent specified.")} />
+      ) : isAuthenticated ? (
+        <AgentDetailInner agentId={id} />
+      ) : (
+        <AuthGate what="this agent and start a Proof-of-Life heartbeat">
+          <AgentDetailInner agentId={id} />
+        </AuthGate>
+      )}
+    </>
   );
 };
 

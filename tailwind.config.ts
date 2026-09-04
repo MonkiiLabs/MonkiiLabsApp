@@ -19,7 +19,45 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Nunito", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Archivo", "Inter", "system-ui", "sans-serif"],
+        mono: ["IBM Plex Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
+      // Type ladder on phi (1.618). 10 / 16 / 26 / 42 / 69 / 111 are exact
+      // phi steps; 13 / 21 / 33 / 54 / 87 fill between them at sqrt(phi).
+      // Running text is set at golden leading (1.618); display is set tight.
+      fontSize: {
+        micro: ["0.625rem", { lineHeight: "1.4", letterSpacing: "0.28em" }],
+        label: ["0.8125rem", { lineHeight: "1.45", letterSpacing: "0.06em" }],
+        body: ["1rem", { lineHeight: "1.618" }],
+        lead: ["1.3125rem", { lineHeight: "1.5" }],
+        d1: ["1.625rem", { lineHeight: "1.15", letterSpacing: "-0.02em" }],
+        d2: ["2.0625rem", { lineHeight: "1.05", letterSpacing: "-0.024em" }],
+        d3: ["2.625rem", { lineHeight: "1", letterSpacing: "-0.028em" }],
+        d4: ["3.375rem", { lineHeight: "0.98", letterSpacing: "-0.03em" }],
+        d5: ["4.3125rem", { lineHeight: "0.96", letterSpacing: "-0.032em" }],
+        d6: ["5.4375rem", { lineHeight: "0.94", letterSpacing: "-0.034em" }],
+        d7: ["6.9375rem", { lineHeight: "0.92", letterSpacing: "-0.036em" }],
+      },
+      // Fibonacci rhythm — it converges on phi, so the vertical spacing
+      // and the type scale share one ratio.
+      spacing: {
+        fib1: "0.5rem",    /*   8 */
+        fib2: "0.8125rem", /*  13 */
+        fib3: "1.3125rem", /*  21 */
+        fib4: "2.125rem",  /*  34 */
+        fib5: "3.4375rem", /*  55 */
+        fib6: "5.5625rem", /*  89 */
+        fib7: "9rem",      /* 144 */
+      },
+      // The golden section, for two-column splits that are never 50/50.
+      gridTemplateColumns: {
+        golden: "1.618fr 1fr",
+        "golden-flip": "1fr 1.618fr",
+      },
+      maxWidth: {
+        major: "61.8%",
+        minor: "38.2%",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -110,6 +148,29 @@ export default {
         },
         reward: "hsl(var(--reward-green))",
         "notification-red": "hsl(var(--notification-red))",
+        // Ink — the outline colour that defines every surface.
+        ink: "hsl(var(--claw-charcoal))",
+        // The Activation Chamber: the one dark world on the page.
+        chamber: {
+          DEFAULT: "hsl(var(--chamber))",
+          2: "hsl(var(--chamber-2))",
+          3: "hsl(var(--chamber-3))",
+        },
+        vital: {
+          DEFAULT: "hsl(var(--vital))",
+          deep: "hsl(var(--vital-deep))",
+          dim: "hsl(var(--vital-dim))",
+        },
+        bone: {
+          DEFAULT: "hsl(var(--bone))",
+          2: "hsl(var(--bone-2))",
+          3: "hsl(var(--bone-3))",
+        },
+        state: {
+          thriving: "hsl(var(--state-thriving))",
+          idle: "hsl(var(--state-idle))",
+          fading: "hsl(var(--state-fading))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -119,10 +180,15 @@ export default {
         "2xl": "calc(var(--radius) + 8px)",
         "3xl": "calc(var(--radius) + 16px)",
       },
+      // No blur anywhere. The art casts hard shadows; so does the UI.
       boxShadow: {
-        'playful': '0 4px 20px -4px hsl(var(--sky-blue) / 0.25)',
-        'playful-lg': '0 12px 40px -8px hsl(var(--sky-blue) / 0.3)',
-        'coral': '0 4px 20px -4px hsl(var(--coral) / 0.3)',
+        ink: "0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)",
+        "ink-sm": "0 2px 8px -1px rgba(0, 0, 0, 0.06)",
+        "ink-lg": "0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.06)",
+        playful: "0 4px 20px -2px rgba(0, 0, 0, 0.08)",
+        "playful-lg": "0 12px 32px -4px rgba(0, 0, 0, 0.12)",
+        coral: "0 4px 16px -2px rgba(231, 68, 53, 0.35)",
+        vital: "0 0 24px -2px rgba(0, 200, 5, 0.45)",
       },
       keyframes: {
         "accordion-down": {
