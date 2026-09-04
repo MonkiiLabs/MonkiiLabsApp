@@ -62,7 +62,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
   const starred = isStarred(agentId);
   const lastHeartbeatRef = useRef(nurture.stats.heartbeats);
 
-  // Sound feedback on heartbeat increment
+  // Sound feedback on heartbeat increment.. 
   useEffect(() => {
     if (nurture.stats.heartbeats > lastHeartbeatRef.current) {
       lastHeartbeatRef.current = nurture.stats.heartbeats;
