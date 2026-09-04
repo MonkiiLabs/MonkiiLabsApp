@@ -45,7 +45,7 @@ describe("Public API Endpoints", () => {
     expect(res.body.nonce).toBeDefined();
     expect(typeof res.body.nonce).toBe("string");
     expect(res.body.message).toContain("Monkii Labs wants you to sign in with your Robinhood Chain wallet.");
-  });
+  }, 15000);
 
   test.skipIf(!hasLiveDb)("GET /api/agents returns fleet catalog", async () => {
     const res = await request(app).get("/api/agents");

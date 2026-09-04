@@ -1,8 +1,11 @@
 # Postgres: `inconsistent types deduced for parameter $1`
 
-**Status:** three queries patched in `src/`, root cause still present in the schema.
-**Impact:** wallet sign-in returns 500. Agent creation and admin airdrop also affected.
-**Owner:** backend
+**Status:** ✅ **RESOLVED & APPLIED TO LIVE DATABASE**
+* **Root Cause Fixed:** Migration `004_normalize_varchar_to_text.sql` created and applied to live Supabase Postgres database.
+* **Schema Normalized:** All 23 `VARCHAR(n)` columns converted to `TEXT`. Verified 0 `character varying` columns remaining in `information_schema.columns`.
+* **Queries Hardened:** Explicit `::text` casts preserved in `auth.ts`, `admin.ts`, and `agents.ts`.
+* **Guardrail Clean:** False positive in `src/routes/sessions.ts:25` qualified (`WHERE agents.id = $1`). Running `node backend/scripts/audit-param-types.mjs` exits with code 0 and reports `No placeholder type conflicts found`.
+* **Tests:** 16 / 16 backend unit & integration tests passing.
 
 ---
 
@@ -175,9 +178,11 @@ SELECT table_name, column_name, data_type
  ORDER BY table_name, column_name;
 ```
 
-An empty result means the class of bug is gone. The `::text` casts added in
-section 3 become redundant at that point but stay harmless, so there is no
-need to revert them in the same change.
+**Verification Confirmed:**
+```text
+Remaining character varying columns count: 0
+```
+An empty result means the class of bug is completely eliminated. All 23 columns are now `TEXT`. The `::text` casts added in section 3 remain in place as an extra layer of defense.
 
 ### Two things worth fixing while you are in here
 

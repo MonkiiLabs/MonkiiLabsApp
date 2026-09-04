@@ -24,7 +24,7 @@ async function recountNurturers(agentId: string): Promise<void> {
   await pool.query(
     `UPDATE agents SET nurturer_count =
        (SELECT COUNT(DISTINCT user_address) FROM sessions WHERE agent_id = $1 AND status = 'active')
-     WHERE id = $1`,
+     WHERE agents.id = $1`,
     [agentId],
   );
 }
