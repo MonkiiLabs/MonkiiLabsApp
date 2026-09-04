@@ -8,11 +8,11 @@ import { multiplierFor, premiumUnlocked, stakingPolicy } from "../lib/staking";
 import { accrueStakingRewards } from "../db/rewards";
 import { env } from "../lib/env";
 import { epochIndexAt, firstEligibleEpochIndex, nextEpochStartAfter } from "../lib/pons-epoch";
+import { verifyActionAuthorization } from "../lib/claim-auth";
 
 export const stakingRouter = Router();
 
 async function applyStakeDelta(userAddress: string, deltaMonki: number) {
-  // Settle any completed epochs against old stake amount first
   await accrueStakingRewards(userAddress);
 
   const { rows } = await pool.query<{ staked_monki: string }>(
@@ -34,58 +34,114 @@ async function applyStakeDelta(userAddress: string, deltaMonki: number) {
   return { staked, multiplier };
 }
 
-const amountSchema = z.object({ amount: z.number().positive() });
+const signedStakeSchema = z.object({
+  amount: z.number().positive(),
+  signature: z.string(),
+  nonce: z.string(),
+  timestamp: z.number(),
+  token: z.enum(["MONKI", "PONS", "META"]).default("MONKI"),
+});
 
-// POST /api/staking/stake — lock $MONKI to increase heartbeat multiplier
+// POST /api/staking/stake — lock tokens with cryptographic wallet authorization
 stakingRouter.post(
   "/staking/stake",
   requireAuth,
   handler(async (req, res) => {
-    const body = parseBody(amountSchema, req, res);
+    const body = parseBody(signedStakeSchema, req, res);
     if (!body) return;
 
     const userAddress = req.user!.walletAddress;
+    const action =
+      body.token === "PONS"
+        ? "stake_pons"
+        : body.token === "META"
+          ? "stake_meta"
+          : "stake_monki";
+
+    const authVerdict = await verifyActionAuthorization(userAddress, {
+      signature: body.signature,
+      nonce: body.nonce,
+      timestamp: body.timestamp,
+      action,
+      amount: body.amount,
+    });
+    if (!authVerdict.ok) {
+      res.status(401).json({ error: "unauthorized_action", reason: authVerdict.reason });
+      return;
+    }
+
+    if (body.token === "META") {
+      res.status(501).json({ error: "feature_pending_phase_2", message: "$META staking activates in Phase 2." });
+      return;
+    }
+
     const { rows: checkRows } = await pool.query<{ claimable_monki: string }>(
       `SELECT claimable_monki FROM rewards WHERE user_address = $1`,
       [userAddress],
     );
     const claimable = Number(checkRows[0]?.claimable_monki ?? 0);
     if (claimable < body.amount) {
-      res.status(400).json({ error: "insufficient_claimable", message: "Insufficient claimable $MONKI to stake" });
+      res.status(400).json({ error: "insufficient_claimable", message: `Insufficient balance to stake ${body.token}` });
       return;
     }
 
     const result = await applyStakeDelta(userAddress, body.amount);
     res.json({
-      stakedMonki: result.staked,
+      token: body.token,
+      stakedAmount: result.staked,
       rewardMultiplier: result.multiplier,
       premiumAccess: premiumUnlocked(result.staked),
     });
   }),
 );
 
-// POST /api/staking/unstake — release staked $MONKI
+// POST /api/staking/unstake — release staked tokens with cryptographic wallet authorization
 stakingRouter.post(
   "/staking/unstake",
   requireAuth,
   handler(async (req, res) => {
-    const body = parseBody(amountSchema, req, res);
+    const body = parseBody(signedStakeSchema, req, res);
     if (!body) return;
 
     const userAddress = req.user!.walletAddress;
+    const action =
+      body.token === "PONS"
+        ? "unstake_pons"
+        : body.token === "META"
+          ? "unstake_meta"
+          : "unstake_monki";
+
+    const authVerdict = await verifyActionAuthorization(userAddress, {
+      signature: body.signature,
+      nonce: body.nonce,
+      timestamp: body.timestamp,
+      action,
+      amount: body.amount,
+    });
+    if (!authVerdict.ok) {
+      res.status(401).json({ error: "unauthorized_action", reason: authVerdict.reason });
+      return;
+    }
+
+    if (body.token === "META") {
+      res.status(501).json({ error: "feature_pending_phase_2", message: "$META unstaking activates in Phase 2." });
+      return;
+    }
+
     const { rows: checkRows } = await pool.query<{ staked_monki: string }>(
       `SELECT staked_monki FROM rewards WHERE user_address = $1`,
       [userAddress],
     );
     const staked = Number(checkRows[0]?.staked_monki ?? 0);
     if (staked < body.amount) {
-      res.status(400).json({ error: "insufficient_staked", message: "Insufficient staked $MONKI to unstake" });
+      res.status(400).json({ error: "insufficient_staked", message: `Insufficient staked ${body.token} to unstake` });
       return;
     }
 
     const result = await applyStakeDelta(userAddress, -body.amount);
     res.json({
-      stakedMonki: result.staked,
+      token: body.token,
+      stakedAmount: result.staked,
       rewardMultiplier: result.multiplier,
       premiumAccess: premiumUnlocked(result.staked),
     });
