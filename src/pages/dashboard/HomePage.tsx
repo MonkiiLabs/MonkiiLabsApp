@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Coins, Heart, Sparkles, Zap } from "lucide-react";
+import { ArrowUpRight, Coins, Heart, Lock, Sparkles, Zap } from "lucide-react";
 
-import { useClaim, useClaimable, useDashboardSummary, useStakingStatus } from "@/features/api/hooks";
+import { useClaim, useClaimable, useDashboardSummary, useNetwork, useStakingStatus } from "@/features/api/hooks";
 import AgentCard from "@/components/dashboard/AgentCard";
 import {
   AuthGate,
@@ -21,7 +21,9 @@ const HomeInner = () => {
   const summary = useDashboardSummary();
   const { data: balances } = useClaimable();
   const { data: staking } = useStakingStatus();
+  const { data: networkConfig } = useNetwork();
   const claim = useClaim();
+  const protocolSettings = networkConfig?.protocolSettings;
 
   if (summary.isLoading) return <LoadingPanel label="Loading laboratory telemetry" />;
   if (summary.isError) return <ErrorPanel error={summary.error} onRetry={summary.refetch} />;
@@ -63,15 +65,31 @@ const HomeInner = () => {
               value={fmt(balances?.claimableMonki, 1)}
               label={`${BRAND.rewardToken} Compute Accrual`}
             />
-            <button
-              type="button"
-              disabled={claim.isPending || !balances?.claimableMonki}
-              onClick={() => claim.mutate("monki")}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-hair/10 bg-hair/10 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-all hover:bg-hair/20 active:scale-[0.98] disabled:opacity-40"
-            >
-              <Zap className="h-3.5 w-3.5 text-alive-lit" />
-              Settle {BRAND.rewardToken}
-            </button>
+            {protocolSettings?.enableMonkiClaiming ? (
+              <button
+                type="button"
+                disabled={claim.isPending || !balances?.claimableMonki}
+                onClick={() => claim.mutate("monki")}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-hair/10 bg-hair/10 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-all hover:bg-hair/20 active:scale-[0.98] disabled:opacity-40"
+              >
+                <Zap className="h-3.5 w-3.5 text-alive-lit" />
+                Settle {BRAND.rewardToken}
+              </button>
+            ) : (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-hair/10 bg-hair/5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper-3 cursor-not-allowed opacity-75"
+                >
+                  <Lock className="h-3.5 w-3.5 text-paper-3" />
+                  Pre-TGE Accrual (Locked)
+                </button>
+                <p className="mt-1.5 text-center font-mono text-[10px] text-paper-3">
+                  Telemetry points accrue continuously · On-chain claims unlock at TGE
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="rounded-xl border border-hair/10 bg-hair/[0.05] p-4">
@@ -82,12 +100,18 @@ const HomeInner = () => {
             />
             <button
               type="button"
-              disabled={claim.isPending || !balances?.claimablePons}
+              disabled={
+                claim.isPending ||
+                !balances?.claimablePons ||
+                protocolSettings?.enablePonsClaiming === false
+              }
               onClick={() => claim.mutate("pons")}
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-act py-2.5 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-40"
             >
               <Coins className="h-3.5 w-3.5" />
-              Claim {BRAND.valueToken} on L2
+              {protocolSettings?.enablePonsClaiming === false
+                ? "Payouts Paused"
+                : `Claim ${BRAND.valueToken} on L2`}
             </button>
           </div>
         </div>

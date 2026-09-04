@@ -12,7 +12,10 @@ healthRouter.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-healthRouter.get(["/network", "/api/network"], (_req: Request, res: Response) => {
+healthRouter.get(["/network", "/api/network"], async (_req: Request, res: Response) => {
+  const { getAllProtocolSettings } = await import("../lib/settings");
+  const protocolSettings = await getAllProtocolSettings();
+
   res.json({
     chain: "Robinhood Chain",
     chainId: 4663,
@@ -24,5 +27,6 @@ healthRouter.get(["/network", "/api/network"], (_req: Request, res: Response) =>
       ponsTokenAddress: "0x39dbed3a2bd333467115de45665cc57f813c4571",
       metaStockToken: "Phase 2 (50:50 Staking Split)",
     },
+    protocolSettings,
   });
 });

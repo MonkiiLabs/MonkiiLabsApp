@@ -18,6 +18,7 @@ import AccessibilityPage from "@/pages/static/AccessibilityPage";
 import ContactPage from "@/pages/static/ContactPage";
 import PrivacyPage from "@/pages/static/PrivacyPage";
 import TermsPage from "@/pages/static/TermsPage";
+import AdminPage from "@/pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/admin" element={<AdminPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

@@ -162,6 +162,15 @@ rewardsRouter.post(
       return;
     }
 
+    const { isMonkiClaimingEnabled } = await import("../lib/settings");
+    if (!(await isMonkiClaimingEnabled())) {
+      res.status(403).json({
+        error: "claiming_disabled_pre_launch",
+        message: "$MONKI claiming is disabled during Pre-Launch. Continue Proof-of-Life heartbeats to accrue telemetry points until TGE.",
+      });
+      return;
+    }
+
     const { rows } = await pool.query<{ claimable_monki: string }>(
       `SELECT claimable_monki FROM rewards WHERE user_address = $1`,
       [userAddress],

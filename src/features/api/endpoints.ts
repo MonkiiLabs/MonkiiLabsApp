@@ -159,6 +159,11 @@ export const companions = {
     api.post<{ ok: boolean; companion?: unknown }>("/companions/claim-milestone", {
       milestoneKey,
     }),
+
+  milestones: () =>
+    api
+      .get<{ milestones: import("./types").UserMilestones }>("/companions/milestones")
+      .then((r) => r.milestones),
 };
 
 /* ---- 8. Dashboard & leaderboards ------------------------------------------ */
@@ -181,4 +186,53 @@ export const leaderboard = {
 
 export const telegram = {
   linkCode: () => api.post<TelegramLinkCode>("/telegram/link-code"),
+};
+
+/* ---- 10. Network & Protocol ------------------------------------------------- */
+
+export const network = {
+  config: () => api.get<import("./types").NetworkConfig>("/network", { anonymous: true }),
+};
+
+/* ---- 11. Admin Dashboard ---------------------------------------------------- */
+
+export const admin = {
+  stats: (adminKey: string) =>
+    api.get<import("./types").AdminStats>("/admin/stats", {
+      headers: { "x-admin-key": adminKey },
+    }),
+
+  protocolSettings: (adminKey: string) =>
+    api.get<import("./types").ProtocolSettings>("/admin/protocol-settings", {
+      headers: { "x-admin-key": adminKey },
+    }),
+
+  toggleMonki: (adminKey: string) =>
+    api.post<{ ok: boolean; enableMonkiClaiming: boolean; message: string }>(
+      "/admin/protocol-settings/toggle-monki-claiming",
+      {},
+      { headers: { "x-admin-key": adminKey } },
+    ),
+
+  togglePons: (adminKey: string) =>
+    api.post<{ ok: boolean; enablePonsClaiming: boolean; message: string }>(
+      "/admin/protocol-settings/toggle-pons-claiming",
+      {},
+      { headers: { "x-admin-key": adminKey } },
+    ),
+
+  toggleCompanions: (adminKey: string) =>
+    api.post<{ ok: boolean; enableCompanionMinting: boolean; message: string }>(
+      "/admin/protocol-settings/toggle-companion-minting",
+      {},
+      { headers: { "x-admin-key": adminKey } },
+    ),
+
+  airdrop: (
+    adminKey: string,
+    payload: { recipientAddress: string; amountMonki?: number; amountPons?: number },
+  ) =>
+    api.post<{ ok: boolean }>("/admin/airdrop", payload, {
+      headers: { "x-admin-key": adminKey },
+    }),
 };

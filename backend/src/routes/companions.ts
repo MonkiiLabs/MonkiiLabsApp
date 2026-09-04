@@ -82,6 +82,17 @@ companionsRouter.post(
   }),
 );
 
+// GET /api/companions/milestones — user milestone progress and eligibility
+companionsRouter.get(
+  "/companions/milestones",
+  requireAuth,
+  handler(async (req, res) => {
+    const { getUserMilestones } = await import("../lib/companions");
+    const milestones = await getUserMilestones(req.user!.walletAddress);
+    res.json({ milestones });
+  }),
+);
+
 const milestoneSchema = z.object({
   milestoneKey: z.enum(["first_heartbeat", "thriving_streak_7d", "top_nurturer_10k"]),
 });
@@ -91,6 +102,12 @@ companionsRouter.post(
   "/companions/claim-milestone",
   requireAuth,
   handler(async (req, res) => {
+    const { isCompanionMintingEnabled } = await import("../lib/settings");
+    if (!(await isCompanionMintingEnabled())) {
+      res.status(403).json({ error: "companion_minting_disabled", message: "Companion minting is currently paused by admin." });
+      return;
+    }
+
     const body = parseBody(milestoneSchema, req, res);
     if (!body) return;
 
@@ -134,6 +151,12 @@ companionsRouter.post(
   "/companions/build-mint-tx",
   requireAuth,
   handler(async (req, res) => {
+    const { isCompanionMintingEnabled } = await import("../lib/settings");
+    if (!(await isCompanionMintingEnabled())) {
+      res.status(403).json({ error: "companion_minting_disabled", message: "Companion minting is currently paused by admin." });
+      return;
+    }
+
     const body = parseBody(buildMintTxSchema, req, res);
     if (!body) return;
 

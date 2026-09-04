@@ -83,3 +83,91 @@ adminRouter.post(
     res.json({ ok: true, key: body.key, value: body.value });
   }),
 );
+
+// GET /api/admin/protocol-settings — live protocol claim flags
+adminRouter.get(
+  "/admin/protocol-settings",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const { getAllProtocolSettings } = await import("../lib/settings");
+    const settings = await getAllProtocolSettings();
+    res.json(settings);
+  }),
+);
+
+// POST /api/admin/protocol-settings/toggle-monki-claiming
+adminRouter.post(
+  "/admin/protocol-settings/toggle-monki-claiming",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const { isMonkiClaimingEnabled, setProtocolSetting } = await import("../lib/settings");
+    const current = await isMonkiClaimingEnabled();
+    const next = !current;
+    await setProtocolSetting("enable_monki_claiming", next ? "true" : "false");
+    res.json({
+      ok: true,
+      enableMonkiClaiming: next,
+      message: next ? "$MONKI claiming has been unlocked." : "$MONKI claiming is gated (Pre-Launch).",
+    });
+  }),
+);
+
+// POST /api/admin/protocol-settings/toggle-pons-claiming
+adminRouter.post(
+  "/admin/protocol-settings/toggle-pons-claiming",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const { isPonsClaimingEnabled, setProtocolSetting } = await import("../lib/settings");
+    const current = await isPonsClaimingEnabled();
+    const next = !current;
+    await setProtocolSetting("enable_pons_claiming", next ? "true" : "false");
+    res.json({
+      ok: true,
+      enablePonsClaiming: next,
+      message: next ? "$PONS epoch claiming is active." : "$PONS claiming is paused.",
+    });
+  }),
+);
+
+// POST /api/admin/protocol-settings/toggle-companion-minting
+adminRouter.post(
+  "/admin/protocol-settings/toggle-companion-minting",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const { isCompanionMintingEnabled, setProtocolSetting } = await import("../lib/settings");
+    const current = await isCompanionMintingEnabled();
+    const next = !current;
+    await setProtocolSetting("enable_companion_minting", next ? "true" : "false");
+    res.json({
+      ok: true,
+      enableCompanionMinting: next,
+      message: next ? "Companion minting is active." : "Companion minting is paused.",
+    });
+  }),
+);
+
+// GET /api/admin/stats — aggregate system telemetry
+adminRouter.get(
+  "/admin/stats",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const [usersCount, agentsCount, activeSessions, rewardsAgg, companionsMinted] = await Promise.all([
+      pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM users`),
+      pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM agents`),
+      pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM sessions WHERE status = 'active'`),
+      pool.query<{ total_monki: string; total_pons: string }>(
+        `SELECT COALESCE(SUM(claimable_monki), 0) AS total_monki, COALESCE(SUM(claimable_pons), 0) AS total_pons FROM rewards`,
+      ),
+      pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM user_companions`),
+    ]);
+
+    res.json({
+      totalUsers: Number(usersCount.rows[0]?.count ?? 0),
+      totalAgents: Number(agentsCount.rows[0]?.count ?? 0),
+      activeSessions: Number(activeSessions.rows[0]?.count ?? 0),
+      totalClaimableMonki: Number(rewardsAgg.rows[0]?.total_monki ?? 0),
+      totalClaimablePons: Number(rewardsAgg.rows[0]?.total_pons ?? 0),
+      totalCompanionsMinted: Number(companionsMinted.rows[0]?.count ?? 0),
+    });
+  }),
+);

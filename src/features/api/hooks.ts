@@ -5,11 +5,13 @@ import { ApiError } from "@/lib/api";
 import { explorerTxUrl } from "@/lib/config";
 import { useWallet } from "@/hooks/useWallet";
 import {
+  admin,
   agents,
   auth,
   companions,
   dashboard,
   leaderboard,
+  network,
   rewards,
   staking,
   telegram,
@@ -31,9 +33,13 @@ export const qk = {
   claimable: ["rewards", "claimable"] as const,
   inventory: ["companions", "inventory"] as const,
   roster: ["companions", "roster"] as const,
+  milestones: ["companions", "milestones"] as const,
   summary: ["dashboard", "summary"] as const,
   topNurturers: ["leaderboard", "nurturers"] as const,
   topAgents: ["leaderboard", "agents"] as const,
+  network: ["network", "config"] as const,
+  adminStats: ["admin", "stats"] as const,
+  adminSettings: ["admin", "settings"] as const,
 };
 
 const BALANCE_KEYS = [qk.staking, qk.claimable, qk.summary, qk.me];
@@ -311,3 +317,75 @@ export function useTelegramLinkCode() {
     onError: (err) => toast.error("Could not get a code", { description: describeError(err) }),
   });
 }
+
+/* ---- Network & Milestones ------------------------------------------------------ */
+
+export function useNetwork() {
+  return useQuery({
+    queryKey: qk.network,
+    queryFn: network.config,
+    staleTime: 30_000,
+  });
+}
+
+export function useMilestones() {
+  const { isAuthenticated } = useWallet();
+  return useQuery({
+    queryKey: qk.milestones,
+    queryFn: companions.milestones,
+    enabled: isAuthenticated,
+    staleTime: 15_000,
+  });
+}
+
+/* ---- Admin Dashboard ----------------------------------------------------------- */
+
+export function useAdminStats(adminKey: string) {
+  return useQuery({
+    queryKey: [...qk.adminStats, adminKey],
+    queryFn: () => admin.stats(adminKey),
+    enabled: Boolean(adminKey),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useAdminProtocolSettings(adminKey: string) {
+  return useQuery({
+    queryKey: [...qk.adminSettings, adminKey],
+    queryFn: () => admin.protocolSettings(adminKey),
+    enabled: Boolean(adminKey),
+  });
+}
+
+export function useToggleProtocolSetting(adminKey: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (setting: "monki" | "pons" | "companion") => {
+      if (setting === "monki") return admin.toggleMonki(adminKey);
+      if (setting === "pons") return admin.togglePons(adminKey);
+      return admin.toggleCompanions(adminKey);
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: qk.adminSettings });
+      qc.invalidateQueries({ queryKey: qk.network });
+      toast.success(data.message);
+    },
+    onError: (err) => toast.error("Failed to toggle setting", { description: describeError(err) }),
+  });
+}
+
+export function useAdminAirdrop(adminKey: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: { recipientAddress: string; amountMonki?: number; amountPons?: number }) =>
+      admin.airdrop(adminKey, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.adminStats });
+      toast.success("Airdrop credited successfully");
+    },
+    onError: (err) => toast.error("Airdrop failed", { description: describeError(err) }),
+  });
+}
+

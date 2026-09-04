@@ -238,3 +238,47 @@ export interface TelegramLinkCode {
   botUsername?: string;
   expiresAt?: string;
 }
+
+/* ---- Protocol Settings & Network ------------------------------------------- */
+
+export interface ProtocolSettings {
+  enableMonkiClaiming: boolean;
+  enablePonsClaiming: boolean;
+  enableCompanionMinting: boolean;
+}
+
+export interface NetworkConfig {
+  chain: string;
+  chainId: number;
+  type: string;
+  gasToken: string;
+  tokens: {
+    earning: string;
+    stakingReward: string;
+    ponsTokenAddress: string;
+    metaStockToken: string;
+  };
+  protocolSettings: ProtocolSettings;
+}
+
+export interface MilestoneProgressItem {
+  claimed: boolean;
+  eligible: boolean;
+  current: number;
+  target: number;
+}
+
+export interface UserMilestones {
+  first_heartbeat: MilestoneProgressItem;
+  thriving_streak_7d: MilestoneProgressItem;
+  top_nurturer_10k: MilestoneProgressItem;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalAgents: number;
+  activeSessions: number;
+  totalClaimableMonki: number;
+  totalClaimablePons: number;
+  totalCompanionsMinted: number;
+}

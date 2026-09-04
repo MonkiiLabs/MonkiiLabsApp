@@ -247,7 +247,24 @@ export async function claimMilestoneReward(
       [userAddress],
     );
     if (Number(rows[0]?.count || 0) < 1) {
-      throw new Error("milestone_requirement_not_met: Requires 1 completed heartbeat");
+      throw new Error("milestone_requirement_not_met: Requires at least 1 completed Proof-of-Life heartbeat");
+    }
+  } else if (milestoneKey === "thriving_streak_7d") {
+    const { rows } = await pool.query<{ days: string }>(
+      `SELECT COUNT(DISTINCT DATE(created_at)) AS days FROM sessions WHERE user_address = $1`,
+      [userAddress],
+    );
+    if (Number(rows[0]?.days || 0) < 7) {
+      throw new Error("milestone_requirement_not_met: Requires active heartbeats across at least 7 days");
+    }
+  } else if (milestoneKey === "top_nurturer_10k") {
+    const { rows } = await pool.query<{ total: string }>(
+      `SELECT (COALESCE(claimable_monki, 0) + COALESCE(claimed_monki, 0)) AS total
+         FROM rewards WHERE user_address = $1`,
+      [userAddress],
+    );
+    if (Number(rows[0]?.total || 0) < 10000) {
+      throw new Error("milestone_requirement_not_met: Requires at least 10,000 $MONKI mined");
     }
   }
 
@@ -276,4 +293,43 @@ export async function claimMilestoneReward(
   } finally {
     client.release();
   }
+}
+
+export async function getUserMilestones(userAddress: string) {
+  const [sessionsRes, daysRes, rewardsRes, claimsRes] = await Promise.all([
+    pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM sessions WHERE user_address = $1`, [userAddress]),
+    pool.query<{ days: string }>(`SELECT COUNT(DISTINCT DATE(created_at)) AS days FROM sessions WHERE user_address = $1`, [userAddress]),
+    pool.query<{ total: string }>(
+      `SELECT (COALESCE(claimable_monki, 0) + COALESCE(claimed_monki, 0)) AS total
+         FROM rewards WHERE user_address = $1`,
+      [userAddress],
+    ),
+    pool.query<{ milestone_key: string }>(`SELECT milestone_key FROM user_milestone_claims WHERE user_address = $1`, [userAddress]),
+  ]);
+
+  const claimedSet = new Set(claimsRes.rows.map((r) => r.milestone_key));
+  const heartbeats = Number(sessionsRes.rows[0]?.count ?? 0);
+  const activeDays = Number(daysRes.rows[0]?.days ?? 0);
+  const monkiMined = Number(rewardsRes.rows[0]?.total ?? 0);
+
+  return {
+    first_heartbeat: {
+      claimed: claimedSet.has("first_heartbeat"),
+      eligible: heartbeats >= 1,
+      current: heartbeats,
+      target: 1,
+    },
+    thriving_streak_7d: {
+      claimed: claimedSet.has("thriving_streak_7d"),
+      eligible: activeDays >= 7,
+      current: activeDays,
+      target: 7,
+    },
+    top_nurturer_10k: {
+      claimed: claimedSet.has("top_nurturer_10k"),
+      eligible: monkiMined >= 10000,
+      current: Math.floor(monkiMined),
+      target: 10000,
+    },
+  };
 }
