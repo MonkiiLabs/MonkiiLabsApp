@@ -105,3 +105,78 @@ companionsRouter.post(
     }
   }),
 );
+
+const verifyMintSchema = z.object({
+  txHash: z.string(),
+  companionId: z.string(),
+});
+
+// POST /api/companions/verify-mint — verify on-chain Robinhood Chain ERC-721 mint and register companion in inventory
+companionsRouter.post(
+  "/companions/verify-mint",
+  requireAuth,
+  handler(async (req, res) => {
+    const body = parseBody(verifyMintSchema, req, res);
+    if (!body) return;
+
+    const userAddress = req.user!.walletAddress;
+    const { pool } = await import("../db/index");
+    const { getPublicClient } = await import("../lib/chain");
+
+    // 1. Check anti-replay in DB
+    const { rows: existing } = await pool.query(
+      `SELECT id FROM user_companions WHERE mint_tx_hash = $1`,
+      [body.txHash],
+    );
+    if (existing.length > 0) {
+      res.status(409).json({ error: "mint_already_registered" });
+      return;
+    }
+
+    // 2. Fetch receipt on Robinhood Chain
+    const publicClient = getPublicClient();
+    let receipt;
+    try {
+      receipt = await publicClient.getTransactionReceipt({ hash: body.txHash as `0x${string}` });
+    } catch {
+      res.status(404).json({ error: "transaction_not_found" });
+      return;
+    }
+
+    if (receipt.status !== "success") {
+      res.status(400).json({ error: "transaction_failed_on_chain" });
+      return;
+    }
+
+    if (receipt.from.toLowerCase() !== userAddress.toLowerCase()) {
+      res.status(403).json({ error: "minter_mismatch" });
+      return;
+    }
+
+    // Extract tokenId from Transfer event log
+    let tokenId = "1";
+    for (const log of receipt.logs) {
+      if (
+        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
+        log.topics[3]
+      ) {
+        tokenId = BigInt(log.topics[3]).toString();
+        break;
+      }
+    }
+
+    // Insert into user_companions
+    const { rows: inserted } = await pool.query(
+      `INSERT INTO user_companions (user_address, companion_id, on_chain_mint, mint_tx_hash, acquisition_type)
+       VALUES ($1, $2, $3, $4, 'paid_mint')
+       RETURNING *`,
+      [userAddress, body.companionId, tokenId, body.txHash],
+    );
+
+    res.json({
+      ok: true,
+      companion: inserted[0],
+    });
+  }),
+);
+

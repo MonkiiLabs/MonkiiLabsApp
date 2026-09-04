@@ -11,3 +11,5 @@ bun.lockb
 *.pem
 .vercel
 technical-docs/
+contracts/.env
+contracts/node_modules/
