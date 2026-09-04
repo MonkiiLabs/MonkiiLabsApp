@@ -45,8 +45,21 @@ async function main() {
   const balance = await publicClient.getBalance({ address: account.address });
   console.log(`Deployer Balance: ${formatEther(balance)} ETH`);
 
-  if (balance === 0n) {
-    console.error("Deployer balance is 0 ETH! Please fund this address on Robinhood Chain.");
+  const gasPrice = await publicClient.getGasPrice();
+  const estimatedGas = 1_250_000n;
+  const maxFeePerGas = (gasPrice * 120n) / 100n; // 20% buffer
+  const requiredBalance = estimatedGas * maxFeePerGas;
+
+  console.log(`Gas Price: ${gasPrice.toString()} wei (${(Number(gasPrice) / 1e9).toFixed(4)} gwei)`);
+  console.log(`Estimated Gas Required: ${estimatedGas.toString()}`);
+  console.log(`Required Balance: ~${formatEther(requiredBalance)} ETH`);
+
+  if (balance < requiredBalance) {
+    const diff = requiredBalance - balance;
+    console.error(
+      `\n❌ INSUFFICIENT FUNDS: Deployer has ${formatEther(balance)} ETH, needs at least ~${formatEther(requiredBalance)} ETH to deploy.` +
+      `\nPlease send at least ${formatEther(diff)} ETH (recommend 0.001 ETH) to: ${account.address} on Robinhood Chain.\n`
+    );
     process.exit(1);
   }
 
@@ -54,6 +67,9 @@ async function main() {
   const hash = await walletClient.deployContract({
     abi,
     bytecode,
+    gas: estimatedGas,
+    maxFeePerGas,
+    maxPriorityFeePerGas: 10_000_000n, // 0.01 gwei
     args: [],
   });
   console.log(`Tx Hash: ${hash}`);
@@ -85,6 +101,19 @@ async function main() {
       2,
     ),
   );
+
+  // Sync to backend/.env
+  const backendEnvPath = path.resolve(__dirname, "..", "backend", ".env");
+  if (fs.existsSync(backendEnvPath)) {
+    let backendEnv = fs.readFileSync(backendEnvPath, "utf8");
+    if (backendEnv.includes("COMPANIONS_NFT_ADDRESS=")) {
+      backendEnv = backendEnv.replace(/COMPANIONS_NFT_ADDRESS=.*/, `COMPANIONS_NFT_ADDRESS=${contractAddress}`);
+    } else {
+      backendEnv += `\nCOMPANIONS_NFT_ADDRESS=${contractAddress}\n`;
+    }
+    fs.writeFileSync(backendEnvPath, backendEnv);
+    console.log(`✅ Updated COMPANIONS_NFT_ADDRESS in ${backendEnvPath}`);
+  }
 }
 
 main().catch((err) => {

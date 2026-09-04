@@ -153,6 +153,15 @@ companionsRouter.post(
       return;
     }
 
+    const { env } = await import("../lib/env");
+    if (
+      env.companionsNftAddress &&
+      receipt.to?.toLowerCase() !== env.companionsNftAddress.toLowerCase()
+    ) {
+      res.status(400).json({ error: "invalid_contract_address" });
+      return;
+    }
+
     // Extract tokenId from Transfer event log
     let tokenId = "1";
     for (const log of receipt.logs) {

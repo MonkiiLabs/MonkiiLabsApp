@@ -1,0 +1,9 @@
+{
+  "network": "Robinhood Chain",
+  "chainId": 4663,
+  "contractAddress": "0xf478d04a5864d0d9bd9c942c41d6c900c11b43b4",
+  "deployerAddress": "0x0365CB10ca7191c6Feb9bb8dC1b8028FcAA63247",
+  "txHash": "0x53285a3886305ca1b3c9ca9f5ac59db7b31989482f811b086132152c5ae736ff",
+  "blockNumber": "53890397",
+  "deployedAt": "2026-09-04T01:56:21.677Z"
+}
