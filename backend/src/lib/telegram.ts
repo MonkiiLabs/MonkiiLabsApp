@@ -82,3 +82,25 @@ export function startTelegramPolling(): void {
   poll().catch(() => {});
   console.log("[telegram] Long-polling started");
 }
+
+export async function registerTelegramWebhook(webhookUrl: string): Promise<boolean> {
+  if (!env.telegramBotToken) return false;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${env.telegramBotToken}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: webhookUrl }),
+    });
+    const data: any = await res.json();
+    if (data.ok) {
+      console.log(`[telegram] Webhook successfully registered for ${webhookUrl}`);
+      return true;
+    } else {
+      console.error(`[telegram] Failed to register webhook:`, data);
+      return false;
+    }
+  } catch (err) {
+    console.error(`[telegram] Error registering webhook:`, err);
+    return false;
+  }
+}

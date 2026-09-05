@@ -3,7 +3,7 @@ import { app } from "./app";
 import { env } from "./lib/env";
 import { migrate } from "./db/migrate";
 import { startPowerEval } from "./services/power-eval";
-import { startTelegramPolling } from "./lib/telegram";
+import { registerTelegramWebhook, startTelegramPolling } from "./lib/telegram";
 
 async function main() {
   if (env.databaseUrl) {
@@ -25,9 +25,10 @@ async function main() {
     // Start periodic power decay & vitality evaluator
     startPowerEval();
 
-    // Start Telegram polling if not configured in webhook mode
-    if (env.telegramWebhookUrl) {
-      console.log(`[telegram] Webhook mode configured for ${env.telegramWebhookUrl}`);
+    // Start Telegram webhook or polling
+    if (env.telegramWebhookUrl && env.telegramBotToken) {
+      console.log(`[telegram] Registering webhook for ${env.telegramWebhookUrl}...`);
+      await registerTelegramWebhook(env.telegramWebhookUrl);
     } else if (env.telegramBotToken) {
       startTelegramPolling();
     }
