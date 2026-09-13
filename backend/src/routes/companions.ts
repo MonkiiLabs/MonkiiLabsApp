@@ -219,11 +219,19 @@ companionsRouter.post(
       return;
     }
 
-    // 2. Fetch receipt on Robinhood Chain
+    // 2. Fetch receipt on Robinhood Chain.
+    //    The client calls this the moment sendTransaction resolves, which is
+    //    when the tx has been broadcast, not when it has been mined. A bare
+    //    getTransactionReceipt therefore races the block and 404s on a mint
+    //    that is perfectly valid, so wait for the receipt instead.
     const publicClient = getPublicClient();
     let receipt;
     try {
-      receipt = await publicClient.getTransactionReceipt({ hash: body.txHash as `0x${string}` });
+      receipt = await publicClient.waitForTransactionReceipt({
+        hash: body.txHash as `0x${string}`,
+        timeout: 60_000,
+        confirmations: 1,
+      });
     } catch {
       res.status(404).json({ error: "transaction_not_found" });
       return;

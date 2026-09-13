@@ -26,10 +26,14 @@ export const API_FALLBACK_URL = (
 export const CHAIN_ID = 4663;
 export const CHAIN_ID_HEX = `0x${CHAIN_ID.toString(16)}`; // 0x1237
 export const CHAIN_NAME = "Robinhood Chain";
+/* rpc.robinhood.com and explorer.robinhood.com do not serve this chain: they
+   fail TLS negotiation outright (ERR_SSL_VERSION_OR_CIPHER_MISMATCH), so every
+   read through wagmi died before it reached the network. These are the hosts
+   the backend already talks to (backend/src/lib/env.ts). */
 export const CHAIN_RPC_URL =
-  import.meta.env.VITE_CHAIN_RPC_URL?.toString() || "https://rpc.robinhood.com";
+  import.meta.env.VITE_CHAIN_RPC_URL?.toString() || "https://rpc.mainnet.chain.robinhood.com";
 export const CHAIN_EXPLORER_URL =
-  import.meta.env.VITE_CHAIN_EXPLORER_URL?.toString() || "https://explorer.robinhood.com";
+  import.meta.env.VITE_CHAIN_EXPLORER_URL?.toString() || "https://robinhoodchain.blockscout.com";
 
 /** Gas is paid in native ETH on this L2. */
 export const NATIVE_CURRENCY = { name: "Ether", symbol: "ETH", decimals: 18 } as const;

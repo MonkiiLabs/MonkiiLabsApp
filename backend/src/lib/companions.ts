@@ -251,7 +251,7 @@ export async function claimMilestoneReward(
     }
   } else if (milestoneKey === "thriving_streak_7d") {
     const { rows } = await pool.query<{ days: string }>(
-      `SELECT COUNT(DISTINCT DATE(created_at)) AS days FROM sessions WHERE user_address = $1`,
+      `SELECT COUNT(DISTINCT DATE(started_at)) AS days FROM sessions WHERE user_address = $1`,
       [userAddress],
     );
     if (Number(rows[0]?.days || 0) < 7) {
@@ -298,7 +298,7 @@ export async function claimMilestoneReward(
 export async function getUserMilestones(userAddress: string) {
   const [sessionsRes, daysRes, rewardsRes, claimsRes] = await Promise.all([
     pool.query<{ count: string }>(`SELECT COUNT(*) AS count FROM sessions WHERE user_address = $1`, [userAddress]),
-    pool.query<{ days: string }>(`SELECT COUNT(DISTINCT DATE(created_at)) AS days FROM sessions WHERE user_address = $1`, [userAddress]),
+    pool.query<{ days: string }>(`SELECT COUNT(DISTINCT DATE(started_at)) AS days FROM sessions WHERE user_address = $1`, [userAddress]),
     pool.query<{ total: string }>(
       `SELECT (COALESCE(claimable_monki, 0) + COALESCE(claimed_monki, 0)) AS total
          FROM rewards WHERE user_address = $1`,
