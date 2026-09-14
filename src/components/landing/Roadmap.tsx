@@ -1,40 +1,24 @@
+import { useTranslation } from "react-i18next";
+
 import { Section, Reveal } from "./Section";
-import { BRAND } from "@/lib/brand";
 
 const QUARTERS = [
-  {
-    q: "Q1",
-    theme: "Foundation & MVP",
-    items: "Product spec, Liquid Glass web shell, Robinhood wallet auth, Agent Registry on devnet, pilot agents.",
-  },
-  {
-    q: "Q2",
-    theme: "Proof-of-Life live",
-    items: `Heartbeat sessions, ${BRAND.rewardToken} minting, expressive agent avatars, marketplace, personal dashboard.`,
-  },
-  {
-    q: "Q3",
-    theme: "Staking bridge",
-    items: `${BRAND.rewardToken} → ${BRAND.valueToken} staking, revenue-funded buybacks, leaderboard, X activity feed per agent.`,
-  },
-  {
-    q: "Q4",
-    theme: "Scale & ecosystem",
-    items: "Mainnet launch, agent-launch partner integrations, notifications, mobile companion.",
-  },
-];
+  { q: "Q1", key: "q1" },
+  { q: "Q2", key: "q2" },
+  { q: "Q3", key: "q3" },
+  { q: "Q4", key: "q4" },
+] as const;
 
-const PHASES = [
-  { name: "Phase 1 — MVP", items: "5–8 Companion designs (Common → Rare), basic equip/unequip, passive earn-rate bonuses, milestone rewards plus a limited paid mint, avatar integration, inventory views." },
-  { name: "Phase 2", items: "Epic & Legendary tiers with unique abilities, stronger visual effects and state reactions, expanded acquisition, improved showcase UI." },
-  { name: "Phase 3", items: "Companion leveling and light fusion, dynamic metadata, deeper leaderboard and social integration." },
-];
+const PHASES = ["p1", "p2", "p3"] as const;
 
-const Roadmap = () => (
+const Roadmap = () => {
+  const { t } = useTranslation();
+
+  return (
   <Section
     id="roadmap"
-    eyebrow="Roadmap"
-    title={<>Ship the nurturing loop first, then layer Companions.</>}
+    eyebrow={t("roadmap.eyebrow")}
+    title={t("roadmap.title")}
   >
     <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
       {QUARTERS.map((q, i) => (
@@ -43,24 +27,33 @@ const Roadmap = () => (
             <span className="inline-block px-3 py-1 rounded-full bg-coral text-white text-xs font-extrabold mb-3">
               {q.q}
             </span>
-            <h3 className="text-base font-extrabold text-claw-charcoal mb-2">{q.theme}</h3>
-            <p className="text-sm text-claw-gray-600 leading-relaxed">{q.items}</p>
+            <h3 className="text-base font-extrabold text-claw-charcoal mb-2">
+              {t(`roadmap.quarters.${q.key}.theme`)}
+            </h3>
+            <p className="text-sm text-claw-gray-600 leading-relaxed">
+              {t(`roadmap.quarters.${q.key}.items`)}
+            </p>
           </article>
         </Reveal>
       ))}
     </div>
 
     <div className="grid gap-4 sm:gap-5 md:grid-cols-3 mt-6">
-      {PHASES.map((p, i) => (
-        <Reveal key={p.name} delay={i * 0.07}>
+      {PHASES.map((phase, i) => (
+        <Reveal key={phase} delay={i * 0.07}>
           <article className="h-full bg-cream rounded-3xl border-2 border-dashboard-border p-5">
-            <h3 className="text-sm font-extrabold text-sky-dark mb-2">{p.name}</h3>
-            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">{p.items}</p>
+            <h3 className="text-sm font-extrabold text-sky-dark mb-2">
+              {t(`roadmap.phases.${phase}.name`)}
+            </h3>
+            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">
+              {t(`roadmap.phases.${phase}.items`)}
+            </p>
           </article>
         </Reveal>
       ))}
     </div>
-  </Section>
-);
+    </Section>
+  );
+};
 
 export default Roadmap;

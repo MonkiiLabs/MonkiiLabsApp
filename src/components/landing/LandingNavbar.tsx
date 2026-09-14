@@ -1,6 +1,9 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
+
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -18,13 +21,14 @@ import { WalletButton } from "@/components/dashboard/WalletButton";
  * signs the session.
  */
 const SECTIONS = [
-  { id: "how-it-works", label: "How It Works" },
-  { id: "agents", label: "Agents" },
-  { id: "companions", label: "Companions" },
-  { id: "tokens", label: "Tokens" },
-];
+  { id: "how-it-works", key: "nav.howItWorks" },
+  { id: "agents", key: "nav.agents" },
+  { id: "companions", key: "nav.companions" },
+  { id: "tokens", key: "nav.tokens" },
+] as const;
 
 const LandingNavbar = () => {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollTo = useCallback((id: string) => {
@@ -48,12 +52,13 @@ const LandingNavbar = () => {
             onClick={() => scrollTo(s.id)}
             className="hover:text-coral transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-coral after:transition-all hover:after:w-full"
           >
-            {s.label}
+            {t(s.key)}
           </button>
         ))}
       </div>
 
       <div className="hidden sm:flex items-center gap-2 sm:gap-3">
+        <LanguageToggle />
         <WalletButton />
 
         <Button
@@ -61,11 +66,12 @@ const LandingNavbar = () => {
           className="rounded-full bg-coral hover:bg-coral-dark text-white font-bold shadow-coral transition-all duration-200 btn-bounce"
           asChild
         >
-          <Link to="/dashboard">Start Nurturing</Link>
+          <Link to="/dashboard">{t("common.startNurturing")}</Link>
         </Button>
       </div>
 
       <div className="flex sm:hidden items-center gap-2">
+        <LanguageToggle />
         <WalletButton />
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -79,7 +85,7 @@ const LandingNavbar = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[280px] bg-white border-l-2 border-dashboard-border p-0">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetTitle className="sr-only">{t("common.navigationMenu")}</SheetTitle>
             <div className="flex flex-col h-full">
               <div className="flex items-center gap-2 p-4 border-b border-dashboard-border">
                 <Wordmark size="sm" />
@@ -93,7 +99,7 @@ const LandingNavbar = () => {
                     onClick={() => scrollTo(s.id)}
                     className="text-left py-3 px-4 rounded-xl font-bold text-claw-charcoal hover:bg-cream hover:text-coral transition-colors"
                   >
-                    {s.label}
+                    {t(s.key)}
                   </button>
                 ))}
               </nav>
@@ -104,7 +110,7 @@ const LandingNavbar = () => {
                   asChild
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Link to="/dashboard">Start Nurturing</Link>
+                  <Link to="/dashboard">{t("common.startNurturing")}</Link>
                 </Button>
               </div>
             </div>

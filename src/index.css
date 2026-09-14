@@ -1,4 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+/* Nunito has no CJK coverage. Noto Sans SC sits behind it in every stack so
+   Chinese picks up a face chosen to match rather than the OS default, while
+   Latin text still resolves to Nunito first. */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -208,14 +212,14 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Nunito', 'Noto Sans SC', system-ui, sans-serif;
   }
 
   /* Everything is Nunito, set heavy and round. Headings are extrabold
      and only slightly tightened; this face is meant to look friendly,
      not engineered. */
   h1, h2, h3 {
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Nunito', 'Noto Sans SC', system-ui, sans-serif;
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -223,7 +227,7 @@
   }
 
   h4, h5, h6 {
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Nunito', 'Noto Sans SC', system-ui, sans-serif;
     font-weight: 800;
     letter-spacing: 0.02em;
   }
@@ -459,7 +463,7 @@
   /* ---- Type roles ------------------------------------------------------ */
 
   .label-mono {
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Nunito', 'Noto Sans SC', system-ui, sans-serif;
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.12em;

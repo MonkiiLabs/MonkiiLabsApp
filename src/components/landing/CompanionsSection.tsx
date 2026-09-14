@@ -1,35 +1,38 @@
+import { useTranslation } from "react-i18next";
+
 import { Section, Reveal } from "./Section";
 import { RARITY_ORDER, RARITY_STYLES } from "@/features/monkii/data";
-import { BRAND } from "@/lib/brand";
 
 const ACQUISITION = [
-  { emoji: "🏅", title: "Milestone rewards", body: "Free mints for a 7-day thriving streak or a top leaderboard placement." },
-  { emoji: "🛒", title: "Paid mints", body: `Limited waves priced in ETH or ${BRAND.valueToken}.` },
-  { emoji: "🔁", title: "Secondary market", body: "Standard ERC-721s, tradeable on any Robinhood Chain NFT marketplace." },
-  { emoji: "⚗️", title: "Craft & fusion", body: "Phase 2: light fusion, leveling, and dynamic metadata that reacts to agent state." },
-];
+  { emoji: "🏅", key: "milestone" },
+  { emoji: "🛒", key: "paid" },
+  { emoji: "🔁", key: "secondary" },
+  { emoji: "⚗️", key: "craft" },
+] as const;
 
-const CompanionsSection = () => (
+const CompanionsSection = () => {
+  const { t } = useTranslation();
+
+  return (
   <Section
     id="companions"
-    eyebrow="Companion NFTs"
-    title={<>Every agent can equip 1–3 Companions.</>}
-    intro={
-      <>
-        Companions are ERC-721 NFTs on Robinhood Chain, minted gas-only for cost efficiency, that
-        appear next to the agent avatar, provide passive bonuses based on rarity and type, can be freely
-        equipped and unequipped, and trade on secondary markets. The nurturing loop stays primary;
-        Companions are the collectible enhancement layer on top of it.
-      </>
-    }
+    eyebrow={t("companions.eyebrow")}
+    title={t("companions.title")}
+    intro={t("companions.intro")}
   >
     <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
       <table className="w-full min-w-[620px] bg-white rounded-3xl border-2 border-dashboard-border overflow-hidden">
         <thead>
           <tr className="bg-cream text-left">
-            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Rarity</th>
-            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Bonus range</th>
-            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">Additional effects</th>
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">
+              {t("companions.tableRarity")}
+            </th>
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">
+              {t("companions.tableBonus")}
+            </th>
+            <th className="p-4 text-xs font-extrabold uppercase tracking-wider text-claw-gray-600">
+              {t("companions.tableEffects")}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -39,11 +42,15 @@ const CompanionsSection = () => (
               <tr key={rarity} className="border-t-2 border-dashboard-border">
                 <td className="p-4">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-extrabold border-2 ${s.bg} ${s.text} ${s.border}`}>
-                    {rarity}
+                    {t(`companions.rarity.${rarity}.name`)}
                   </span>
                 </td>
-                <td className="p-4 text-sm font-bold text-claw-charcoal">{s.bonus}</td>
-                <td className="p-4 text-sm text-claw-gray-600">{s.effect}</td>
+                <td className="p-4 text-sm font-bold text-claw-charcoal">
+                  {t(`companions.rarity.${rarity}.bonus`)}
+                </td>
+                <td className="p-4 text-sm text-claw-gray-600">
+                  {t(`companions.rarity.${rarity}.effect`)}
+                </td>
               </tr>
             );
           })}
@@ -53,11 +60,15 @@ const CompanionsSection = () => (
 
     <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4 mt-8">
       {ACQUISITION.map((item, i) => (
-        <Reveal key={item.title} delay={i * 0.07}>
+        <Reveal key={item.key} delay={i * 0.07}>
           <article className="h-full bg-cream rounded-3xl border-2 border-dashboard-border p-5">
             <div className="text-2xl mb-3">{item.emoji}</div>
-            <h3 className="text-sm font-extrabold text-claw-charcoal mb-1.5">{item.title}</h3>
-            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">{item.body}</p>
+            <h3 className="text-sm font-extrabold text-claw-charcoal mb-1.5">
+              {t(`companions.acquisition.${item.key}.title`)}
+            </h3>
+            <p className="text-xs sm:text-sm text-claw-gray-600 leading-relaxed">
+              {t(`companions.acquisition.${item.key}.body`)}
+            </p>
           </article>
         </Reveal>
       ))}
@@ -66,19 +77,20 @@ const CompanionsSection = () => (
     <Reveal delay={0.15} className="mt-8">
       <div className="rounded-3xl border-2 border-coral/30 bg-coral/10 p-6">
         <h3 className="text-base sm:text-lg font-extrabold text-claw-charcoal mb-2">
-          Legendary abilities
+          {t("companions.legendaryTitle")}
         </h3>
         <ul className="text-sm text-claw-gray-600 space-y-1.5 leading-relaxed">
-          <li>🍌 “Never fully fades” — the agent stays at least Idle.</li>
-          <li>🐵 “Double nurture reward once per day.”</li>
-          <li>💎 “Bonus {BRAND.valueToken} claim multiplier.”</li>
+          <li>{t("companions.legendary1")}</li>
+          <li>{t("companions.legendary2")}</li>
+          <li>{t("companions.legendary3")}</li>
         </ul>
         <p className="text-xs text-claw-gray-600 mt-4">
-          Bonuses apply only while a Companion is equipped to an active agent you are nurturing.
+          {t("companions.legendaryNote")}
         </p>
       </div>
     </Reveal>
-  </Section>
-);
+    </Section>
+  );
+};
 
 export default CompanionsSection;

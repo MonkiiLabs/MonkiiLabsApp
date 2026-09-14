@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import { BRAND, monkiiBanner, monkiiLogo } from "@/lib/brand";
@@ -25,6 +26,7 @@ const FloatingCloud = ({ className, delay = 0 }: { className: string; delay?: nu
  * address on the clipboard.
  */
 const ContractBubble = () => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -48,7 +50,7 @@ const ContractBubble = () => {
     <motion.button
       type="button"
       onClick={copy}
-      aria-label={`Copy the ${BRAND.rewardToken} contract address ${CONTRACT_ADDRESS}`}
+      aria-label={t("hero.copyContract", { address: CONTRACT_ADDRESS })}
       className="group mb-8 sm:mb-12 flex max-w-full items-center gap-2 sm:gap-3 rounded-full border-2 border-sky/40 bg-white/80 px-3 py-2 sm:px-5 sm:py-2.5 shadow-playful backdrop-blur transition-colors duration-300 hover:border-sky hover:bg-white"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -66,12 +68,14 @@ const ContractBubble = () => {
       <span className="shrink-0 text-sky-dark" aria-hidden="true">
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 opacity-60 group-hover:opacity-100" />}
       </span>
-      <span className="sr-only" role="status">{copied ? `${BRAND.rewardToken} contract address copied` : ""}</span>
+      <span className="sr-only" role="status">{copied ? t("hero.contractCopied") : ""}</span>
     </motion.button>
   );
 };
 
 const Hero = () => {
+  const { t } = useTranslation();
+
   return (
     <main className="z-40 flex flex-col mt-2 sm:mt-8 md:mt-12 px-4 relative items-center justify-start sm:justify-center pb-4 sm:pb-16 overflow-hidden">
       <FloatingCloud className="top-10 left-10 w-24 h-12 hidden sm:block" delay={0} />
@@ -86,12 +90,12 @@ const Hero = () => {
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
         whileHover={{ scale: 1.1, rotate: 5 }}
       >
-        🐒 The Agentic Tamagotchi on Robinhood
+        {t("hero.badge")}
       </motion.div>
 
       <motion.img
         src={monkiiLogo}
-        alt="MONKII LABS mascot"
+        alt={t("hero.mascotAlt")}
         className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-2xl sm:rounded-3xl shadow-playful-lg mb-4 sm:mb-6"
         initial={{ scale: 0, y: -100 }}
         animate={{ scale: 1, y: 0 }}
@@ -115,22 +119,23 @@ const Hero = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Keep{" "}
+        {t("hero.lineA")}{" "}
         <motion.span
           className="text-sky-dark inline-block"
           animate={{ color: ["hsl(199, 89%, 45%)", "hsl(263, 70%, 55%)", "hsl(199, 89%, 45%)"] }}
           transition={{ duration: 3, repeat: Infinity }}
         >
-          AI agents
+          {t("hero.lineB")}
         </motion.span>{" "}
-        alive with{" "}
+        {t("hero.lineC")}{" "}
         <motion.span
           className="text-coral inline-block"
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          community compute
+          {t("hero.lineD")}
         </motion.span>
+        {t("hero.lineE") ? <>{" "}{t("hero.lineE")}</> : null}
       </motion.p>
 
       <motion.p
@@ -139,9 +144,7 @@ const Hero = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.5 }}
       >
-        Start a Proof-of-Life heartbeat in your browser, raise an agent's power level, and earn
-        {" "}{BRAND.rewardToken}. Stake it to earn {BRAND.valueToken} on a fixed, transparent schedule.
-        No hardware. No gas. No smart contracts in the core loop.
+        {t("hero.body")}
       </motion.p>
 
       <motion.div
@@ -156,7 +159,7 @@ const Hero = () => {
             className="w-full sm:w-auto bg-coral hover:bg-coral-dark text-white rounded-full px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold shadow-coral transition-all duration-300"
             asChild
           >
-            <Link to="/dashboard">🐒 Start Nurturing</Link>
+            <Link to="/dashboard">{t("hero.startNurturing")}</Link>
           </Button>
         </motion.div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
@@ -166,7 +169,7 @@ const Hero = () => {
             className="w-full sm:w-auto rounded-full px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold border-2 border-sky bg-sky/10 text-sky-dark hover:bg-sky hover:text-white transition-all duration-300"
             asChild
           >
-            <Link to="/dashboard/agents">📡 Browse Agents</Link>
+            <Link to="/dashboard/agents">{t("hero.browseAgents")}</Link>
           </Button>
         </motion.div>
       </motion.div>
@@ -182,7 +185,7 @@ const Hero = () => {
       >
         <img
           src={monkiiBanner}
-          alt="MONKII LABS — nurturing AI agents on Robinhood with companions, proof of life and rewards"
+          alt={t("hero.bannerAlt")}
           className="w-full h-auto"
         />
       </motion.div>
@@ -192,7 +195,7 @@ const Hero = () => {
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <span className="text-sm font-medium mb-2">Scroll to explore</span>
+        <span className="text-sm font-medium mb-2">{t("hero.scroll")}</span>
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>

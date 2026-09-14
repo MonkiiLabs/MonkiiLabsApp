@@ -25,9 +25,9 @@ export default {
       // font-variant-numeric (see .tabular in index.css) rather than
       // from swapping in a monospace family.
       fontFamily: {
-        sans: ["Nunito", "system-ui", "sans-serif"],
+        sans: ["Nunito", "Noto Sans SC", "system-ui", "sans-serif"],
         display: ["Nunito", "system-ui", "sans-serif"],
-        mono: ["Nunito", "system-ui", "sans-serif"],
+        mono: ["Nunito", "Noto Sans SC", "system-ui", "sans-serif"],
       },
       // Kept from the previous build: this is measure, not identity, and
       // the dashboard layouts are built on it. Only leading is loosened,

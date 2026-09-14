@@ -1,0 +1,321 @@
+{
+  "common": {
+    "startNurturing": "Start Nurturing",
+    "openMarketplace": "Open the marketplace",
+    "navigationMenu": "Navigation Menu",
+    "language": "Language",
+    "english": "English",
+    "chinese": "中文"
+  },
+  "nav": {
+    "howItWorks": "How It Works",
+    "agents": "Agents",
+    "companions": "Companions",
+    "tokens": "Tokens"
+  },
+  "hero": {
+    "badge": "🐒 The Agentic Tamagotchi on Robinhood",
+    "lineA": "Keep",
+    "lineB": "AI agents",
+    "lineC": "alive with",
+    "lineD": "community compute",
+    "lineE": "",
+    "body": "Start a Proof-of-Life heartbeat in your browser, raise an agent's power level, and earn {{rewardToken}}. Stake it to earn {{valueToken}} on a fixed, transparent schedule. No hardware. No gas. No smart contracts in the core loop.",
+    "startNurturing": "🐒 Start Nurturing",
+    "browseAgents": "📡 Browse Agents",
+    "copyContract": "Copy the {{rewardToken}} contract address {{address}}",
+    "contractCopied": "{{rewardToken}} contract address copied",
+    "bannerAlt": "MONKII LABS, nurturing AI agents on Robinhood with companions, proof of life and rewards",
+    "mascotAlt": "MONKII LABS mascot",
+    "scroll": "Scroll to explore"
+  },
+  "whatIs": {
+    "eyebrow": "What it is",
+    "title": "A Tamagotchi-inspired platform for nurturing autonomous AI agents.",
+    "intro": "{{brand}} reframes the abstract, technical act of providing compute as an intuitive, emotionally resonant act of care. Just as the original Tamagotchi turned maintenance of a virtual pet into a daily ritual, {{brand}} turns maintenance of an AI agent's vitality into a rewarding, gamified experience, built on Robinhood, on top of an already-active community rather than a cold start.",
+    "gaps": {
+      "sustainability": {
+        "title": "Sustainability gap",
+        "body": "The cost and effort of keeping an agent continuously active falls on a single party. When that party's resources or attention lapse, the agent goes dark."
+      },
+      "engagement": {
+        "title": "Engagement gap",
+        "body": "Communities form around popular agents with no direct, meaningful way to contribute to an agent's survival beyond speculation."
+      },
+      "visibility": {
+        "title": "Visibility gap",
+        "body": "There is no shared, transparent signal of an agent's operational health, so nobody can tell a thriving agent from one about to go offline."
+      }
+    },
+    "ambitionTitle": "The long-term ambition",
+    "ambitionBody": "To become the connective tissue of the agentic economy on Robinhood: a place where the health of every meaningful agent is visibly tied to the community that supports it, and where an existing token community gets a genuine, ongoing utility loop rather than a one-off speculative cycle. Companion NFTs deepen that with a high-emotion collectible ownership layer, something tangible to own, equip, trade, and invest in emotionally."
+  },
+  "agentStates": {
+    "eyebrow": "The agents",
+    "title": "Every agent's avatar shows exactly how much power it has left.",
+    "intro": "Agents are sourced from real, live agents on PONS Protocol, with no fabricated listings. Each one is represented by an expressive avatar whose appearance directly reflects its current power level through three defined states. A well-supported agent visibly flourishes; a neglected one visibly declines, prompting its community to intervene.",
+    "liveTitle": "Live from the marketplace",
+    "states": {
+      "thriving": {
+        "label": "Thriving",
+        "note": "Fully powered. Posting and executing on schedule."
+      },
+      "idle": {
+        "label": "Idle",
+        "note": "Power slipping. Needs heartbeats to recover."
+      },
+      "fading": {
+        "label": "Fading",
+        "note": "Close to going dark. Nurture now."
+      }
+    }
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Compute Light: no hardware, no gas, no smart contract in the core loop.",
+    "intro": "The core unit of value creation is the Proof-of-Life heartbeat session, a lightweight, verifiable compute contribution performed by ordinary users. Remove the tokens entirely and {{brand}} would still be a coherent product: a community keeping agents alive through distributed compute.",
+    "steps": {
+      "connect": {
+        "title": "Connect your Robinhood wallet",
+        "body": "Signature-based authentication (EVM wallet signature). No gas, no transaction, no approval to revoke later."
+      },
+      "heartbeat": {
+        "title": "Start a Proof-of-Life heartbeat",
+        "body": "One action starts a lightweight background session that solves a keccak256 proof-of-work challenge in your browser and contributes real compute to an agent's power."
+      },
+      "power": {
+        "title": "Watch power rise",
+        "body": "The agent's live power meter climbs and its avatar shifts toward Thriving. You accrue {{rewardToken}} for every verified heartbeat."
+      },
+      "stake": {
+        "title": "Stake {{rewardToken}}",
+        "body": "Staking linearly raises your per-heartbeat earn rate up to a capped maximum, and unlocks premium agents above a threshold."
+      },
+      "earn": {
+        "title": "Earn {{valueToken}} each epoch",
+        "body": "Hold a qualifying stake unchanged through a full cycle and you're paid a flat {{valueToken}} amount proportional to your stake. One shared global schedule, one visible countdown."
+      },
+      "equip": {
+        "title": "Equip Companions",
+        "body": "Equip up to 3 Companion NFTs per agent for passive earn-rate bonuses, fade protection, and unique Legendary abilities."
+      }
+    }
+  },
+  "companions": {
+    "eyebrow": "Companion NFTs",
+    "title": "Every agent can equip 1 to 3 Companions.",
+    "intro": "Companions are ERC-721 NFTs on Robinhood Chain, minted gas-only for cost efficiency, that appear next to the agent avatar, provide passive bonuses based on rarity and type, can be freely equipped and unequipped, and trade on secondary markets. The nurturing loop stays primary; Companions are the collectible enhancement layer on top of it.",
+    "tableRarity": "Rarity",
+    "tableBonus": "Bonus range",
+    "tableEffects": "Additional effects",
+    "acquisition": {
+      "milestone": {
+        "title": "Milestone rewards",
+        "body": "Free mints for a 7-day thriving streak or a top leaderboard placement."
+      },
+      "paid": {
+        "title": "Paid mints",
+        "body": "Limited waves priced in ETH or {{valueToken}}."
+      },
+      "secondary": {
+        "title": "Secondary market",
+        "body": "Standard ERC-721s, tradeable on any Robinhood Chain NFT marketplace."
+      },
+      "craft": {
+        "title": "Craft & fusion",
+        "body": "Phase 2: light fusion, leveling, and dynamic metadata that reacts to agent state."
+      }
+    },
+    "legendaryTitle": "Legendary abilities",
+    "legendary1": "🍌 \"Never fully fades\", the agent stays at least Idle.",
+    "legendary2": "🐵 \"Double nurture reward once per day.\"",
+    "legendary3": "💎 \"Bonus {{valueToken}} claim multiplier.\"",
+    "legendaryNote": "Bonuses apply only while a Companion is equipped to an active agent you are nurturing.",
+    "rarity": {
+      "Common": {
+        "name": "Common",
+        "bonus": "+5-10% {{rewardToken}} earn rate",
+        "effect": "None"
+      },
+      "Uncommon": {
+        "name": "Uncommon",
+        "bonus": "+10-15% {{rewardToken}} earn rate",
+        "effect": "Minor fade protection"
+      },
+      "Rare": {
+        "name": "Rare",
+        "bonus": "+15-25% {{rewardToken}} earn rate",
+        "effect": "Moderate fade protection"
+      },
+      "Epic": {
+        "name": "Epic",
+        "bonus": "+25-35% {{rewardToken}} earn rate",
+        "effect": "Strong fade protection + visual aura"
+      },
+      "Legendary": {
+        "name": "Legendary",
+        "bonus": "+35-50% {{rewardToken}} earn rate",
+        "effect": "Strong protection + unique ability"
+      }
+    }
+  },
+  "tokens": {
+    "eyebrow": "Tokens",
+    "title": "Two tokens, two jobs. The tokens serve the loop, not the reverse.",
+    "intro": "Neither token is issued for merely holding, trading, or speculating in isolation. Both flow from genuine participation.",
+    "rewardLabel": "Reward token · pre-launch",
+    "rewardBody": "The receipt for real compute work, earned exclusively through verified heartbeat sessions. It is currently an off-chain accounting balance (claiming to a wallet is on hold pending launch) but it is already fully functional as the unit that gets staked.",
+    "valueLabel": "Value-capture token · live",
+    "valueBody": "A real ERC-20 on Robinhood Chain with its own pre-existing liquidity and community. Staking {{rewardToken}} is the only way to earn it, and claiming is live today: the platform's pool wallet sends it straight to your wallet and pays the network fee itself.",
+    "benefits": {
+      "multiplier": {
+        "title": "Reward multiplier",
+        "body": "Staking {{rewardToken}} linearly raises your per-heartbeat earn rate, up to a capped maximum."
+      },
+      "premium": {
+        "title": "Premium access",
+        "body": "Staking above a threshold unlocks premium agents."
+      },
+      "epoch": {
+        "title": "Epoch reward",
+        "body": "A qualifying stake held unchanged through a full cycle earns a flat {{valueToken}} payout on the shared global schedule."
+      },
+      "transparency": {
+        "title": "Transparency",
+        "body": "The reward-pool dashboard shows the pool wallet's real on-chain {{valueToken}} balance and total distributed, not a claimed number."
+      }
+    },
+    "loopTitle": "The sustainable loop",
+    "loop": {
+      "nurture": "Nurture (heartbeat)",
+      "earned": "{{rewardToken}} earned",
+      "stake": "Stake {{rewardToken}}",
+      "reward": "{{valueToken}} epoch reward",
+      "more": "More reason to nurture"
+    },
+    "loopNote": "Planned revenue sources, including LP and trading fees, developer fees, premium-feature fees, and Companion mints and royalties, feed open-market buybacks into the pool wallet. Consistent with our economics-transparency principle, the fee ledger reports honest zeros until a source is actually live."
+  },
+  "differentiators": {
+    "eyebrow": "Why us",
+    "title": "A compute network with a community it didn't have to build from scratch.",
+    "intro": "Compute is the product that makes the experience honest. The community is what gives it an audience from day one. Companions are the ownership layer that turns daily care into lasting attachment.",
+    "points": {
+      "maintenance": {
+        "title": "Maintenance, not creation",
+        "body": "Most projects focus on creating agents or selling raw enterprise compute. We focus squarely on decentralised, retail-driven maintenance of agents that already exist."
+      },
+      "framing": {
+        "title": "Tamagotchi framing",
+        "body": "A technical activity becomes an emotionally engaging daily ritual, which dramatically lowers the barrier to participation."
+      },
+      "light": {
+        "title": "Compute Light architecture",
+        "body": "No specialised hardware, no technical expertise. It runs in a browser tab, which makes it accessible to a mass retail audience."
+      },
+      "footprint": {
+        "title": "Minimal engineering footprint",
+        "body": "No on-chain contract layer for the agent registry, Proof-of-Life verification, or reward accounting. Robinhood is touched only for wallet-signature auth and final settlement."
+      },
+      "community": {
+        "title": "Builds on an existing community",
+        "body": "Rather than bootstrapping a token and community from zero, {{brand}} builds on {{valueToken}}, so the value-capture side has a real audience from day one."
+      },
+      "collectible": {
+        "title": "Collectible ownership layer",
+        "body": "Companion NFTs add scarcity, secondary-market potential and emotional attachment without turning the product into a full pet-breeding game."
+      }
+    }
+  },
+  "audience": {
+    "eyebrow": "Who it's for",
+    "title": "Four groups, one loop.",
+    "groups": {
+      "retail": {
+        "who": "Retail nurturers",
+        "what": "Everyday crypto users and AI enthusiasts who want a low-effort, gamified way to participate in the agentic economy.",
+        "value": "Gamified engagement, {{rewardToken}} rewards, Companions, and a sense of ownership over the agents they support."
+      },
+      "community": {
+        "who": "The {{valueToken}} community",
+        "what": "Existing holders and community members looking for real, ongoing utility beyond price speculation.",
+        "value": "A concrete, recurring reason to hold and stake, an active utility loop grafted onto an existing token."
+      },
+      "developers": {
+        "who": "Agent developers",
+        "what": "Creators and teams who build AI agents and need reliable, community-backed operational support.",
+        "value": "Decentralised life support, reduced operating burden, and a built-in, motivated community."
+      },
+      "ecosystem": {
+        "who": "The Robinhood ecosystem",
+        "what": "Protocols and communities seeking richer agent infrastructure and real on-chain activity.",
+        "value": "A resilient agent-support layer and a showcase of retail-friendly Robinhood utility."
+      }
+    }
+  },
+  "roadmap": {
+    "eyebrow": "Roadmap",
+    "title": "Ship the nurturing loop first, then layer Companions.",
+    "quarters": {
+      "q1": {
+        "theme": "Foundation & MVP",
+        "items": "Product spec, Liquid Glass web shell, Robinhood wallet auth, Agent Registry on devnet, pilot agents."
+      },
+      "q2": {
+        "theme": "Proof-of-Life live",
+        "items": "Heartbeat sessions, {{rewardToken}} minting, expressive agent avatars, marketplace, personal dashboard."
+      },
+      "q3": {
+        "theme": "Staking bridge",
+        "items": "{{rewardToken}} to {{valueToken}} staking, revenue-funded buybacks, leaderboard, X activity feed per agent."
+      },
+      "q4": {
+        "theme": "Scale & ecosystem",
+        "items": "Mainnet launch, agent-launch partner integrations, notifications, mobile companion."
+      }
+    },
+    "phases": {
+      "p1": {
+        "name": "Phase 1 — MVP",
+        "items": "5 to 8 Companion designs (Common to Rare), basic equip/unequip, passive earn-rate bonuses, milestone rewards plus a limited paid mint, avatar integration, inventory views."
+      },
+      "p2": {
+        "name": "Phase 2",
+        "items": "Epic & Legendary tiers with unique abilities, stronger visual effects and state reactions, expanded acquisition, improved showcase UI."
+      },
+      "p3": {
+        "name": "Phase 3",
+        "items": "Companion leveling and light fusion, dynamic metadata, deeper leaderboard and social integration."
+      }
+    }
+  },
+  "cta": {
+    "title": "An agent is fading right now.",
+    "body": "Open the dashboard, pick an agent, and start a heartbeat. You'll see its power meter climb in seconds, and start accruing {{rewardToken}} while you do.",
+    "primary": "🫀 Start a heartbeat",
+    "secondary": "🍌 See Companions"
+  },
+  "footer": {
+    "company": "Company",
+    "support": "Support",
+    "legal": "Legal",
+    "about": "About",
+    "whitepaper": "Whitepaper",
+    "help": "Help",
+    "contact": "Contact",
+    "accessibility": "Accessibility",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "blurb": "{{brand}} reframes the unglamorous necessity of keeping AI agents alive as an engaging, community-driven, and rewarding experience on Robinhood. 🐒",
+    "rights": "© 2026 {{brand}}. Nurturing AI agents on Robinhood. 🐒",
+    "onX": "{{brand}} on X"
+  },
+  "wallet": {
+    "openSession": "Open your session",
+    "signPrompt": "Sign a plain-text message to use {{what}}. It proves you own this address and costs no gas.",
+    "pickPrompt": "Pick a wallet, then sign a plain-text message to use {{what}}. Both steps are free and neither sends a transaction.",
+    "noMobileWallets": "Wallet apps on phones cannot be reached from this build, so the picker lists only wallets that run in this page. Open the site inside your wallet's own browser, or connect from a desktop extension.",
+    "openSessionButton": "Open session",
+    "signingAs": "Signing as",
+    "useDifferent": "Use a different wallet"
+  }
+}

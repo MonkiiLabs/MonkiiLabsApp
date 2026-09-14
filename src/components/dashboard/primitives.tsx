@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, KeyRound, Loader2, Sparkles, Wallet } from "lucide-react";
 
 import { useWallet } from "@/hooks/useWallet";
@@ -285,6 +286,7 @@ export function EmptyPanel({
  * Wraps actions requiring authentication on Robinhood Chain.
  */
 export function AuthGate({ children, what }: { children: ReactNode; what: string }) {
+  const { t } = useTranslation();
   const {
     isConnected,
     isAuthenticated,
@@ -303,17 +305,13 @@ export function AuthGate({ children, what }: { children: ReactNode; what: string
       <span className="mx-auto grid h-11 w-11 place-items-center rounded-md border border-hair/12 bg-hair/[0.05] text-paper-2">
         <Wallet className="h-5 w-5" />
       </span>
-      <h3 className="mt-fib2 font-display text-d1 text-paper">Open your session</h3>
+      <h3 className="mt-fib2 font-display text-d1 text-paper">{t("wallet.openSession")}</h3>
       <p className="mx-auto mt-fib2 max-w-[46ch] text-label text-paper-2">
-        {isConnected
-          ? `Sign a plain-text message to use ${what}. It proves you own this address and costs no gas.`
-          : `Pick a wallet, then sign a plain-text message to use ${what}. Both steps are free and neither sends a transaction.`}
+        {isConnected ? t("wallet.signPrompt", { what }) : t("wallet.pickPrompt", { what })}
       </p>
       {!walletConnectEnabled && !isConnected && (
         <p className="mx-auto mt-fib2 max-w-[46ch] text-label text-paper-3">
-          Wallet apps on phones cannot be reached from this build, so the picker lists only wallets
-          that run in this page. Open the site inside your wallet's own browser, or connect from a
-          desktop extension.
+          {t("wallet.noMobileWallets")}
         </p>
       )}
       {authError && <p className="mt-fib2 text-label text-act-lit">{authError}</p>}
@@ -332,18 +330,18 @@ export function AuthGate({ children, what }: { children: ReactNode; what: string
         ) : (
           <KeyRound className="h-4 w-4" />
         )}
-        Open session
+        {t("wallet.openSessionButton")}
       </button>
 
       {isConnected && address && (
         <p className="mt-fib3 text-label text-paper-3">
-          Signing as <span className="font-mono tabular-nums">{formatAddress(address)}</span>.{" "}
+          {t("wallet.signingAs")} <span className="font-mono tabular-nums">{formatAddress(address)}</span>.{" "}
           <button
             type="button"
             onClick={switchWallet}
             className="font-semibold text-paper-2 underline underline-offset-4 hover:text-paper"
           >
-            Use a different wallet
+            {t("wallet.useDifferent")}
           </button>
         </p>
       )}

@@ -1,34 +1,39 @@
 import { Twitter } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import { BRAND, monkiiLogo } from "@/lib/brand";
 
 const COLUMNS = [
   {
-    heading: "Company",
+    heading: "footer.company",
     links: [
-      { label: "About", to: "/about" },
-      { label: "Whitepaper", to: "/whitepaper" },
+      { key: "footer.about", to: "/about" },
+      { key: "footer.whitepaper", to: "/whitepaper" },
     ],
   },
   {
-    heading: "Support",
+    heading: "footer.support",
     links: [
-      { label: "Help", to: "/help" },
-      { label: "Accessibility", to: "/accessibility" },
-      { label: "Contact", to: "/contact" },
+      { key: "footer.help", to: "/help" },
+      { key: "footer.accessibility", to: "/accessibility" },
+      { key: "footer.contact", to: "/contact" },
     ],
   },
   {
-    heading: "Legal",
+    heading: "footer.legal",
     links: [
-      { label: "Terms", to: "/terms" },
-      { label: "Privacy", to: "/privacy" },
+      { key: "footer.terms", to: "/terms" },
+      { key: "footer.privacy", to: "/privacy" },
     ],
   },
-];
+] as const;
 
-const LandingFooter = () => (
+const LandingFooter = () => {
+  const { t } = useTranslation();
+
+  return (
   <footer className="overflow-hidden text-base text-claw-charcoal bg-cream w-full border-t-2 border-dashboard-border pt-20 md:pt-24">
     <div className="max-w-7xl mx-auto px-6 mb-20 md:mb-28">
       <div className="flex flex-col md:flex-row justify-between items-start gap-16 md:gap-12">
@@ -41,8 +46,7 @@ const LandingFooter = () => (
             </span>
           </div>
           <p className="text-sm text-claw-gray-600 leading-relaxed font-medium">
-            {BRAND.name} reframes the unglamorous necessity of keeping AI agents alive as an
-            engaging, community-driven, and rewarding experience on Robinhood. 🐒
+            {t("footer.blurb")}
           </p>
         </div>
 
@@ -50,7 +54,7 @@ const LandingFooter = () => (
           {COLUMNS.map((col) => (
             <div key={col.heading} className="flex flex-col gap-4 min-w-[120px]">
               <h3 className="text-xs font-bold text-claw-gray-600 mb-1 uppercase tracking-wider">
-                {col.heading}
+                {t(col.heading)}
               </h3>
               {col.links.map((l) => (
                 <Link
@@ -58,7 +62,7 @@ const LandingFooter = () => (
                   to={l.to}
                   className="text-sm font-medium text-claw-charcoal hover:text-coral transition-colors duration-200"
                 >
-                  {l.label}
+                  {t(l.key)}
                 </Link>
               ))}
             </div>
@@ -80,20 +84,21 @@ const LandingFooter = () => (
     <div className="w-full border-t-2 border-dashboard-border bg-white relative z-10">
       <div className="max-w-7xl mx-auto px-6 py-8 md:py-10 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
         <div className="text-xs order-2 md:order-1 font-medium text-claw-gray-600 tracking-tight">
-          © 2026 {BRAND.name}. Nurturing AI agents on Robinhood. 🐒
+          {t("footer.rights")}
         </div>
         <a
           href="https://twitter.com"
           target="_blank"
           rel="noreferrer"
-          aria-label="MONKII LABS on X"
+          aria-label={t("footer.onX")}
           className="order-1 md:order-2 w-10 h-10 rounded-full bg-cream border-2 border-dashboard-border flex items-center justify-center text-claw-gray-600 hover:bg-coral hover:text-white hover:border-coral transition-all duration-200"
         >
           <Twitter className="w-4 h-4" />
         </a>
       </div>
     </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default LandingFooter;

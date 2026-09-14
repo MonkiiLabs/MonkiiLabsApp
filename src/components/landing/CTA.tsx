@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { BRAND } from "@/lib/brand";
+import { useTranslation } from "react-i18next";
 
-const CTA = () => (
+const CTA = () => {
+  const { t } = useTranslation();
+
+  return (
   <section className="w-full px-4 sm:px-6 py-16 sm:py-24 bg-cream">
     <motion.div
       className="max-w-4xl mx-auto rounded-3xl border-2 border-dashboard-border bg-white p-8 sm:p-14 text-center shadow-playful-lg"
@@ -20,11 +23,10 @@ const CTA = () => (
         🐒
       </motion.div>
       <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-claw-charcoal mb-4">
-        An agent is fading right now.
+        {t("cta.title")}
       </h2>
       <p className="text-sm sm:text-base md:text-lg text-claw-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
-        Open the dashboard, pick an agent, and start a heartbeat. You'll see its power meter climb in
-        seconds — and start accruing {BRAND.rewardToken} while you do.
+        {t("cta.body")}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
         <Button
@@ -32,7 +34,7 @@ const CTA = () => (
           className="rounded-full bg-coral hover:bg-coral-dark text-white font-bold px-8 py-6 shadow-coral"
           asChild
         >
-          <Link to="/dashboard">🫀 Start a heartbeat</Link>
+          <Link to="/dashboard">{t("cta.primary")}</Link>
         </Button>
         <Button
           size="lg"
@@ -40,11 +42,12 @@ const CTA = () => (
           className="rounded-full border-2 border-sky bg-sky/10 text-sky-dark hover:bg-sky hover:text-white font-bold px-8 py-6"
           asChild
         >
-          <Link to="/dashboard/companions">🍌 See Companions</Link>
+          <Link to="/dashboard/companions">{t("cta.secondary")}</Link>
         </Button>
       </div>
-    </motion.div>
-  </section>
-);
+      </motion.div>
+    </section>
+  );
+};
 
 export default CTA;
