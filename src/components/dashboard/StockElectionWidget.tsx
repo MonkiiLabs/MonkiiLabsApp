@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
@@ -29,7 +29,9 @@ export default function StockElectionWidget() {
   const { data: electionData, isLoading: electionLoading } = useRwaElection();
   const saveMutation = useSaveRwaElection();
 
-  const eligibleTokens = tokensData?.tokens ?? [];
+  // Memoised so the restore effect below, which depends on it, does not
+  // re-run on every render against a fresh array identity.
+  const eligibleTokens = useMemo(() => tokensData?.tokens ?? [], [tokensData]);
   const isFeatureFlagActive = tokensData?.isElectionsActive ?? false;
 
   const [mode, setMode] = useState<"stock_elected" | "plain_pons">("plain_pons");
@@ -41,7 +43,27 @@ export default function StockElectionWidget() {
     if (electionData) {
       setMode(electionData.mode);
       if (electionData.allocations && electionData.allocations.length > 0) {
-        setAllocations(electionData.allocations);
+        // A ticker can be withdrawn from the registry after someone has
+        // already elected it. Carrying it back into the form would leave a
+        // basket that looks fine and is refused on save, so drop it and
+        // spread its weight across what is left.
+        const available = new Set(
+          eligibleTokens.filter((t) => t.isLiquid && !t.isSuspended).map((t) => t.symbol),
+        );
+        const kept =
+          available.size > 0
+            ? electionData.allocations.filter((a) => available.has(a.symbol))
+            : electionData.allocations;
+
+        if (kept.length > 0 && kept.length < electionData.allocations.length) {
+          const even = Math.floor(100 / kept.length);
+          const rem = 100 - even * kept.length;
+          setAllocations(
+            kept.map((a, idx) => ({ ...a, percentage: even + (idx === 0 ? rem : 0) })),
+          );
+        } else {
+          setAllocations(kept);
+        }
         setAcceptedDisclaimer(true);
       } else {
         // Default recommended preset from expansion brief: 60% NVDA / 40% SPY
@@ -51,7 +73,9 @@ export default function StockElectionWidget() {
         ]);
       }
     }
-  }, [electionData]);
+    // eligibleTokens participates because a restored basket can only be
+    // filtered once the registry it is filtered against has arrived.
+  }, [electionData, eligibleTokens]);
 
   const totalPercentage = allocations.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
   const isValidSum = totalPercentage === 100;
@@ -254,21 +278,36 @@ export default function StockElectionWidget() {
               <div className="flex flex-wrap gap-2">
                 {eligibleTokens.map((token) => {
                   const isSelected = allocations.some((a) => a.symbol === token.symbol);
+                  // The server refuses an election naming a suspended or
+                  // illiquid ticker, so offering one here only produces a
+                  // rejection after the user has already built a basket.
+                  // Show it, since it is genuinely in the registry, but say
+                  // plainly that it cannot be picked yet.
+                  const isAvailable = token.isLiquid && !token.isSuspended;
                   return (
                     <button
                       key={token.symbol}
                       type="button"
+                      disabled={!isAvailable}
+                      title={isAvailable ? undefined : `${token.symbol} is not accepting elections yet`}
                       onClick={() => handleToggleToken(token.symbol)}
                       className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 font-mono text-xs transition-all ${
-                        isSelected
-                          ? "border border-alive/40 bg-alive/15 text-alive-lit font-bold shadow-sm"
-                          : "border border-hair/10 bg-bench text-paper-3 hover:text-paper hover:bg-hair/5"
+                        !isAvailable
+                          ? "cursor-not-allowed border border-hair/10 bg-bench text-paper-4 opacity-50"
+                          : isSelected
+                            ? "border border-alive/40 bg-alive/15 text-alive-lit font-bold shadow-sm"
+                            : "border border-hair/10 bg-bench text-paper-3 hover:text-paper hover:bg-hair/5"
                       }`}
                     >
                       <span className="font-bold">{token.symbol}</span>
                       <span className="text-[10px] opacity-75 hidden sm:inline">
                         {token.name.replace(" Tokenized Stock", "")}
                       </span>
+                      {!isAvailable && (
+                        <span className="rounded bg-hair/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wide">
+                          Unavailable
+                        </span>
+                      )}
                     </button>
                   );
                 })}
