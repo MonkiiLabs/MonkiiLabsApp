@@ -1,6 +1,19 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { connectorsForWallets, getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { coinbaseWallet, injectedWallet } from "@rainbow-me/rainbowkit/wallets";
+import {
+  binanceWallet,
+  bitgetWallet,
+  coinbaseWallet,
+  injectedWallet,
+  metaMaskWallet,
+  okxWallet,
+  phantomWallet,
+  rabbyWallet,
+  rainbowWallet,
+  trustWallet,
+  walletConnectWallet,
+  zerionWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { createConfig, createStorage, http } from "wagmi";
 import { defineChain } from "viem";
 
@@ -93,10 +106,36 @@ export const walletConnectEnabled = Boolean(projectId);
  * `getWalletConnectConnector`. Every other wallet, and every mobile deep link,
  * needs the project id.
  */
+const walletGroups = [
+  {
+    groupName: "Popular Wallets",
+    wallets: [
+      metaMaskWallet,
+      trustWallet,
+      coinbaseWallet,
+      rainbowWallet,
+      okxWallet,
+      phantomWallet,
+      walletConnectWallet,
+    ],
+  },
+  {
+    groupName: "More Wallets",
+    wallets: [
+      bitgetWallet,
+      binanceWallet,
+      zerionWallet,
+      rabbyWallet,
+      injectedWallet,
+    ],
+  },
+];
+
 export const wagmiConfig = projectId
   ? getDefaultConfig({
       appName: "Monkii Labs",
       projectId,
+      wallets: walletGroups,
       chains: [robinhoodChain],
       transports: { [robinhoodChain.id]: http(CHAIN_RPC_URL) },
       storage,
