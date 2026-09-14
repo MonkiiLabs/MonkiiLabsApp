@@ -32,6 +32,12 @@ export default function StockElectionWidget() {
   // Memoised so the restore effect below, which depends on it, does not
   // re-run on every render against a fresh array identity.
   const eligibleTokens = useMemo(() => tokensData?.tokens ?? [], [tokensData]);
+  // Electable right now. A pending price source does not disqualify a token:
+  // Sprint F accrues and does not settle, so pricing is a payout concern.
+  const availableTokens = useMemo(
+    () => eligibleTokens.filter((t) => t.isLiquid && !t.isSuspended),
+    [eligibleTokens],
+  );
   const isFeatureFlagActive = tokensData?.isElectionsActive ?? false;
 
   const [mode, setMode] = useState<"stock_elected" | "plain_pons">("plain_pons");
@@ -66,16 +72,22 @@ export default function StockElectionWidget() {
         }
         setAcceptedDisclaimer(true);
       } else {
-        // Default recommended preset from expansion brief: 60% NVDA / 40% SPY
-        setAllocations([
-          { symbol: "NVDA", percentage: 60 },
-          { symbol: "SPY", percentage: 40 },
-        ]);
+        // No saved election yet. Open on an even split of whatever is
+        // listed, so the form starts valid instead of on a fixed pair that
+        // may not be in the registry any more.
+        const targets = availableTokens.slice(0, 4).map((t) => t.symbol);
+        if (targets.length > 0) {
+          const even = Math.floor(100 / targets.length);
+          const rem = 100 - even * targets.length;
+          setAllocations(
+            targets.map((s, idx) => ({ symbol: s, percentage: even + (idx === 0 ? rem : 0) })),
+          );
+        }
       }
     }
     // eligibleTokens participates because a restored basket can only be
     // filtered once the registry it is filtered against has arrived.
-  }, [electionData, eligibleTokens]);
+  }, [electionData, eligibleTokens, availableTokens]);
 
   const totalPercentage = allocations.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
   const isValidSum = totalPercentage === 100;
@@ -116,23 +128,24 @@ export default function StockElectionWidget() {
     });
   };
 
-  const handleApplyPreset = (preset: "nvda_spy" | "100_nvda" | "100_spy" | "equal") => {
-    if (preset === "nvda_spy") {
-      setAllocations([
-        { symbol: "NVDA", percentage: 60 },
-        { symbol: "SPY", percentage: 40 },
-      ]);
-    } else if (preset === "100_nvda") {
-      setAllocations([{ symbol: "NVDA", percentage: 100 }]);
-    } else if (preset === "100_spy") {
-      setAllocations([{ symbol: "SPY", percentage: 100 }]);
-    } else if (preset === "equal") {
-      const activeSymbols = allocations.map((a) => a.symbol);
-      const targets = activeSymbols.length > 0 ? activeSymbols : ["NVDA", "SPY"];
-      const even = Math.floor(100 / targets.length);
-      const rem = 100 - even * targets.length;
-      setAllocations(targets.map((s, idx) => ({ symbol: s, percentage: even + (idx === 0 ? rem : 0) })));
+  type Preset = { kind: "single"; symbol: string } | { kind: "equal" };
+
+  const handleApplyPreset = (preset: Preset) => {
+    if (preset.kind === "single") {
+      setAllocations([{ symbol: preset.symbol, percentage: 100 }]);
+      return;
     }
+
+    // Equal across whatever is currently selected, or across the whole
+    // available registry when nothing is.
+    const activeSymbols = allocations.map((a) => a.symbol);
+    const targets =
+      activeSymbols.length > 0 ? activeSymbols : availableTokens.slice(0, 5).map((t) => t.symbol);
+    if (targets.length === 0) return;
+
+    const even = Math.floor(100 / targets.length);
+    const rem = 100 - even * targets.length;
+    setAllocations(targets.map((s, idx) => ({ symbol: s, percentage: even + (idx === 0 ? rem : 0) })));
   };
 
   const handleSave = () => {
@@ -178,7 +191,7 @@ export default function StockElectionWidget() {
             Stock-Elected Payouts (RWA)
           </h3>
           <p className="mt-1 font-sans text-xs text-paper-3 max-w-2xl">
-            Choose whether your daily epoch yield lands as standard {BRAND.valueToken} or automatically converts into native tokenized Stock Tokens (e.g. NVDA, SPY) on Robinhood Chain.
+            Choose whether your daily epoch yield lands as standard {BRAND.valueToken} or automatically converts into native tokenized Stock Tokens (e.g. NVDA, TSLA, AAPL, META) on Robinhood Chain.
           </p>
         </div>
 
@@ -240,30 +253,22 @@ export default function StockElectionWidget() {
               <span className="font-mono text-[11px] uppercase tracking-wider text-paper-3">
                 Presets:
               </span>
+              {/* Presets name the registry rather than hardcoding tickers, so
+                  a listing change cannot leave a button that builds a basket
+                  the server then refuses. */}
+              {availableTokens.slice(0, 4).map((token) => (
+                <button
+                  key={token.symbol}
+                  type="button"
+                  onClick={() => handleApplyPreset({ kind: "single", symbol: token.symbol })}
+                  className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
+                >
+                  100% {token.symbol}
+                </button>
+              ))}
               <button
                 type="button"
-                onClick={() => handleApplyPreset("nvda_spy")}
-                className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
-              >
-                60% NVDA / 40% SPY
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset("100_nvda")}
-                className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
-              >
-                100% NVDA
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset("100_spy")}
-                className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
-              >
-                100% SPY
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset("equal")}
+                onClick={() => handleApplyPreset({ kind: "equal" })}
                 className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
               >
                 Equal Split
@@ -356,6 +361,14 @@ export default function StockElectionWidget() {
                           >
                             <ExternalLink className="h-3 w-3" />
                           </a>
+                        )}
+                        {token?.feedStatus === "pending" && (
+                          <span
+                            className="rounded bg-hair/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-paper-3"
+                            title="No price source is configured for this token yet. You can elect it now; it cannot settle until a feed is live."
+                          >
+                            Feed pending
+                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">

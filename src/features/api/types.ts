@@ -290,10 +290,13 @@ export interface EligibleStockToken {
   symbol: string;
   name: string;
   contractAddress: string;
-  chainlinkFeedAddress: string;
+  /** Null while no price source exists for this token yet. */
+  chainlinkFeedAddress: string | null;
   corporateActionMultiplier: number;
   isLiquid: boolean;
   isSuspended: boolean;
+  /** "live" once a price source is configured, "pending" until then. */
+  feedStatus: "live" | "pending";
 }
 
 export interface EligibleStockTokensResponse {

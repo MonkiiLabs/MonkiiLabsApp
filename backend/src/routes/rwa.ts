@@ -11,59 +11,109 @@ export interface EligibleTokenRecord {
   symbol: string;
   name: string;
   contractAddress: string;
-  chainlinkFeedAddress: string;
+  /** Null while no price source exists for this token yet. */
+  chainlinkFeedAddress: string | null;
   corporateActionMultiplier: number;
   isLiquid: boolean;
   isSuspended: boolean;
+  /** "live" once a price source is configured, "pending" until then. */
+  feedStatus: "live" | "pending";
 }
 
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 
 /**
- * A token can only be elected if both of its addresses are real addresses.
+ * Knowing a token and being able to price it are two different things.
  *
- * The registry column is TEXT, so a typo or a placeholder stores happily and
- * only fails later, at the point where the settlement leg tries to read a
- * price. Checking the shape here means an unpriceable row is reported as
- * suspended and illiquid instead, which the election validator already
- * refuses, so a nurturer can never hold an allocation we cannot settle.
+ * A bad contract address means we do not know what the token is, and nothing
+ * downstream can recover from that, so such a row is reported suspended and
+ * illiquid, which the election validator already refuses.
+ *
+ * A missing price source is a narrower problem. Robinhood Chain publishes no
+ * equity aggregators yet, so every ticker here is pending one. That blocks
+ * settlement, not election, and Sprint F is accrual-only: nobody is being paid
+ * in stock tokens today. Rather than hide the tickers until an oracle exists,
+ * the state is named and carried, so whatever eventually settles a payout can
+ * refuse a pending token on its own terms.
+ *
+ * A feed that is present but malformed is treated as pending, never as live.
  */
-function isPriceable(token: EligibleTokenRecord): boolean {
-  return EVM_ADDRESS.test(token.contractAddress) && EVM_ADDRESS.test(token.chainlinkFeedAddress);
-}
-
-/** Force an unpriceable token into the state the election validator rejects. */
 function gateOnPriceability(token: EligibleTokenRecord): EligibleTokenRecord {
-  if (isPriceable(token)) return token;
-  return { ...token, isLiquid: false, isSuspended: true };
+  const feed = token.chainlinkFeedAddress;
+  const feedIsLive = typeof feed === "string" && EVM_ADDRESS.test(feed);
+
+  if (!EVM_ADDRESS.test(token.contractAddress)) {
+    return {
+      ...token,
+      chainlinkFeedAddress: feedIsLive ? feed : null,
+      feedStatus: feedIsLive ? "live" : "pending",
+      isLiquid: false,
+      isSuspended: true,
+    };
+  }
+
+  return {
+    ...token,
+    chainlinkFeedAddress: feedIsLive ? feed : null,
+    feedStatus: feedIsLive ? "live" : "pending",
+  };
 }
 
+/**
+ * Whether a token can actually be paid out in kind. Nothing calls this yet,
+ * because Sprint F accrues and does not settle. The settlement leg must,
+ * before it converts a single unit of yield.
+ */
+export function canSettle(token: EligibleTokenRecord): boolean {
+  return token.feedStatus === "live" && token.isLiquid && !token.isSuspended;
+}
+
+/**
+ * Served only when the registry table cannot be read, so it mirrors what
+ * migration 010 writes: real Robinhood Chain contracts, price source pending.
+ */
 const FALLBACK_TOKENS: EligibleTokenRecord[] = [
   {
     symbol: "NVDA",
     name: "NVIDIA Corp Tokenized Stock",
-    contractAddress: "0x1A4b61B012C88AbD07D8ff9398867566C1530eD9",
-    chainlinkFeedAddress: "0x5bE40cD98D5B182A7C31bE5B8E65D7d47Efe7E15",
+    contractAddress: "0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec",
+    chainlinkFeedAddress: null,
     corporateActionMultiplier: 1.0,
     isLiquid: true,
     isSuspended: false,
+    feedStatus: "pending",
   },
   {
-    symbol: "SPY",
-    name: "SPDR S&P 500 ETF Tokenized Stock",
-    contractAddress: "0x2B5c72C123D99BcE18E900A499786677D2641fE0",
-    chainlinkFeedAddress: "0x6cF51dE89E6C293B8D42cF6C8F76e8e58F1f8F26",
+    symbol: "TSLA",
+    name: "Tesla Inc Tokenized Stock",
+    contractAddress: "0x322f0929c4625ed5bad873c95208d54e1c003b2d",
+    chainlinkFeedAddress: null,
     corporateActionMultiplier: 1.0,
     isLiquid: true,
     isSuspended: false,
+    feedStatus: "pending",
+  },
+  {
+    symbol: "AAPL",
+    name: "Apple Inc Tokenized Stock",
+    contractAddress: "0xaf3d76f1834a1d425780943c99ea8a608f8a93f9",
+    chainlinkFeedAddress: null,
+    corporateActionMultiplier: 1.0,
+    isLiquid: true,
+    isSuspended: false,
+    feedStatus: "pending",
+  },
+  {
+    symbol: "META",
+    name: "Meta Platforms Tokenized Stock",
+    contractAddress: "0xc0d6457c16cc70d6790dd43521c899c87ce02f35",
+    chainlinkFeedAddress: null,
+    corporateActionMultiplier: 1.0,
+    isLiquid: true,
+    isSuspended: false,
+    feedStatus: "pending",
   },
 ];
-
-/* TSLA, AAPL and AMZN were seeded with placeholder Chainlink feeds that are
-   not valid hex, so nothing can price them. They are held back from the
-   fallback registry until real feed addresses land, and migration 009
-   suspends the matching rows in the database. NVDA and SPY both carry real
-   addresses and cover the default 60/40 preset. */
 
 const allocationItemSchema = z.object({
   symbol: z.string().min(1).max(16),
@@ -83,7 +133,7 @@ export async function fetchEligibleTokens(): Promise<EligibleTokenRecord[]> {
       symbol: string;
       name: string;
       contract_address: string;
-      chainlink_feed_address: string;
+      chainlink_feed_address: string | null;
       corporate_action_multiplier: string | number;
       is_liquid: boolean;
       is_suspended: boolean;
@@ -104,6 +154,9 @@ export async function fetchEligibleTokens(): Promise<EligibleTokenRecord[]> {
           corporateActionMultiplier: Number(r.corporate_action_multiplier || 1.0),
           isLiquid: Boolean(r.is_liquid),
           isSuspended: Boolean(r.is_suspended),
+          // gateOnPriceability derives the real value; this is a
+          // placeholder so the object satisfies the type first.
+          feedStatus: "pending",
         }),
       );
     }
