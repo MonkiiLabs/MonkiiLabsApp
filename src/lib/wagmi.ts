@@ -1,7 +1,7 @@
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { connectorsForWallets, getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { coinbaseWallet, injectedWallet } from "@rainbow-me/rainbowkit/wallets";
 import { createConfig, createStorage, http } from "wagmi";
-import { coinbaseWallet, injected, metaMask } from "wagmi/connectors";
 import { defineChain } from "viem";
 
 import {
@@ -67,10 +67,31 @@ const storage =
     : createStorage({ storage: window.localStorage, key: STORAGE_KEY });
 
 /**
- * With an id, RainbowKit assembles the full wallet list including
- * WalletConnect. Without one, the app falls back to the connectors wagmi
- * can build unaided: any injected provider (which is how the Robinhood
- * Wallet in-app browser arrives), MetaMask, and Coinbase Wallet.
+ * True when WalletConnect is configured, and therefore when a wallet that
+ * lives in a separate app can be reached at all. The connect surface reads
+ * this to explain a short wallet list rather than presenting one as normal.
+ */
+export const walletConnectEnabled = Boolean(projectId);
+
+/**
+ * Both branches build RainbowKit connectors, because RainbowKit owns the only
+ * connect surface in the app (see useWallet).
+ *
+ * That matters more than it looks. RainbowKit's modal lists wallets it
+ * recognises: the ones `connectorsForWallets` tagged, plus whatever EIP-6963
+ * discovery turns up in the page. Plain wagmi connectors carry neither, so the
+ * previous fallback built `injected`/`metaMask`/`coinbaseWallet` that the modal
+ * had no way to show. On a desktop with an extension, EIP-6963 still found the
+ * extension and the modal looked fine. On a phone there is no extension to
+ * discover and no WalletConnect to reach an app with, so the modal came up
+ * completely empty, which is the "no wallets to connect" report.
+ *
+ * Without a project id the list is genuinely limited to what works in-page:
+ * an injected provider (how the Robinhood Wallet in-app browser arrives) and
+ * Coinbase Wallet, which carries its own SDK. Both are WalletConnect-free, so
+ * `connectorsForWallets` does not reach the throw inside
+ * `getWalletConnectConnector`. Every other wallet, and every mobile deep link,
+ * needs the project id.
  */
 export const wagmiConfig = projectId
   ? getDefaultConfig({
@@ -83,11 +104,10 @@ export const wagmiConfig = projectId
     })
   : createConfig({
       chains: [robinhoodChain],
-      connectors: [
-        injected({ shimDisconnect: true }),
-        metaMask(),
-        coinbaseWallet({ appName: "Monkii Labs" }),
-      ],
+      connectors: connectorsForWallets(
+        [{ groupName: "Available", wallets: [injectedWallet, coinbaseWallet] }],
+        { appName: "Monkii Labs", projectId: "" },
+      ),
       transports: { [robinhoodChain.id]: http(CHAIN_RPC_URL) },
       storage,
       ssr: false,

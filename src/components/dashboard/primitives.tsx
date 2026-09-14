@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, KeyRound, Loader2, Sparkles, Wallet } from "lucide-react";
 
 import { useWallet } from "@/hooks/useWallet";
+import { walletConnectEnabled } from "@/lib/wagmi";
 import type { AgentState } from "@/features/api/types";
 
 /* =====================================================================
@@ -308,6 +309,13 @@ export function AuthGate({ children, what }: { children: ReactNode; what: string
           ? `Sign a plain-text message to use ${what}. It proves you own this address and costs no gas.`
           : `Pick a wallet, then sign a plain-text message to use ${what}. Both steps are free and neither sends a transaction.`}
       </p>
+      {!walletConnectEnabled && !isConnected && (
+        <p className="mx-auto mt-fib2 max-w-[46ch] text-label text-paper-3">
+          Wallet apps on phones cannot be reached from this build, so the picker lists only wallets
+          that run in this page. Open the site inside your wallet's own browser, or connect from a
+          desktop extension.
+        </p>
+      )}
       {authError && <p className="mt-fib2 text-label text-act-lit">{authError}</p>}
 
       {/* One action, one name, all the way through the flow. Clicking it
