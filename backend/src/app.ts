@@ -17,6 +17,7 @@ import { dashboardRouter } from "./routes/dashboard";
 import { leaderboardRouter } from "./routes/leaderboard";
 import { telegramRouter } from "./routes/telegram";
 import { adminRouter } from "./routes/admin";
+import { rwaRouter } from "./routes/rwa";
 
 export function createApp() {
   const app = express();
@@ -71,6 +72,7 @@ export function createApp() {
     leaderboardRouter,
     telegramRouter,
     adminRouter,
+    rwaRouter,
   ];
   for (const r of routers) {
     app.use("/api", r);

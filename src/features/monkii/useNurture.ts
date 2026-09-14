@@ -263,9 +263,12 @@ export function useNurture(agentId: string | undefined) {
           onProgress: (progress) => {
             if (!runningRef.current) return;
             setStats((s) => ({ ...s, hashRate: progress.hashRate }));
+            // Lanes ramp up after start and can drop out, so the cockpit
+            // reads the count from the pool rather than from the request.
+            setCores(progress.cores);
           },
           onError: () => {
-            setError("The compute worker failed to start.");
+            setError("No compute workers could start on this device.");
             void stop();
           },
         });

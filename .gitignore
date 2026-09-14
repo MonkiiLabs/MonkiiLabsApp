@@ -15,5 +15,7 @@ SHIP_BOARD.md
 DUAL_REPO_SYNC.md
 contracts/.env
 contracts/node_modules/
+*.pdf
+Monkii RWA Privacy Expansion Overview.pdf
 
 

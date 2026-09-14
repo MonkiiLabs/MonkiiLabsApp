@@ -60,20 +60,40 @@ export async function isCompanionMintingEnabled(): Promise<boolean> {
   if (process.env.ENABLE_COMPANION_MINTING === "false" || process.env.ENABLE_COMPANION_MINTING === "0") {
     return false;
   }
+  if (process.env.ENABLE_COMPANION_MINTING === "true" || process.env.ENABLE_COMPANION_MINTING === "1") {
+    return true;
+  }
   const val = await getProtocolSetting("enable_companion_minting", "true");
   return val === "true" || val === "1";
 }
 
+/**
+ * Checks whether RWA Stock-Elected payouts (Sprint F) are enabled.
+ * Defaults to FALSE ("Feature flags default OFF" per handoff intent).
+ */
+export async function isRwaElectionsEnabled(): Promise<boolean> {
+  if (process.env.ENABLE_RWA_ELECTIONS === "true" || process.env.ENABLE_RWA_ELECTIONS === "1") {
+    return true;
+  }
+  if (process.env.ENABLE_RWA_ELECTIONS === "false" || process.env.ENABLE_RWA_ELECTIONS === "0") {
+    return false;
+  }
+  const val = await getProtocolSetting("rwa_elections", "false");
+  return val === "true" || val === "1";
+}
+
 export async function getAllProtocolSettings() {
-  const [monki, pons, companion] = await Promise.all([
+  const [monki, pons, companion, rwaElections] = await Promise.all([
     isMonkiClaimingEnabled(),
     isPonsClaimingEnabled(),
     isCompanionMintingEnabled(),
+    isRwaElectionsEnabled(),
   ]);
 
   return {
     enableMonkiClaiming: monki,
     enablePonsClaiming: pons,
     enableCompanionMinting: companion,
+    enableRwaElections: rwaElections,
   };
 }
