@@ -25,6 +25,7 @@ export const env = {
     : (`0x${process.env.REWARD_POOL_PRIVATE_KEY}` as `0x${string}`),
   rewardPoolPublicKey: process.env.REWARD_POOL_PUBLIC_KEY ?? "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
   ponsTokenAddress: process.env.PONS_TOKEN_ADDRESS ?? "0x39dbed3a2bd333467115de45665cc57f813c4571",
+  monkiTokenAddress: process.env.MONKI_TOKEN_ADDRESS ?? "0xcd8d68414da15e9eec53a888878957fc008aa226",
   metaStockTokenAddress: process.env.META_STOCK_TOKEN_ADDRESS ?? "",
   companionsNftAddress: process.env.COMPANIONS_NFT_ADDRESS ?? "0xf478d04a5864d0d9bd9c942c41d6c900c11b43b4",
 

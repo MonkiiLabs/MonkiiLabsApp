@@ -5,7 +5,7 @@ import { pool } from "../db/index";
 import { requireAuth } from "../lib/auth";
 import { handler, parseBody } from "../lib/http";
 import { accrueStakingRewards } from "../db/rewards";
-import { disbursePonsClaim } from "../lib/chain";
+import { disbursePonsClaim, disburseMonkiClaim } from "../lib/chain";
 import { isPonsClaimingEnabled } from "../lib/settings";
 import { verifyActionAuthorization, type ClaimAuthPayload } from "../lib/claim-auth";
 
@@ -181,18 +181,33 @@ rewardsRouter.post(
       return;
     }
 
+    let txHash: string;
+    try {
+      const disburseRes = await disburseMonkiClaim(userAddress, claimable);
+      txHash = disburseRes.txHash;
+    } catch (chainErr: any) {
+      res.status(502).json({
+        error: "disbursal_failed",
+        message: chainErr.message || "Failed to disburse MONKI tokens on Robinhood Chain",
+      });
+      return;
+    }
+
     await pool.query(
       `UPDATE rewards
-          SET claimed_monki = claimed_monki + claimable_monki,
+          SET claimed_monki = claimed_monki + $1,
               claimable_monki = 0,
+              last_claim_tx = $2,
               updated_at = now()
-        WHERE user_address = $1`,
-      [userAddress],
+        WHERE user_address = $3`,
+      [claimable, txHash, userAddress],
     );
 
     res.json({
       ok: true,
       withdrawnMonki: claimable,
+      txHash,
+      network: "robinhood-chain-l2",
       status: "settled",
     });
   }),
