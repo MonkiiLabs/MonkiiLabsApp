@@ -24,6 +24,9 @@ import StockLogo from "@/components/dashboard/StockLogo";
 import { explorerAddressUrl } from "@/lib/config";
 import { BRAND } from "@/lib/brand";
 
+/** Matches the server's allocation cap (setElectionSchema, .max(5)). */
+const MAX_BASKET = 5;
+
 export default function StockElectionWidget() {
   const { t } = useTranslation();
   const { data: tokensData, isLoading: tokensLoading } = useEligibleStockTokens();
@@ -76,7 +79,7 @@ export default function StockElectionWidget() {
         // No saved election yet. Open on an even split of whatever is
         // listed, so the form starts valid instead of on a fixed pair that
         // may not be in the registry any more.
-        const targets = availableTokens.slice(0, 4).map((t) => t.symbol);
+        const targets = availableTokens.slice(0, MAX_BASKET).map((t) => t.symbol);
         if (targets.length > 0) {
           const even = Math.floor(100 / targets.length);
           const rem = 100 - even * targets.length;
@@ -117,7 +120,7 @@ export default function StockElectionWidget() {
           percentage: even + (idx === 0 ? rem : 0),
         }));
       } else {
-        if (prev.length >= 5) return prev; // max 5
+        if (prev.length >= MAX_BASKET) return prev;
         const next = [...prev, { symbol, percentage: 0 }];
         const even = Math.floor(100 / next.length);
         const rem = 100 - even * next.length;
@@ -141,7 +144,7 @@ export default function StockElectionWidget() {
     // available registry when nothing is.
     const activeSymbols = allocations.map((a) => a.symbol);
     const targets =
-      activeSymbols.length > 0 ? activeSymbols : availableTokens.slice(0, 5).map((t) => t.symbol);
+      activeSymbols.length > 0 ? activeSymbols : availableTokens.slice(0, MAX_BASKET).map((t) => t.symbol);
     if (targets.length === 0) return;
 
     const even = Math.floor(100 / targets.length);
@@ -192,7 +195,7 @@ export default function StockElectionWidget() {
             Stock-Elected Payouts (RWA)
           </h3>
           <p className="mt-1 font-sans text-xs text-paper-3 max-w-2xl">
-            Choose whether your daily epoch yield lands as standard {BRAND.valueToken} or automatically converts into native tokenized Stock Tokens (e.g. NVDA, TSLA, AAPL, META) on Robinhood Chain.
+            Choose whether your daily epoch yield lands as standard {BRAND.valueToken} or automatically converts into native tokenized Stock Tokens (NVDA, TSLA, AAPL, META, AMZN) on Robinhood Chain.
           </p>
         </div>
 
@@ -257,7 +260,7 @@ export default function StockElectionWidget() {
               {/* Presets name the registry rather than hardcoding tickers, so
                   a listing change cannot leave a button that builds a basket
                   the server then refuses. */}
-              {availableTokens.slice(0, 4).map((token) => (
+              {availableTokens.slice(0, MAX_BASKET).map((token) => (
                 <button
                   key={token.symbol}
                   type="button"

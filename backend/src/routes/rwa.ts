@@ -113,6 +113,16 @@ const FALLBACK_TOKENS: EligibleTokenRecord[] = [
     isSuspended: false,
     feedStatus: "pending",
   },
+  {
+    symbol: "AMZN",
+    name: "Amazon.com Inc Tokenized Stock",
+    contractAddress: "0x12f190a9f9d7d37a250758b26824b97ce941bf54",
+    chainlinkFeedAddress: null,
+    corporateActionMultiplier: 1.0,
+    isLiquid: true,
+    isSuspended: false,
+    feedStatus: "pending",
+  },
 ];
 
 const allocationItemSchema = z.object({
