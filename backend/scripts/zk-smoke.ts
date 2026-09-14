@@ -14,7 +14,7 @@ import {
   identityCommitment,
   standingLeaf,
   standingNullifier,
-} from "../../zk/leaderboardProgram";
+} from "../src/lib/zk/leaderboardProgram";
 
 const t0 = Date.now();
 console.log("[zk] compiling...");

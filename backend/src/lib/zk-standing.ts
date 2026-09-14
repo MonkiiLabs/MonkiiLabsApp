@@ -7,7 +7,7 @@ import {
   STANDING_TREE_HEIGHT,
   identityCommitment,
   standingLeaf,
-} from "../../../zk/leaderboardProgram";
+} from "./zk/leaderboardProgram";
 
 /* =====================================================================
    Private standing: publishing the tree, and checking proofs against it.
@@ -46,8 +46,9 @@ export async function getVerificationKey(): Promise<VerificationKey> {
   if (stored) {
     try {
       const parsed = JSON.parse(stored) as { data: string; hash: string };
-      cachedKey = { data: parsed.data, hash: Field(parsed.hash) } as VerificationKey;
-      return cachedKey;
+      const key = { data: parsed.data, hash: Field(parsed.hash) } as VerificationKey;
+      cachedKey = key;
+      return key;
     } catch {
       console.warn("[zk] stored verification key was unreadable, recompiling");
     }
@@ -63,7 +64,7 @@ export async function getVerificationKey(): Promise<VerificationKey> {
     JSON.stringify({ data: verificationKey.data, hash: verificationKey.hash.toString() }),
   );
   cachedKey = verificationKey;
-  return cachedKey;
+  return verificationKey;
 }
 
 export interface PublishedStanding {
