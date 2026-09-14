@@ -43,6 +43,7 @@ export const qk = {
   adminSettings: ["admin", "settings"] as const,
   rwaTokens: ["rwa", "tokens"] as const,
   rwaElection: ["rwa", "election"] as const,
+  rwaElectionHistory: ["rwa", "election", "history"] as const,
   rwaBalances: ["rwa", "balances"] as const,
 };
 
@@ -413,6 +414,21 @@ export function useRwaElection() {
   });
 }
 
+/**
+ * Every basket this wallet has elected, newest first. Kept off the main
+ * election query so a history table that cannot be read hides one strip
+ * rather than breaking the card people save from.
+ */
+export function useRwaElectionHistory(limit?: number) {
+  const { isAuthenticated } = useWallet();
+  return useQuery({
+    queryKey: limit ? [...qk.rwaElectionHistory, limit] : qk.rwaElectionHistory,
+    queryFn: () => rwa.electionHistory(limit),
+    enabled: isAuthenticated,
+    retry: false,
+  });
+}
+
 export function useSaveRwaElection() {
   const qc = useQueryClient();
 
@@ -420,6 +436,7 @@ export function useSaveRwaElection() {
     mutationFn: (payload: import("./types").SaveRwaElectionPayload) => rwa.saveElection(payload),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: qk.rwaElection });
+      qc.invalidateQueries({ queryKey: qk.rwaElectionHistory });
       qc.invalidateQueries({ queryKey: qk.rwaBalances });
       toast.success("Stock election updated", {
         description: data.message,

@@ -266,6 +266,11 @@ export const rwa = {
   saveElection: (payload: import("./types").SaveRwaElectionPayload) =>
     api.post<import("./types").SaveRwaElectionResponse>("/rwa/election", payload),
 
+  electionHistory: (limit?: number) =>
+    api.get<import("./types").RwaElectionHistoryResponse>(
+      limit ? `/rwa/election/history?limit=${limit}` : "/rwa/election/history",
+    ),
+
   balances: () =>
     api.get<import("./types").RealtimeBalancesResponse>("/rwa/balances"),
 };

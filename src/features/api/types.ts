@@ -355,7 +355,33 @@ export interface SaveRwaElectionResponse {
   updatedAt: string;
   isElectionsActive: boolean;
   stage: string;
+  /** The period this save opened, or the one it left standing. */
+  period: RwaElectionPeriod;
+  /** False when the saved basket matches the one already in force. */
+  changed: boolean;
   message: string;
+}
+
+/** One basket, and the window it was in force for. */
+export interface RwaElectionPeriod {
+  id: number;
+  mode: "stock_elected" | "plain_pons";
+  allocations: UserRwaAllocation[];
+  isEnabled: boolean;
+  effectiveFrom: string;
+  /** Null while this is the period in force. */
+  effectiveTo: string | null;
+  isCurrent: boolean;
+}
+
+export interface RwaElectionHistoryResponse {
+  ok: boolean;
+  userAddress: string;
+  isElectionsActive: boolean;
+  current: RwaElectionPeriod | null;
+  periods: RwaElectionPeriod[];
+  /** True when older periods exist beyond the requested limit. */
+  hasMore: boolean;
 }
 
 export interface RwaTokenHolding {

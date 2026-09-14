@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Coins,
   ExternalLink,
+  History,
   Info,
   Loader2,
   PieChart,
@@ -17,6 +18,7 @@ import {
 import {
   useEligibleStockTokens,
   useRwaElection,
+  useRwaElectionHistory,
   useSaveRwaElection,
 } from "@/features/api/hooks";
 import type { UserRwaAllocation } from "@/features/api/types";
@@ -460,6 +462,8 @@ export default function StockElectionWidget() {
           </>
         )}
 
+        <ElectionHistory />
+
         {/* Action Button & Status Bar */}
         <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-hair/10">
           <div className="text-xs text-paper-3 font-mono">
@@ -485,6 +489,139 @@ export default function StockElectionWidget() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* =====================================================================
+   Election history.
+
+   Saving an election used to overwrite the previous one, so nothing could
+   say which basket earned what. Each basket is now kept as a period, and
+   this strip is the readable end of that: what you elected, and the
+   window it was live for.
+   ===================================================================== */
+
+/** Periods shown before the strip has to be expanded. */
+const INITIAL_PERIODS = 4;
+
+function formatStamp(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** How long a basket stood. An open period runs to now. */
+function heldFor(from: string, to: string | null): string {
+  const start = new Date(from).getTime();
+  const end = to ? new Date(to).getTime() : Date.now();
+  const days = Math.floor((end - start) / 86_400_000);
+  if (days < 1) return "under a day";
+  return days === 1 ? "1 day" : `${days} days`;
+}
+
+function ElectionHistory() {
+  const { data, isLoading, isError } = useRwaElectionHistory();
+  const [expanded, setExpanded] = useState(false);
+
+  // A history that cannot be read renders nothing. An empty list here would
+  // read as "you have never elected anything", which is a different claim
+  // and one we would have no basis for making.
+  if (isLoading || isError) return null;
+
+  const periods = data?.periods ?? [];
+  if (periods.length === 0) return null;
+
+  const shown = expanded ? periods : periods.slice(0, INITIAL_PERIODS);
+  const hidden = periods.length - shown.length;
+
+  return (
+    <div className="rounded-xl border border-hair/10 bg-bench/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <History className="h-4 w-4 shrink-0 text-alive-lit" />
+          <span className="font-mono text-xs font-semibold text-paper">Election History</span>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-paper-3">
+          {periods.length} {periods.length === 1 ? "period" : "periods"}
+        </span>
+      </div>
+
+      <p className="mt-1.5 text-[11px] text-paper-3">
+        Every basket you have elected, kept as its own period. Yield is attributed to the basket
+        that was live when it accrued, not to the one you hold today.
+      </p>
+
+      <ol className="mt-3 space-y-2">
+        {shown.map((period) => (
+          <li
+            key={period.id}
+            className={`rounded-lg border p-3 ${
+              period.isCurrent
+                ? "border-alive/30 bg-alive/[0.06]"
+                : "border-hair/10 bg-hair/[0.02]"
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-[11px] tabular-nums text-paper-2">
+                {formatStamp(period.effectiveFrom)}
+                <span className="text-paper-3"> to </span>
+                {period.effectiveTo ? formatStamp(period.effectiveTo) : "now"}
+              </span>
+
+              {period.isCurrent ? (
+                <span className="inline-flex items-center gap-1 rounded-md border border-alive/40 bg-alive/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-alive-lit">
+                  <CheckCircle2 className="h-3 w-3" />
+                  In force
+                </span>
+              ) : (
+                <span className="font-mono text-[10px] text-paper-3">
+                  held {heldFor(period.effectiveFrom, period.effectiveTo)}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {period.mode === "plain_pons" || period.allocations.length === 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-md border border-hair/15 bg-hair/5 px-2 py-0.5 font-mono text-[11px] text-paper-2">
+                  <Coins className="h-3 w-3 text-paper-3" />
+                  Plain {BRAND.valueToken}
+                </span>
+              ) : (
+                period.allocations.map((allocation) => (
+                  <span
+                    key={allocation.symbol}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-hair/15 bg-hair/5 px-2 py-0.5 font-mono text-[11px] text-paper-2"
+                  >
+                    <span className="font-bold text-paper">{allocation.symbol}</span>
+                    <span className="tabular-nums text-paper-3">{allocation.percentage}%</span>
+                  </span>
+                ))
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      {periods.length > INITIAL_PERIODS && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-alive-lit transition-opacity hover:opacity-80"
+        >
+          {expanded ? "Show less" : `Show ${hidden} older`}
+        </button>
+      )}
+
+      {expanded && data?.hasMore && (
+        <p className="mt-2 font-mono text-[10px] text-paper-3">
+          Older periods exist beyond the most recent {periods.length}.
+        </p>
+      )}
     </div>
   );
 }

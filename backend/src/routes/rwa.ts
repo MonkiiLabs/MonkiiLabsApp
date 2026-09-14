@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { PoolClient } from "pg";
 import { pool } from "../db/index";
 import { requireAuth } from "../lib/auth";
 import { handler, parseBody } from "../lib/http";
@@ -174,6 +175,201 @@ export async function fetchEligibleTokens(): Promise<EligibleTokenRecord[]> {
     console.warn("[rwa] Error fetching rwa_eligible_tokens, using fallback registry:", err);
   }
   return FALLBACK_TOKENS.map(gateOnPriceability);
+}
+
+/* =====================================================================
+   Election history.
+
+   `user_rwa_elections` holds one row per wallet and is upserted, so the
+   basket saved last week is gone the moment a new one is saved. Nothing
+   could say what a wallet was electing at any point in the past, which
+   matters for one specific reason: an accrual belongs to the basket that
+   was in force when it accrued, not to whatever the wallet holds on the
+   day somebody asks. Without a record of the second thing, the first is
+   unprovable.
+
+   `user_rwa_election_history` keeps each basket as a period, closed when
+   the next one opens, so the periods tile a wallet's whole history with
+   no gaps. The table is append-only at the database level: a trigger
+   refuses deletes and every update except closing an open period.
+
+   Writes go through `recordElectionChange` inside the same transaction
+   as the upsert, so the current basket and the record of it cannot
+   disagree. Saving a basket identical to the open one is not a change
+   and opens no period: this is a record of what was elected, not of how
+   many times somebody pressed save.
+   ===================================================================== */
+
+export interface ElectionAllocation {
+  symbol: string;
+  percentage: number;
+}
+
+export interface ElectionPeriod {
+  id: number;
+  mode: "stock_elected" | "plain_pons";
+  allocations: ElectionAllocation[];
+  isEnabled: boolean;
+  effectiveFrom: string;
+  /** Null while this is the period in force. */
+  effectiveTo: string | null;
+  isCurrent: boolean;
+}
+
+interface HistoryRow {
+  id: string | number;
+  mode: string;
+  allocations: unknown;
+  is_enabled: boolean;
+  effective_from: Date | string;
+  effective_to: Date | string | null;
+}
+
+const HISTORY_COLUMNS = "id, mode, allocations, is_enabled, effective_from, effective_to";
+
+/** Parse stored allocations, keeping the order they were elected in. */
+function readAllocations(input: unknown): ElectionAllocation[] {
+  if (!Array.isArray(input)) return [];
+  const out: ElectionAllocation[] = [];
+  for (const item of input) {
+    if (!item || typeof item !== "object") continue;
+    const symbol = String((item as { symbol?: unknown }).symbol ?? "").toUpperCase();
+    const percentage = Math.round(Number((item as { percentage?: unknown }).percentage ?? 0));
+    if (symbol.length === 0 || !Number.isFinite(percentage)) continue;
+    out.push({ symbol, percentage });
+  }
+  return out;
+}
+
+/**
+ * Two baskets are the same basket regardless of the order the tickers were
+ * added in, so comparison runs against a sorted copy while storage keeps the
+ * elected order for display.
+ */
+function canonicalKey(
+  mode: string,
+  allocations: ElectionAllocation[],
+  isEnabled: boolean,
+): string {
+  const sorted = [...allocations].sort((a, b) => a.symbol.localeCompare(b.symbol));
+  return JSON.stringify({ mode, isEnabled, allocations: sorted });
+}
+
+function isoOf(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+function toPeriod(row: HistoryRow): ElectionPeriod {
+  return {
+    id: Number(row.id),
+    mode: row.mode === "stock_elected" ? "stock_elected" : "plain_pons",
+    allocations: readAllocations(row.allocations),
+    isEnabled: Boolean(row.is_enabled),
+    effectiveFrom: isoOf(row.effective_from),
+    effectiveTo: row.effective_to === null ? null : isoOf(row.effective_to),
+    isCurrent: row.effective_to === null,
+  };
+}
+
+/**
+ * Close the open period if the basket actually changed, and open a new one.
+ * Must run inside a transaction alongside the `user_rwa_elections` upsert.
+ */
+export async function recordElectionChange(
+  client: PoolClient,
+  userAddress: string,
+  next: { mode: string; allocations: ElectionAllocation[]; isEnabled: boolean },
+): Promise<{ period: ElectionPeriod; changed: boolean }> {
+  const { rows } = await client.query<HistoryRow>(
+    `SELECT ${HISTORY_COLUMNS}
+       FROM user_rwa_election_history
+      WHERE user_address = $1 AND effective_to IS NULL
+      FOR UPDATE`,
+    [userAddress],
+  );
+
+  const open = rows[0];
+  const desired = canonicalKey(next.mode, next.allocations, next.isEnabled);
+
+  if (open) {
+    const current = canonicalKey(
+      open.mode,
+      readAllocations(open.allocations),
+      Boolean(open.is_enabled),
+    );
+    if (current === desired) return { period: toPeriod(open), changed: false };
+
+    // NOW() is the transaction timestamp, so the period that closes and the
+    // period that opens share one instant and the history has no gap in it.
+    // Truncated to milliseconds for the reason migration 014 gives: a
+    // boundary we hand out has to be able to find its own period on the way
+    // back in.
+    await client.query(
+      `UPDATE user_rwa_election_history
+          SET effective_to = date_trunc('milliseconds', NOW())
+        WHERE id = $1`,
+      [open.id],
+    );
+  }
+
+  const inserted = await client.query<HistoryRow>(
+    `INSERT INTO user_rwa_election_history
+       (user_address, mode, allocations, is_enabled, effective_from, effective_to)
+     VALUES ($1, $2, $3::jsonb, $4, date_trunc('milliseconds', NOW()), NULL)
+     RETURNING ${HISTORY_COLUMNS}`,
+    [userAddress, next.mode, JSON.stringify(next.allocations), next.isEnabled],
+  );
+
+  return { period: toPeriod(inserted.rows[0]), changed: true };
+}
+
+/**
+ * The basket that was live for this wallet at `at`.
+ *
+ * The settlement and accrual legs read this rather than
+ * `user_rwa_elections`, so yield recorded against a past epoch is
+ * attributed to the election that was actually in force during it.
+ */
+export async function electionInForceAt(
+  userAddress: string,
+  at: Date,
+): Promise<ElectionPeriod | null> {
+  const { rows } = await pool.query<HistoryRow>(
+    `SELECT ${HISTORY_COLUMNS}
+       FROM user_rwa_election_history
+      WHERE user_address = $1
+        AND effective_from <= $2
+        AND (effective_to IS NULL OR effective_to > $2)
+      ORDER BY effective_from DESC
+      LIMIT 1`,
+    [userAddress, at],
+  );
+  return rows[0] ? toPeriod(rows[0]) : null;
+}
+
+/** The upsert that keeps `user_rwa_elections` pointing at the live basket. */
+function upsertElection(
+  client: PoolClient,
+  userAddress: string,
+  mode: string,
+  allocations: ElectionAllocation[],
+) {
+  return client.query<{
+    mode: string;
+    allocations: unknown;
+    is_enabled: boolean;
+    updated_at: string;
+  }>(
+    `INSERT INTO user_rwa_elections (user_address, mode, allocations, is_enabled, updated_at)
+     VALUES ($1, $2, $3::jsonb, true, NOW())
+     ON CONFLICT (user_address)
+     DO UPDATE SET mode = EXCLUDED.mode,
+                   allocations = EXCLUDED.allocations,
+                   is_enabled = EXCLUDED.is_enabled,
+                   updated_at = NOW()
+     RETURNING mode, allocations, is_enabled, updated_at`,
+    [userAddress, mode, JSON.stringify(allocations)],
+  );
 }
 
 // GET /api/rwa/tokens — public registry of eligible Stock Tokens on Robinhood Chain (4663)
@@ -384,6 +580,58 @@ rwaRouter.get(
   }),
 );
 
+const historyQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+// GET /api/rwa/election/history — every basket this wallet has ever elected
+//
+// Unlike the other reads here, a failure is not answered with a plausible
+// empty result. An empty history and an unreadable history look identical to
+// a nurturer, and the whole point of this record is that it can be trusted,
+// so the error is allowed to surface as a 500.
+rwaRouter.get(
+  "/rwa/election/history",
+  requireAuth,
+  handler(async (req, res) => {
+    const parsed = historyQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: "invalid_query",
+        message: "limit must be a whole number between 1 and 200.",
+      });
+      return;
+    }
+
+    const userAddress = req.user!.walletAddress;
+    const { limit } = parsed.data;
+    const isElectionsActive = await isRwaElectionsEnabled();
+
+    // One row past the limit, so "there is older history" is a fact rather
+    // than a guess drawn from a full page.
+    const { rows } = await pool.query<HistoryRow>(
+      `SELECT ${HISTORY_COLUMNS}
+         FROM user_rwa_election_history
+        WHERE user_address = $1
+        ORDER BY effective_from DESC, id DESC
+        LIMIT $2`,
+      [userAddress, limit + 1],
+    );
+
+    const hasMore = rows.length > limit;
+    const periods = rows.slice(0, limit).map(toPeriod);
+
+    res.json({
+      ok: true,
+      userAddress,
+      isElectionsActive,
+      current: periods.find((period) => period.isCurrent) ?? null,
+      periods,
+      hasMore,
+    });
+  }),
+);
+
 // POST /api/rwa/election — configure Stock-Elected Payout preferences
 rwaRouter.post(
   "/rwa/election",
@@ -477,33 +725,41 @@ rwaRouter.post(
     }
 
     // Persist election
+    const sanitizedAllocations: ElectionAllocation[] =
+      body.mode === "stock_elected"
+        ? body.allocations.map((a) => ({
+            symbol: a.symbol.toUpperCase(),
+            percentage: a.percentage,
+          }))
+        : [];
+
+    const message =
+      body.mode === "stock_elected"
+        ? "Stock election preferences saved. In Sprint F, accrual is recorded off-chain; settlement conversion will execute upon Sprint G activation."
+        : "Reverted to plain $PONS payouts.";
+
+    const client = await pool.connect();
     try {
-      const sanitizedAllocations =
-        body.mode === "stock_elected"
-          ? body.allocations.map((a) => ({
-              symbol: a.symbol.toUpperCase(),
-              percentage: a.percentage,
-            }))
-          : [];
+      // The live row and the history row are written together or not at all,
+      // so the basket in force can never disagree with the record of it.
+      await client.query("BEGIN");
 
-      const { rows } = await pool.query<{
-        mode: string;
-        allocations: any;
-        is_enabled: boolean;
-        updated_at: string;
-      }>(
-        `INSERT INTO user_rwa_elections (user_address, mode, allocations, is_enabled, updated_at)
-         VALUES ($1, $2, $3::jsonb, true, NOW())
-         ON CONFLICT (user_address)
-         DO UPDATE SET mode = EXCLUDED.mode,
-                       allocations = EXCLUDED.allocations,
-                       is_enabled = EXCLUDED.is_enabled,
-                       updated_at = NOW()
-         RETURNING mode, allocations, is_enabled, updated_at`,
-        [userAddress, body.mode, JSON.stringify(sanitizedAllocations)],
+      const { rows } = await upsertElection(
+        client,
+        userAddress,
+        body.mode,
+        sanitizedAllocations,
       );
-
       const saved = rows[0];
+
+      const { period, changed } = await recordElectionChange(client, userAddress, {
+        mode: saved.mode,
+        allocations: sanitizedAllocations,
+        isEnabled: saved.is_enabled,
+      });
+
+      await client.query("COMMIT");
+
       res.json({
         ok: true,
         userAddress,
@@ -513,17 +769,29 @@ rwaRouter.post(
         updatedAt: saved.updated_at,
         isElectionsActive,
         stage: "sprint_f_accrual_only",
-        message:
-          body.mode === "stock_elected"
-            ? "Stock election preferences saved. In Sprint F, accrual is recorded off-chain; settlement conversion will execute upon Sprint G activation."
-            : "Reverted to plain $PONS payouts.",
+        /** The period this save opened, or the one it left standing. */
+        period,
+        /** False when the basket sent matches the one already in force. */
+        changed,
+        message,
       });
     } catch (err: any) {
+      await client.query("ROLLBACK").catch(() => {});
+
+      // No fallback path here, deliberately. An election saved without its
+      // history row is exactly the disagreement this table exists to prevent,
+      // and a save that quietly half-succeeds would hide the fact that
+      // migration 014 never applied. If the history table is missing, the
+      // save fails and says so. Boot logging a migration failure and serving
+      // anyway is the actual bug, and it belongs to the config validation
+      // work, not here.
       console.error("[rwa] Error saving election:", err);
       res.status(500).json({
         error: "save_failed",
         message: err.message || "Failed to persist RWA stock election preferences.",
       });
+    } finally {
+      client.release();
     }
   }),
 );
