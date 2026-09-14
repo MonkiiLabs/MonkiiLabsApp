@@ -9,7 +9,7 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 import { AGENT_POWER_MAX } from "@/lib/config";
 
 /**
- * Modern Agent Fleet Card. 
+ * Modern Agent Fleet Card. builder.
  * Precision telemetry gauge, live vitality indicator, and watchlist star.
  */
 const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean }) => {
