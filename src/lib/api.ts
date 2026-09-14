@@ -103,4 +103,10 @@ export const api = {
   get: <T>(path: string, init?: ApiInit) => apiFetch<T>(path, { ...init, method: "GET" }),
   post: <T>(path: string, json?: unknown, init?: ApiInit) =>
     apiFetch<T>(path, { ...init, method: "POST", json }),
+  patch: <T>(path: string, json?: unknown, init?: ApiInit) =>
+    apiFetch<T>(path, { ...init, method: "PATCH", json }),
+  put: <T>(path: string, json?: unknown, init?: ApiInit) =>
+    apiFetch<T>(path, { ...init, method: "PUT", json }),
+  delete: <T>(path: string, init?: ApiInit) =>
+    apiFetch<T>(path, { ...init, method: "DELETE" }),
 };
