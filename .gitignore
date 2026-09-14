@@ -11,6 +11,8 @@ bun.lockb
 *.pem
 .vercel
 technical-docs/
+SHIP_BOARD.md
+DUAL_REPO_SYNC.md
 contracts/.env
 contracts/node_modules/
 
