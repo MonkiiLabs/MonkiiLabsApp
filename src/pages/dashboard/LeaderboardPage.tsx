@@ -15,6 +15,7 @@ import {
   StateChip,
   fmt,
 } from "@/components/dashboard/primitives";
+import PrivateStandingCard from "@/components/dashboard/PrivateStandingCard";
 import { BRAND, monkiiMark } from "@/lib/brand";
 
 type Tab = "nurturers" | "agents";
@@ -63,6 +64,11 @@ const LeaderboardPage = () => {
         title={t("leaderboard.title")}
         intro={t("leaderboard.intro")}
       />
+
+      {/* Renders itself away unless the zk_private_standing flag is on. */}
+      <div className="mb-6">
+        <PrivateStandingCard />
+      </div>
 
       <div className="mb-6 flex gap-2">
         {[
