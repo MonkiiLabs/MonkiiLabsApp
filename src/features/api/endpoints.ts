@@ -150,8 +150,10 @@ export const companions = {
 
   inventory: () =>
     api
-      .get<{ companions: OwnedCompanion[] }>("/companions/inventory")
-      .then((r) => r.companions ?? []),
+      .get<{ inventory?: OwnedCompanion[]; companions?: OwnedCompanion[] }>("/companions/inventory")
+      // `inventory` is the documented response key. Keep the legacy fallback
+      // so an older backend can be rolled out before this frontend bundle.
+      .then((r) => r.inventory ?? r.companions ?? []),
 
   buildMintTx: (companionId: string) =>
     api.post<MintTxPayload>("/companions/build-mint-tx", { companionId }),
@@ -262,4 +264,3 @@ export const rwa = {
   saveElection: (payload: import("./types").SaveRwaElectionPayload) =>
     api.post<import("./types").SaveRwaElectionResponse>("/rwa/election", payload),
 };
-
