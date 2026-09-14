@@ -1,7 +1,12 @@
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Check, Copy } from "lucide-react";
 import { BRAND, monkiiBanner, monkiiLogo } from "@/lib/brand";
+
+const CONTRACT_ADDRESS = "0xcd8d68414da15e9eec53a888878957fc008aa226";
+const CONTRACT_SHORT = `${CONTRACT_ADDRESS.slice(0, 6)}...${CONTRACT_ADDRESS.slice(-4)}`;
 
 const FloatingCloud = ({ className, delay = 0 }: { className: string; delay?: number }) => (
   <motion.div
@@ -10,6 +15,61 @@ const FloatingCloud = ({ className, delay = 0 }: { className: string; delay?: nu
     transition={{ duration: 6, repeat: Infinity, delay, ease: "easeInOut" }}
   />
 );
+
+/**
+ * Contract address pill.
+ *
+ * The full address is 42 characters, which overflows a phone at the size the
+ * rest of the hero is set in, so the short form carries small screens and the
+ * full one appears from md up. Either way the copy button puts the complete
+ * address on the clipboard.
+ */
+const ContractBubble = () => {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(CONTRACT_ADDRESS);
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // The clipboard API is unavailable over plain http and inside some
+      // in-app wallet browsers. The address stays on screen and selectable,
+      // so the fallback is to leave the label alone rather than claim a copy
+      // that did not happen.
+    }
+  };
+
+  return (
+    <motion.button
+      type="button"
+      onClick={copy}
+      aria-label={`Copy the ${BRAND.rewardToken} contract address ${CONTRACT_ADDRESS}`}
+      className="group mb-8 sm:mb-12 flex max-w-full items-center gap-2 sm:gap-3 rounded-full border-2 border-sky/40 bg-white/80 px-3 py-2 sm:px-5 sm:py-2.5 shadow-playful backdrop-blur transition-colors duration-300 hover:border-sky hover:bg-white"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.65 }}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <span className="shrink-0 rounded-full bg-coral px-2 py-0.5 text-[10px] sm:text-xs font-extrabold uppercase tracking-wide text-white">
+        {BRAND.rewardToken}
+      </span>
+      <span className="truncate font-mono text-xs sm:text-sm font-bold text-claw-charcoal">
+        <span className="md:hidden">{CONTRACT_SHORT}</span>
+        <span className="hidden md:inline">{CONTRACT_ADDRESS}</span>
+      </span>
+      <span className="shrink-0 text-sky-dark" aria-hidden="true">
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 opacity-60 group-hover:opacity-100" />}
+      </span>
+      <span className="sr-only" role="status">{copied ? `${BRAND.rewardToken} contract address copied` : ""}</span>
+    </motion.button>
+  );
+};
 
 const Hero = () => {
   return (
@@ -85,7 +145,7 @@ const Hero = () => {
       </motion.p>
 
       <motion.div
-        className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12 w-full sm:w-auto px-4 sm:px-0"
+        className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5 sm:mb-6 w-full sm:w-auto px-4 sm:px-0"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
@@ -110,6 +170,8 @@ const Hero = () => {
           </Button>
         </motion.div>
       </motion.div>
+
+      <ContractBubble />
 
       <motion.div
         className="w-full max-w-lg mx-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-playful-lg"
