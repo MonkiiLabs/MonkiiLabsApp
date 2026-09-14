@@ -54,15 +54,49 @@ const AlertsInner = () => {
         />
         <div className="p-5">
           {linked ? (
-            <div className="flex items-center gap-3 rounded-xl border border-alive/30 bg-alive/10 p-4">
-              <Check className="h-5 w-5 shrink-0 text-alive-lit" />
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-paper">{t("alerts.activeTitle")}</p>
-                <p className="text-xs text-paper-3">
-                  {profile.data?.telegram.username
-                    ? t("alerts.activeFor", { username: profile.data.telegram.username })
-                    : t("alerts.activeGeneric")}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-alive/30 bg-alive/10 p-4">
+                <div className="flex items-center gap-3">
+                  <Check className="h-5 w-5 shrink-0 text-alive-lit" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-paper">{t("alerts.activeTitle")}</p>
+                    <p className="text-xs text-paper-3">
+                      {profile.data?.telegram.username
+                        ? t("alerts.activeFor", { username: profile.data.telegram.username })
+                        : t("alerts.activeGeneric")}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={`https://t.me/${BOT_HANDLE}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-alive/40 bg-alive/20 px-3 py-1.5 font-mono text-[11px] font-bold text-alive-lit transition-colors hover:bg-alive/30"
+                >
+                  <Send className="h-3 w-3" />
+                  Open @{BOT_HANDLE}
+                </a>
+              </div>
+
+              <div className="rounded-xl border border-hair/10 bg-bench/50 p-3.5 text-xs text-paper-2">
+                <p className="font-semibold text-paper">🤖 Interactive Sentinel Commands</p>
+                <p className="mt-1 text-paper-3">
+                  Message the bot directly or use the persistent keyboard on Telegram to query your telemetry:
                 </p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  <span className="rounded border border-hair/10 bg-cream px-2 py-1 font-mono text-[11px] text-alive-lit">
+                    /stats — Overview & Rank
+                  </span>
+                  <span className="rounded border border-hair/10 bg-cream px-2 py-1 font-mono text-[11px] text-alive-lit">
+                    /monki — Mined $MONKI
+                  </span>
+                  <span className="rounded border border-hair/10 bg-cream px-2 py-1 font-mono text-[11px] text-alive-lit">
+                    /pons — $PONS Staking Yield
+                  </span>
+                  <span className="rounded border border-hair/10 bg-cream px-2 py-1 font-mono text-[11px] text-alive-lit">
+                    /agents — Fleet Vitality
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
