@@ -25,6 +25,9 @@ export interface UserProfile {
   id: string;
   walletAddress: string;
   displayName: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  xHandle?: string | null;
   totalMonkiEarned: number;
   powerRank: number | null;
   telegram: {
@@ -34,6 +37,14 @@ export interface UserProfile {
   };
   createdAt: string;
 }
+
+export interface UpdateProfilePayload {
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  xHandle?: string | null;
+}
+
 
 /* ---- Agents ----------------------------------------------------------- */
 

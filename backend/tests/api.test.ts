@@ -64,4 +64,10 @@ describe("Public API Endpoints", () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.agents)).toBe(true);
   });
+
+  test("PATCH /api/auth/profile requires authentication", async () => {
+    const res = await request(app).patch("/api/auth/profile").send({ displayName: "Ape Commander" });
+    expect(res.status).toBe(401);
+  });
 });
+

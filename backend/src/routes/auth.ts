@@ -57,6 +57,9 @@ authRouter.get(
       id: string;
       wallet_address: string;
       display_name: string | null;
+      avatar_url: string | null;
+      bio: string | null;
+      x_handle: string | null;
       total_monki_earned: string;
       power_rank: number | null;
       telegram_username: string | null;
@@ -64,7 +67,12 @@ authRouter.get(
       telegram_chat_id: string | null;
       created_at: Date;
     }>(
-      `SELECT id, wallet_address, display_name, total_monki_earned, power_rank,
+      `SELECT id, wallet_address, display_name, avatar_url, bio, x_handle,
+              total_monki_earned,
+              (
+                SELECT COUNT(*) + 1 FROM users
+                 WHERE total_monki_earned > (SELECT COALESCE(total_monki_earned, 0) FROM users WHERE wallet_address = $1)
+              ) AS power_rank,
               telegram_username, telegram_link_code, telegram_chat_id, created_at
          FROM users WHERE wallet_address = $1`,
       [req.user.walletAddress],
@@ -81,8 +89,11 @@ authRouter.get(
         id: u.id,
         walletAddress: u.wallet_address,
         displayName: u.display_name,
+        avatarUrl: u.avatar_url,
+        bio: u.bio,
+        xHandle: u.x_handle,
         totalMonkiEarned: Number(u.total_monki_earned),
-        powerRank: u.power_rank,
+        powerRank: u.power_rank ? Number(u.power_rank) : 1,
         telegram: {
           linked: Boolean(u.telegram_chat_id),
           username: u.telegram_username,
@@ -93,3 +104,107 @@ authRouter.get(
     });
   }),
 );
+
+const updateProfileSchema = z.object({
+  displayName: z.string().trim().min(1).max(32).nullable().optional(),
+  avatarUrl: z.string().trim().max(500).nullable().optional(),
+  bio: z.string().trim().max(280).nullable().optional(),
+  xHandle: z
+    .string()
+    .trim()
+    .max(32)
+    .transform((val) => (val ? val.replace(/^@+/, "") : null))
+    .nullable()
+    .optional(),
+});
+
+// PATCH /api/auth/profile — update profile customization (display name, avatar, bio, x handle)
+const handleUpdateProfile = handler(async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+
+  const body = parseBody(updateProfileSchema, req, res);
+  if (!body) return;
+
+  const updates: string[] = ["updated_at = NOW()"];
+  const values: any[] = [];
+  let idx = 1;
+
+  if (body.displayName !== undefined) {
+    updates.push(`display_name = $${idx++}`);
+    values.push(body.displayName || null);
+  }
+  if (body.avatarUrl !== undefined) {
+    updates.push(`avatar_url = $${idx++}`);
+    values.push(body.avatarUrl || null);
+  }
+  if (body.bio !== undefined) {
+    updates.push(`bio = $${idx++}`);
+    values.push(body.bio || null);
+  }
+  if (body.xHandle !== undefined) {
+    updates.push(`x_handle = $${idx++}`);
+    values.push(body.xHandle || null);
+  }
+
+  values.push(req.user.walletAddress);
+
+  const { rows } = await pool.query<{
+    id: string;
+    wallet_address: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    x_handle: string | null;
+    total_monki_earned: string;
+    power_rank: number | null;
+    telegram_username: string | null;
+    telegram_link_code: string | null;
+    telegram_chat_id: string | null;
+    created_at: Date;
+  }>(
+    `UPDATE users
+        SET ${updates.join(", ")}
+      WHERE wallet_address = $${idx}
+      RETURNING id, wallet_address, display_name, avatar_url, bio, x_handle,
+                total_monki_earned,
+                (
+                  SELECT COUNT(*) + 1 FROM users
+                   WHERE total_monki_earned > (SELECT COALESCE(total_monki_earned, 0) FROM users WHERE wallet_address = $${idx})
+                ) AS power_rank,
+                telegram_username, telegram_link_code, telegram_chat_id, created_at`,
+    values,
+  );
+
+  const u = rows[0];
+  if (!u) {
+    res.status(404).json({ error: "user_not_found" });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    user: {
+      id: u.id,
+      walletAddress: u.wallet_address,
+      displayName: u.display_name,
+      avatarUrl: u.avatar_url,
+      bio: u.bio,
+      xHandle: u.x_handle,
+      totalMonkiEarned: Number(u.total_monki_earned),
+      powerRank: u.power_rank ? Number(u.power_rank) : 1,
+      telegram: {
+        linked: Boolean(u.telegram_chat_id),
+        username: u.telegram_username,
+        linkCode: u.telegram_link_code,
+      },
+      createdAt: new Date(u.created_at).toISOString(),
+    },
+  });
+});
+
+authRouter.patch("/auth/profile", handleUpdateProfile);
+authRouter.post("/auth/profile", handleUpdateProfile);
+

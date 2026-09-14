@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowUpRight, ShieldCheck, Sparkles, Star, Zap } from "lucide-react";
 
 import { useWallet } from "@/hooks/useWallet";
-import { useAgents, useClaimable, useDashboardSummary, useStakingStatus } from "@/features/api/hooks";
+import { useAgents, useClaimable, useDashboardSummary, useProfile, useStakingStatus } from "@/features/api/hooks";
 import { Panel, PanelHeader, StateChip, fmt } from "@/components/dashboard/primitives";
 import { monkiiMark } from "@/lib/brand";
 import { useWatchlist } from "@/hooks/useWatchlist";
@@ -11,6 +11,7 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 const DashSidebar = () => {
   const { t } = useTranslation();
   const { address, formatAddress, isAuthenticated } = useWallet();
+  const profile = useProfile();
   const { data: balances } = useClaimable();
   const { data: staking } = useStakingStatus();
   const { data: summary } = useDashboardSummary();
@@ -29,9 +30,12 @@ const DashSidebar = () => {
         <div className="-mt-6 px-4 pb-4">
           <div className="relative inline-block">
             <img
-              src={monkiiMark}
+              src={profile.data?.avatarUrl || monkiiMark}
               alt=""
               className="h-12 w-12 rounded-xl border-2 border-dashboard-border object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = monkiiMark;
+              }}
             />
             {isAuthenticated && (
               <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-act text-[10px] text-white ring-2 ring-white">
@@ -40,12 +44,12 @@ const DashSidebar = () => {
             )}
           </div>
           <div className="mt-2 flex items-center justify-between">
-            <p className="font-mono text-xs font-semibold text-paper">
-              {address ? formatAddress(address) : t("dash.sidebar.notConnected")}
+            <p className="font-mono text-xs font-semibold text-paper truncate max-w-[150px]">
+              {profile.data?.displayName || (address ? formatAddress(address) : t("dash.sidebar.notConnected"))}
             </p>
             {isAuthenticated && (
               <span className="font-mono text-[10px] uppercase text-alive-lit">
-                {t("dash.sidebar.rank", { rank: summary?.powerRank ?? "-" })}
+                {t("dash.sidebar.rank", { rank: summary?.powerRank ?? profile.data?.powerRank ?? "-" })}
               </span>
             )}
           </div>
