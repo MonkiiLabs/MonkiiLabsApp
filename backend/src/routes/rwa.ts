@@ -66,7 +66,7 @@ const FALLBACK_TOKENS: EligibleTokenRecord[] = [
 ];
 
 const allocationItemSchema = z.object({
-  symbol: z.string().min(1).max(10),
+  symbol: z.string().min(1).max(16),
   percentage: z.number().int().min(1).max(100),
 });
 

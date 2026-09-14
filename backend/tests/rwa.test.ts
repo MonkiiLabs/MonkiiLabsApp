@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import request from "supertest";
 import { app } from "../src/app";
-import { issueSessionToken } from "../src/lib/auth";
+import { createSession } from "../src/lib/auth";
 
 describe("RWA Stock-Elected Payouts (Sprint F)", () => {
   test("GET /api/rwa/tokens returns eligible stock token registry", async () => {
@@ -42,7 +42,7 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
   });
 
   test("POST /api/rwa/election rejects if disclaimer is not accepted", async () => {
-    const token = await issueSessionToken({
+    const token = await createSession({
       id: "f35688b1-3642-4f36-8bb0-d790d1bf4301",
       walletAddress: "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
     });
@@ -61,7 +61,7 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
   });
 
   test("POST /api/rwa/election rejects allocations that do not sum to 100%", async () => {
-    const token = await issueSessionToken({
+    const token = await createSession({
       id: "f35688b1-3642-4f36-8bb0-d790d1bf4301",
       walletAddress: "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
     });
@@ -83,7 +83,7 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
   });
 
   test("POST /api/rwa/election rejects unknown stock tokens", async () => {
-    const token = await issueSessionToken({
+    const token = await createSession({
       id: "f35688b1-3642-4f36-8bb0-d790d1bf4301",
       walletAddress: "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
     });
@@ -93,7 +93,7 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({
         mode: "stock_elected",
-        allocations: [{ symbol: "FAKE_TICKER", percentage: 100 }],
+        allocations: [{ symbol: "FAKETOKEN", percentage: 100 }],
         acceptedDisclaimer: true,
       });
 
@@ -102,7 +102,7 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
   });
 
   test("POST /api/rwa/election rejects duplicate tokens in basket", async () => {
-    const token = await issueSessionToken({
+    const token = await createSession({
       id: "f35688b1-3642-4f36-8bb0-d790d1bf4301",
       walletAddress: "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
     });

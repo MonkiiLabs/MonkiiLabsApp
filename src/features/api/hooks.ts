@@ -13,6 +13,7 @@ import {
   leaderboard,
   network,
   rewards,
+  rwa,
   staking,
   telegram,
 } from "./endpoints";
@@ -40,6 +41,8 @@ export const qk = {
   network: ["network", "config"] as const,
   adminStats: ["admin", "stats"] as const,
   adminSettings: ["admin", "settings"] as const,
+  rwaTokens: ["rwa", "tokens"] as const,
+  rwaElection: ["rwa", "election"] as const,
 };
 
 const BALANCE_KEYS = [qk.staking, qk.claimable, qk.summary, qk.me];
@@ -386,6 +389,43 @@ export function useAdminAirdrop(adminKey: string) {
       toast.success("Airdrop credited successfully");
     },
     onError: (err) => toast.error("Airdrop failed", { description: describeError(err) }),
+  });
+}
+
+/* ---- RWA Stock Elections (Sprint F) ----------------------------------------- */
+
+export function useEligibleStockTokens() {
+  return useQuery({
+    queryKey: qk.rwaTokens,
+    queryFn: () => rwa.tokens(),
+    staleTime: 60_000,
+  });
+}
+
+export function useRwaElection() {
+  const { isAuthenticated } = useWallet();
+  return useQuery({
+    queryKey: qk.rwaElection,
+    queryFn: () => rwa.election(),
+    enabled: isAuthenticated,
+  });
+}
+
+export function useSaveRwaElection() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: import("./types").SaveRwaElectionPayload) => rwa.saveElection(payload),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: qk.rwaElection });
+      toast.success("Stock election updated", {
+        description: data.message,
+      });
+    },
+    onError: (err) =>
+      toast.error("Failed to update election", {
+        description: describeError(err),
+      }),
   });
 }
 

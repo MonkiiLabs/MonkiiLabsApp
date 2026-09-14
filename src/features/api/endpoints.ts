@@ -249,3 +249,17 @@ export const admin = {
       headers: { "x-admin-key": adminKey },
     }),
 };
+
+/* ---- 12. RWA Stock Elections (Sprint F) ------------------------------------- */
+
+export const rwa = {
+  tokens: () =>
+    api.get<import("./types").EligibleStockTokensResponse>("/rwa/tokens", { anonymous: true }),
+
+  election: () =>
+    api.get<import("./types").UserRwaElection>("/rwa/election"),
+
+  saveElection: (payload: import("./types").SaveRwaElectionPayload) =>
+    api.post<import("./types").SaveRwaElectionResponse>("/rwa/election", payload),
+};
+

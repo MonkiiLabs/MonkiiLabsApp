@@ -22,6 +22,7 @@ import {
   timeUntil,
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
+import StockElectionWidget from "@/components/dashboard/StockElectionWidget";
 
 const TOKENS: Array<{ value: StakeToken; key: string }> = [
   { value: "MONKI", key: "staking.tokenMonki" },
@@ -97,6 +98,9 @@ const StakingInner = () => {
           </p>
         </div>
       </Panel>
+
+      {/* RWA Stock-Elected Payouts (Sprint F) */}
+      <StockElectionWidget />
 
       {/* Stake & Unstake Console */}
       <Panel>

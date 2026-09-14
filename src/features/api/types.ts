@@ -245,6 +245,7 @@ export interface ProtocolSettings {
   enableMonkiClaiming: boolean;
   enablePonsClaiming: boolean;
   enableCompanionMinting: boolean;
+  enableRwaElections?: boolean;
 }
 
 export interface NetworkConfig {
@@ -281,4 +282,64 @@ export interface AdminStats {
   totalClaimableMonki: number;
   totalClaimablePons: number;
   totalCompanionsMinted: number;
+}
+
+/* ---- RWA Stock-Elected Payouts (Sprint F) ------------------------------ */
+
+export interface EligibleStockToken {
+  symbol: string;
+  name: string;
+  contractAddress: string;
+  chainlinkFeedAddress: string;
+  corporateActionMultiplier: number;
+  isLiquid: boolean;
+  isSuspended: boolean;
+}
+
+export interface EligibleStockTokensResponse {
+  ok: boolean;
+  network: string;
+  chainId: number;
+  isElectionsActive: boolean;
+  stage: string;
+  tokens: EligibleStockToken[];
+  disclaimer: string;
+}
+
+export interface UserRwaAllocation {
+  symbol: string;
+  percentage: number;
+}
+
+export interface UserRwaElection {
+  ok: boolean;
+  userAddress: string;
+  isElectionsActive: boolean;
+  mode: "stock_elected" | "plain_pons";
+  allocations: UserRwaAllocation[];
+  isEnabled: boolean;
+  updatedAt: string | null;
+  stage: string;
+  pipeline?: {
+    states: string[];
+    currentState: string;
+  };
+}
+
+export interface SaveRwaElectionPayload {
+  mode: "stock_elected" | "plain_pons";
+  allocations: UserRwaAllocation[];
+  acceptedDisclaimer: boolean;
+}
+
+export interface SaveRwaElectionResponse {
+  ok: boolean;
+  userAddress: string;
+  mode: "stock_elected" | "plain_pons";
+  allocations: UserRwaAllocation[];
+  isEnabled: boolean;
+  updatedAt: string;
+  isElectionsActive: boolean;
+  stage: string;
+  message: string;
 }
