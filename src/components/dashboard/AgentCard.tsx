@@ -10,7 +10,7 @@ import { AGENT_POWER_MAX } from "@/lib/config";
 
 /**
  * Modern Agent Fleet Card. built.
- * Precision telemetry gauge, live vitality indicator, and watchlist star.
+ * Precision telemetry gauge, live vitality indicator, and watchlist star,..
  */
 const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean }) => {
   const { t } = useTranslation();
