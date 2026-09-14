@@ -4,8 +4,8 @@ import { BRAND } from "@/lib/brand";
 
 const ACQUISITION = [
   { emoji: "🏅", title: "Milestone rewards", body: "Free mints for a 7-day thriving streak or a top leaderboard placement." },
-  { emoji: "🛒", title: "Paid mints", body: `Limited waves priced in SOL or ${BRAND.valueToken}.` },
-  { emoji: "🔁", title: "Secondary market", body: "Fully tradeable on Magic Eden, Tensor and other Robinhood marketplaces." },
+  { emoji: "🛒", title: "Paid mints", body: `Limited waves priced in ETH or ${BRAND.valueToken}.` },
+  { emoji: "🔁", title: "Secondary market", body: "Standard ERC-721s, tradeable on any Robinhood Chain NFT marketplace." },
   { emoji: "⚗️", title: "Craft & fusion", body: "Phase 2: light fusion, leveling, and dynamic metadata that reacts to agent state." },
 ];
 
@@ -16,8 +16,8 @@ const CompanionsSection = () => (
     title={<>Every agent can equip 1–3 Companions.</>}
     intro={
       <>
-        Companions are Robinhood NFTs — compressed cNFTs for cost efficiency — that appear next to the
-        agent avatar, provide passive bonuses based on rarity and type, can be freely
+        Companions are ERC-721 NFTs on Robinhood Chain, minted gas-only for cost efficiency, that
+        appear next to the agent avatar, provide passive bonuses based on rarity and type, can be freely
         equipped and unequipped, and trade on secondary markets. The nurturing loop stays primary;
         Companions are the collectible enhancement layer on top of it.
       </>

@@ -161,7 +161,7 @@ export default function AdminPage() {
             <Stat
               value={s ? s.activeSessions.toLocaleString() : "—"}
               label="Active Proof-of-Life Sessions"
-              tone="alive"
+              tone="vital"
             />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
@@ -181,7 +181,7 @@ export default function AdminPage() {
             <Stat
               value={s ? s.totalCompanionsMinted.toLocaleString() : "—"}
               label="Companions Minted / Unlocked"
-              tone="alive"
+              tone="vital"
             />
           </div>
         </div>

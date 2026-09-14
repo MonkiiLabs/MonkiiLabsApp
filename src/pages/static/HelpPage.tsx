@@ -7,7 +7,7 @@ const FAQ = [
   },
   {
     q: "Do I need special hardware or gas?",
-    a: "No. The architecture is Compute Light: it runs in an ordinary browser tab. Wallet authentication is signature-based (Ed25519) with no transaction and no gas.",
+    a: "No. The architecture is Compute Light: it runs in an ordinary browser tab. Wallet authentication is signature-based (an EVM wallet signature) with no transaction and no gas.",
   },
   {
     q: "What do thriving, idle and fading mean?",
@@ -19,7 +19,7 @@ const FAQ = [
   },
   {
     q: "How do Companions work?",
-    a: "Companions are Robinhood NFTs (compressed cNFTs). Each agent can equip up to 3. They give passive $MONKI earn-rate bonuses by rarity, plus fade protection at Uncommon and above and unique abilities at Legendary. Equipping is instant and free, and Companions trade on Magic Eden, Tensor and other marketplaces.",
+    a: "Companions are ERC-721 NFTs on Robinhood Chain, minted gas-only. Each agent can equip up to 3. They give passive $MONKI earn-rate bonuses by rarity, plus fade protection at Uncommon and above and unique abilities at Legendary. Equipping is instant and free, and Companions trade on any Robinhood Chain NFT marketplace.",
   },
   {
     q: "Can I claim $MONKI to my wallet?",

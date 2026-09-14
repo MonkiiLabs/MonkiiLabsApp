@@ -5,7 +5,7 @@ const STEPS = [
   {
     emoji: "🔐",
     title: "Connect your Robinhood wallet",
-    body: "Signature-based authentication (Ed25519). No gas, no transaction, no approval to revoke later.",
+    body: "Signature-based authentication (EVM wallet signature). No gas, no transaction, no approval to revoke later.",
   },
   {
     emoji: "🫀",

@@ -24,6 +24,19 @@ import type {
   VerifyResponse,
 } from "./types";
 
+/**
+ * Shared result shape for the three admin protocol-setting toggles. Each
+ * response echoes only its own flag, so they are optional here; keeping one
+ * type lets callers treat the toggles uniformly (they read `message`).
+ */
+export type ToggleSettingResult = {
+  ok: boolean;
+  message: string;
+  enableMonkiClaiming?: boolean;
+  enablePonsClaiming?: boolean;
+  enableCompanionMinting?: boolean;
+};
+
 /* =====================================================================
    Every endpoint in the Monkii Labs API & Frontend Integration Guide,
    in the order the guide presents them. Each balance-altering call signs
@@ -208,21 +221,21 @@ export const admin = {
     }),
 
   toggleMonki: (adminKey: string) =>
-    api.post<{ ok: boolean; enableMonkiClaiming: boolean; message: string }>(
+    api.post<ToggleSettingResult>(
       "/admin/protocol-settings/toggle-monki-claiming",
       {},
       { headers: { "x-admin-key": adminKey } },
     ),
 
   togglePons: (adminKey: string) =>
-    api.post<{ ok: boolean; enablePonsClaiming: boolean; message: string }>(
+    api.post<ToggleSettingResult>(
       "/admin/protocol-settings/toggle-pons-claiming",
       {},
       { headers: { "x-admin-key": adminKey } },
     ),
 
   toggleCompanions: (adminKey: string) =>
-    api.post<{ ok: boolean; enableCompanionMinting: boolean; message: string }>(
+    api.post<ToggleSettingResult>(
       "/admin/protocol-settings/toggle-companion-minting",
       {},
       { headers: { "x-admin-key": adminKey } },
