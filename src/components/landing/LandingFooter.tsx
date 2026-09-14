@@ -4,7 +4,13 @@ import { Link } from "react-router-dom";
 import { BRAND, monkiiLogo } from "@/lib/brand";
 
 const COLUMNS = [
-  { heading: "Company", links: [{ label: "About", to: "/about" }] },
+  {
+    heading: "Company",
+    links: [
+      { label: "About", to: "/about" },
+      { label: "Whitepaper", to: "/whitepaper" },
+    ],
+  },
   {
     heading: "Support",
     links: [

@@ -23,6 +23,7 @@ if (fs.existsSync(indexPath)) {
     "dashboard/alerts",
     "dashboard/profile",
     "about",
+    "whitepaper",
     "help",
     "accessibility",
     "contact",

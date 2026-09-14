@@ -18,6 +18,7 @@ import AccessibilityPage from "@/pages/static/AccessibilityPage";
 import ContactPage from "@/pages/static/ContactPage";
 import PrivacyPage from "@/pages/static/PrivacyPage";
 import TermsPage from "@/pages/static/TermsPage";
+import WhitepaperPage from "@/pages/static/WhitepaperPage";
 import AdminPage from "@/pages/AdminPage";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/whitepaper" element={<WhitepaperPage />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/accessibility" element={<AccessibilityPage />} />
                 <Route path="/contact" element={<ContactPage />} />
