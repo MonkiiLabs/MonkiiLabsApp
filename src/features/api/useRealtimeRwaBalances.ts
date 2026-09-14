@@ -1,16 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
-import { createPublicClient, erc20Abi, formatUnits, http } from "viem";
+import { formatUnits } from "viem";
+import { readContract } from "wagmi/actions";
 
 import { useWallet } from "@/hooks/useWallet";
 import { useRwaBalancesQuery } from "@/features/api/hooks";
 import type { RwaTokenHolding } from "@/features/api/types";
 import { CHAIN_RPC_URL, explorerAddressUrl } from "@/lib/config";
-import { robinhoodChain } from "@/lib/wagmi";
+import { wagmiConfig } from "@/lib/wagmi";
 
-const rwaPublicClient = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(CHAIN_RPC_URL),
-});
+/* Only the one function this hook calls. viem resolves a read against the
+   full erc20Abi through an overload that demands an authorizationList, so
+   narrowing the abi both fixes the call and matches how the backend reads
+   ERC-20s in lib/chain.ts. */
+const balanceOfAbi = [
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
+/* Reads go through the wagmi config rather than a second hand-built client,
+   for the same reason signing.ts signs through the connector: one place
+   defines the chain and its transport, so a client cannot drift from it. */
 
 export interface EnrichedRwaHolding extends RwaTokenHolding {
   walletBalance: string;
@@ -62,11 +76,17 @@ export function useRealtimeRwaBalances(): RealtimeBalancesState {
               return;
             }
 
-            const rawBalance = await rwaPublicClient.readContract({
+            const rawBalance = await readContract(wagmiConfig, {
               address: token.contractAddress as `0x${string}`,
-              abi: erc20Abi,
+              abi: balanceOfAbi,
               functionName: "balanceOf",
               args: [walletAddress as `0x${string}`],
+              // viem 2.56 types authorizationList as required on a read,
+              // which it is not: it belongs to EIP-7702 writes. The backend
+              // does not hit this because its tsconfig is strict and
+              // resolves the union differently. Passing undefined satisfies
+              // the type and changes nothing at runtime.
+              authorizationList: undefined,
             });
 
             const formatted = formatUnits(rawBalance, 18);
