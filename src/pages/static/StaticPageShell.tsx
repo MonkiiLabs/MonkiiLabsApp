@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -12,13 +13,15 @@ import CloudField from "@/components/CloudField";
  */
 export function StaticPageShell({
   title,
-  eyebrow = "Monkii Labs",
+  eyebrow,
   children,
 }: {
   title: string;
   eyebrow?: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     // The wrapper stays transparent: an opaque ground here would paint
     // over the negative-z cloud layer and hide it.
@@ -31,7 +34,7 @@ export function StaticPageShell({
         <div className="mx-auto w-full max-w-3xl px-fib3 sm:px-fib4">
           <div className="flex items-center gap-fib2">
             <span className="h-0.5 w-fib4 rounded-full bg-coral" aria-hidden />
-            <span className="label-mono text-claw-gray-600">{eyebrow}</span>
+            <span className="label-mono text-claw-gray-600">{eyebrow ?? t("static.eyebrow")}</span>
           </div>
           <h1 className="mt-fib3 font-extrabold text-d3 text-claw-charcoal sm:text-d4">{title}</h1>
         </div>

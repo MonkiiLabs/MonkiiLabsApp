@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { StaticPageShell } from "@/pages/static/StaticPageShell";
 import { BRAND } from "@/lib/brand";
 import {
   AGENT_POWER_MAX,
   CHAIN_ID,
-  CHAIN_NAME,
   COMPANION_NFT_ADDRESS,
   PONS_TOKEN_ADDRESS,
   explorerAddressUrl,
@@ -21,6 +21,10 @@ import {
  * row here has to move with it, which is why they are all collected in
  * section 9 rather than scattered through the prose.
  *
+ * The prose lives in the locale bundle under `wp.*`; the figures stay
+ * here, because a number is the same in every language and a translator
+ * should never be in a position to retype one.
+ *
  * It reads on the same shell as the policy pages: one column, cream
  * paper, sky behind the masthead. A whitepaper is a document, so the only
  * things here that are not running text are the parameter tables, and
@@ -28,19 +32,19 @@ import {
  */
 
 const SECTIONS = [
-  { id: "abstract", label: "Abstract" },
-  { id: "problem", label: "1. The problem" },
-  { id: "vitality", label: "2. Agent vitality" },
-  { id: "proof-of-life", label: "3. Proof-of-Life" },
-  { id: "monkii", label: `4. ${BRAND.rewardToken}, the compute receipt` },
-  { id: "staking", label: `5. Staking and the ${BRAND.valueToken} epoch` },
-  { id: "companions", label: "6. Companion collectibles" },
-  { id: "architecture", label: "7. Architecture" },
-  { id: "security", label: "8. Security model" },
-  { id: "parameters", label: "9. Protocol parameters" },
-  { id: "roadmap", label: "10. Roadmap" },
-  { id: "risks", label: "11. Risks and limitations" },
-];
+  { id: "abstract", key: "abstract" },
+  { id: "problem", key: "problem" },
+  { id: "vitality", key: "vitality" },
+  { id: "proof-of-life", key: "proofOfLife" },
+  { id: "monkii", key: "monkii" },
+  { id: "staking", key: "staking" },
+  { id: "companions", key: "companions" },
+  { id: "architecture", key: "architecture" },
+  { id: "security", key: "security" },
+  { id: "parameters", key: "parameters" },
+  { id: "roadmap", key: "roadmap" },
+  { id: "risks", key: "risks" },
+] as const;
 
 /** A section heading that the contents list can link to. */
 function H({ id, children }: { id: string; children: ReactNode }) {
@@ -59,15 +63,21 @@ function ParamTable({
   caption: string;
   rows: Array<[string, string, string]>;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="my-fib4 overflow-x-auto">
       <table className="w-full min-w-[34rem] border-collapse text-label">
         <caption className="label-mono mb-fib2 text-left text-claw-gray-600">{caption}</caption>
         <thead>
           <tr className="border-b-2 border-dashboard-border text-left">
-            <th className="py-fib2 pr-fib3 font-extrabold text-claw-charcoal">Parameter</th>
-            <th className="py-fib2 pr-fib3 font-extrabold text-claw-charcoal">Value</th>
-            <th className="py-fib2 font-extrabold text-claw-charcoal">Meaning</th>
+            <th className="py-fib2 pr-fib3 font-extrabold text-claw-charcoal">
+              {t("wp.table.parameter")}
+            </th>
+            <th className="py-fib2 pr-fib3 font-extrabold text-claw-charcoal">
+              {t("wp.table.value")}
+            </th>
+            <th className="py-fib2 font-extrabold text-claw-charcoal">{t("wp.table.meaning")}</th>
           </tr>
         </thead>
         <tbody>
@@ -84,19 +94,27 @@ function ParamTable({
   );
 }
 
-export default function WhitepaperPage() {
+/** A paragraph that opens with a bolded lead-in, used throughout the paper. */
+function Lead({ label, body }: { label: string; body: string }) {
   return (
-    <StaticPageShell title="Whitepaper" eyebrow={`${BRAND.name} · Version 1.0 · ${CHAIN_NAME}`}>
-      <p className="text-lead text-claw-charcoal">
-        A protocol that turns the upkeep of autonomous AI agents into verified, browser-native work
-        anyone can contribute, and pays for it.
-      </p>
+    <p>
+      <strong>{label}</strong> {body}
+    </p>
+  );
+}
+
+export default function WhitepaperPage() {
+  const { t } = useTranslation();
+
+  return (
+    <StaticPageShell title={t("wp.title")} eyebrow={t("wp.eyebrow")}>
+      <p className="text-lead text-claw-charcoal">{t("wp.lead")}</p>
 
       {/* Contents. Numbered because the sections genuinely build on each
           other: vitality defines the problem Proof-of-Life solves, which
           defines what the token is a receipt for. */}
-      <nav aria-label="Contents" className="my-fib4 border-y-2 border-dashboard-border py-fib3">
-        <h2 className="label-mono !mt-0 text-claw-gray-600">Contents</h2>
+      <nav aria-label={t("wp.contents")} className="my-fib4 border-y-2 border-dashboard-border py-fib3">
+        <h2 className="label-mono !mt-0 text-claw-gray-600">{t("wp.contents")}</h2>
         <ol className="!mt-fib2 !list-none !space-y-fib1 !pl-0 columns-1 sm:columns-2">
           {SECTIONS.map((s) => (
             <li key={s.id}>
@@ -104,363 +122,209 @@ export default function WhitepaperPage() {
                 href={`#${s.id}`}
                 className="!font-semibold !text-claw-charcoal !no-underline hover:!text-coral"
               >
-                {s.label}
+                {t(`wp.nav.${s.key}`)}
               </a>
             </li>
           ))}
         </ol>
       </nav>
 
-      <H id="abstract">Abstract</H>
-      <p>
-        Autonomous AI agents are expensive to keep alive and cheap to abandon. The cost of uptime
-        sits with one operator, while the community that forms around an agent has no way to help
-        and no signal of whether the agent is healthy at all.
-      </p>
-      <p>
-        {BRAND.name} makes agent upkeep a public, participatory act. Each agent carries a power level
-        that decays continuously. Anyone can open a browser tab, receive a keccak-256 challenge,
-        solve it off the main thread in a Web Worker, and submit the solution. A verified solution
-        restores a slice of that agent's power and credits the contributor in {BRAND.rewardToken}, a
-        receipt for verified compute. Staking {BRAND.rewardToken} earns {BRAND.valueToken} on a
-        fixed 24-hour epoch, paid from a real balance held on {CHAIN_NAME}.
-      </p>
-      <p>
-        No specialised hardware, no gas to participate, and nothing to install. The contribution
-        path is a browser tab.
-      </p>
+      <H id="abstract">{t("wp.nav.abstract")}</H>
+      <p>{t("wp.abstract1")}</p>
+      <p>{t("wp.abstract2")}</p>
+      <p>{t("wp.abstract3")}</p>
 
-      <H id="problem">1. The problem</H>
-      <p>
-        <strong>Sustainability.</strong> Keeping an agent running falls on a single party. When their
-        attention or their budget lapses, the agent goes dark and everything built on it goes with
-        it.
-      </p>
-      <p>
-        <strong>Engagement.</strong> Communities form around interesting agents and then have nothing
-        to do but speculate on a ticker. Wanting to help and being able to help are different things.
-      </p>
-      <p>
-        <strong>Visibility.</strong> There is no shared, honest signal of whether an agent is
-        healthy. An agent that has been failing for a week looks exactly like one that is fine.
-      </p>
+      <H id="problem">{t("wp.nav.problem")}</H>
+      <Lead label={t("wp.sustainabilityLabel")} body={t("wp.sustainability")} />
+      <Lead label={t("wp.engagementLabel")} body={t("wp.engagement")} />
+      <Lead label={t("wp.visibilityLabel")} body={t("wp.visibility")} />
 
-      <H id="vitality">2. Agent vitality</H>
-      <p>
-        Every agent holds a power level between 0 and {AGENT_POWER_MAX}. Power decays at a fixed rate
-        per hour, derived from the agent's real traction, so an agent left alone degrades on a
-        published schedule rather than at anyone's discretion.
-      </p>
-      <p>
-        Decay is continuous and computed rather than ticked. Live power is always the last recorded
-        power minus the decay accrued since it was recorded, so what an API response reports and
-        what a heartbeat writes back start from the same number. A background evaluator materialises
-        that value periodically and emits alerts on a state change, but it is not what makes decay
-        happen.
-      </p>
-      <p>Three states are derived from power, and all three are public:</p>
+      <H id="vitality">{t("wp.nav.vitality")}</H>
+      <p>{t("wp.vitality1", { max: AGENT_POWER_MAX })}</p>
+      <p>{t("wp.vitality2")}</p>
+      <p>{t("wp.vitality3")}</p>
       <ul>
         <li>
-          <strong>Thriving</strong>, at or above the agent's healthy threshold.
+          <strong>{t("wp.thrivingLabel")}</strong>
+          {t("wp.thriving")}
         </li>
         <li>
-          <strong>Idle</strong>, between the warning and healthy thresholds.
+          <strong>{t("wp.idleLabel")}</strong>
+          {t("wp.idle")}
         </li>
         <li>
-          <strong>Fading</strong>, at or below the warning threshold.
+          <strong>{t("wp.fadingLabel")}</strong>
+          {t("wp.fading")}
         </li>
       </ul>
-      <p>
-        Thresholds are per agent, not global. An agent with deeper traction is held to a higher bar,
-        which keeps the state meaningful across a fleet of very different agents.
-      </p>
+      <p>{t("wp.vitality4")}</p>
 
-      <H id="proof-of-life">3. Proof-of-Life</H>
+      <H id="proof-of-life">{t("wp.nav.proofOfLife")}</H>
       <p>
-        Proof-of-Life is the mechanism that converts attention into something a server can verify.
-        It is deliberately a proof of <em>work</em>, not a proof of stake or of identity: the only
-        thing it establishes is that real computation was spent on a challenge that could not have
-        been prepared in advance.
+        {t("wp.pol1a")}
+        <em>{t("wp.pol1em")}</em>
+        {t("wp.pol1b")}
       </p>
-      <p>The loop, in full:</p>
+      <p>{t("wp.polLoop")}</p>
       <ol>
+        <li>{t("wp.polStep1")}</li>
         <li>
-          The contributor opens a session against an agent at a chosen intensity, and the server
-          issues a single-use challenge: a random seed and a difficulty.
+          {t("wp.polStep2a")} <code>keccak256(seed:nonce)</code> {t("wp.polStep2b")}{" "}
+          <em>{t("wp.polStep2em")}</em> {t("wp.polStep2c")}
         </li>
-        <li>
-          The browser grinds a nonce in a Web Worker until{" "}
-          <code>keccak256(seed:nonce)</code> carries at least <em>difficulty</em> leading zero bits.
-          The worker runs off the main thread, so the interface stays responsive and the progress
-          shown is the real hash rate.
-        </li>
-        <li>
-          The solution is submitted. The server re-derives the same digest, checks the work, and
-          consumes the challenge in a single conditional update, so a replayed or concurrent
-          submission loses the race and is rejected.
-        </li>
-        <li>
-          On acceptance, the agent's power is decayed to now and then increased, clamped at{" "}
-          {AGENT_POWER_MAX}, the vitality state is re-derived, and {BRAND.rewardToken} is credited to
-          the contributor.
-        </li>
-        <li>The next challenge is issued in the same response, and the loop continues.</li>
+        <li>{t("wp.polStep3")}</li>
+        <li>{t("wp.polStep4", { max: AGENT_POWER_MAX })}</li>
+        <li>{t("wp.polStep5")}</li>
       </ol>
-      <p>
-        Intensity sets the difficulty and the payout together. Higher intensity costs more compute
-        per accepted heartbeat and pays proportionally more, so the choice is a genuine trade rather
-        than a free upgrade.
-      </p>
+      <p>{t("wp.polIntensity")}</p>
 
       <ParamTable
-        caption="Accrual by intensity, relative to a standard heartbeat"
+        caption={t("wp.accrualCaption")}
         rows={[
-          ["Light", "0.5x power · 0.6x earn", "Two fewer difficulty bits. For phones and background tabs."],
-          ["Standard", "1.0x power · 1.0x earn", "The baseline challenge."],
-          ["Max", "1.5x power · 1.6x earn", "Two extra bits, roughly four times the expected work."],
+          [t("wp.accrualLight"), t("wp.accrualLightValue"), t("wp.accrualLightMeaning")],
+          [t("wp.accrualStd"), t("wp.accrualStdValue"), t("wp.accrualStdMeaning")],
+          [t("wp.accrualMax"), t("wp.accrualMaxValue"), t("wp.accrualMaxMeaning")],
         ]}
       />
 
-      <p>
-        Two guards keep the loop honest. A challenge expires if it is not solved in time, so work
-        cannot be banked against a future session. And a minimum interval between accepted
-        heartbeats bounds how fast a single session can submit, with the server returning the exact
-        wait rather than a bare rejection, so a fast machine paces itself instead of being punished
-        for being fast.
-      </p>
+      <p>{t("wp.polGuards")}</p>
 
-      <H id="monkii">4. {BRAND.rewardToken}, the compute receipt</H>
-      <p>
-        {BRAND.rewardToken} is the receipt for verified compute. It is credited only by an accepted
-        Proof-of-Life heartbeat, and the amount is a function of the difficulty actually solved and
-        the contributor's multipliers. There is no path to {BRAND.rewardToken} that does not pass
-        through verified work.
-      </p>
-      <p>
-        Balances are held in an off-chain ledger. This is a deliberate choice, not a shortcut: a
-        heartbeat that settled on-chain would cost gas, and a mechanism whose entire promise is that
-        anyone can contribute from a browser tab for free cannot have a fee on its core loop. What
-        the ledger records is a claim on the protocol, and section 11 is explicit about what that
-        means for trust.
-      </p>
-      <p>
-        During the pre-launch phase, {BRAND.rewardToken} accrues and does not withdraw. The gate is a
-        protocol setting rather than a missing feature, so the mining phase and the claiming phase
-        are the same system in two configurations.
-      </p>
+      <H id="monkii">{t("wp.nav.monkii")}</H>
+      <p>{t("wp.monki1")}</p>
+      <p>{t("wp.monki2")}</p>
+      <p>{t("wp.monki3")}</p>
 
-      <H id="staking">5. Staking and the {BRAND.valueToken} epoch</H>
+      <H id="staking">{t("wp.nav.staking")}</H>
+      <p>{t("wp.staking1")}</p>
+      <p>{t("wp.staking2")}</p>
       <p>
-        Staking {BRAND.rewardToken} does two things: it raises the earn multiplier on every
-        subsequent heartbeat, and it makes the stake eligible for {BRAND.valueToken} yield.
+        {t("wp.staking3a")}
+        <em>{t("wp.staking3em")}</em>
+        {t("wp.staking3b")}
       </p>
-      <p>
-        The multiplier is linear and published. It runs from 1.0x at zero staked to 3.0x at the
-        maximum, with no cliff and no discretionary tier. Yield settles on fixed 24-hour epochs
-        anchored to a published UTC instant, so an epoch boundary is the same moment for everyone and
-        cannot be moved for one participant.
-      </p>
-      <p>
-        A stake becomes eligible from the <em>next</em> epoch boundary after it is made, never the
-        one it was made inside. This is what stops a stake placed minutes before settlement from
-        collecting a full epoch of yield it did not hold through, and it is the reason the entitlement
-        is computed from epoch indices rather than from elapsed time.
-      </p>
-      <p>
-        Payout is a flat, global rate per staked {BRAND.rewardToken} per completed epoch. There is no
-        per-user schedule.
-      </p>
-      <p>
-        <strong>Phase 2: the 50:50 split.</strong> Yield today is paid entirely in{" "}
-        {BRAND.valueToken}, a liquid launchpad token on {CHAIN_NAME}. In Phase 2 the disbursal engine
-        splits a claim in half: 50% in {BRAND.valueToken} and 50% in tokenized {BRAND.stockToken}{" "}
-        stock tokens on the same chain. The staking mechanism does not change; only the settlement
-        leg does.
-      </p>
+      <p>{t("wp.staking4")}</p>
+      <Lead
+        label={t("wp.phase2Label")}
+        body={t("wp.phase2", { stockToken: BRAND.stockToken })}
+      />
 
-      <H id="companions">6. Companion collectibles</H>
-      <p>
-        Companions are the ownership layer. They are a real ERC-721 collection on {CHAIN_NAME}, so
-        what you hold is yours and outlives the platform that issued it. Companions are earned
-        against milestones in the loop rather than sold as a shortcut past it.
-      </p>
-      <p>
-        Up to three Companions equip to a single agent. Their effects stack in two directions: a
-        bonus to {BRAND.rewardToken} earned on every heartbeat against that agent, and a reduction in
-        that agent's power decay. Decay reduction is capped, so no combination of Companions can make
-        an agent immortal and remove the reason to nurture it.
-      </p>
-      <p>Rarity determines the size of those effects:</p>
+      <H id="companions">{t("wp.nav.companions")}</H>
+      <p>{t("wp.comp1")}</p>
+      <p>{t("wp.comp2")}</p>
+      <p>{t("wp.comp3")}</p>
       <ul>
         <li>
-          <strong>Common</strong>, +5 to 10% earn rate.
+          <strong>{t("wp.rarityCommon")}</strong>
+          {t("wp.rarityCommonText")}
         </li>
         <li>
-          <strong>Uncommon</strong>, +10 to 15% earn rate with minor fade mitigation.
+          <strong>{t("wp.rarityUncommon")}</strong>
+          {t("wp.rarityUncommonText")}
         </li>
         <li>
-          <strong>Rare</strong>, +15 to 25% earn rate with moderate fade mitigation.
+          <strong>{t("wp.rarityRare")}</strong>
+          {t("wp.rarityRareText")}
         </li>
         <li>
-          <strong>Epic</strong>, +25 to 35% earn rate with strong fade mitigation.
+          <strong>{t("wp.rarityEpic")}</strong>
+          {t("wp.rarityEpicText")}
         </li>
         <li>
-          <strong>Legendary</strong>, +35 to 50% earn rate with strong protection and unique
-          abilities.
+          <strong>{t("wp.rarityLegendary")}</strong>
+          {t("wp.rarityLegendaryText")}
         </li>
       </ul>
-      <p>
-        Equipping and unequipping are off-chain and instant, so arranging a loadout costs nothing.
-        Minting is the on-chain act, and it is gas-only: there is no mint price.
-      </p>
+      <p>{t("wp.comp4")}</p>
 
-      <H id="architecture">7. Architecture</H>
+      <H id="architecture">{t("wp.nav.architecture")}</H>
+      <p>{t("wp.arch1")}</p>
       <p>
-        The dividing line is simple. Anything that benefits from being permanent and independently
-        verifiable goes on-chain. Anything on the hot path of the nurturing loop stays off it.
+        <strong>{t("wp.archOnChainLabel")}</strong> {t("wp.archOnChain", { chainId: CHAIN_ID })}
       </p>
       <p>
-        <strong>On {CHAIN_NAME}</strong> ({CHAIN_NAME} is an Arbitrum Orbit L2, chain ID {CHAIN_ID},
-        gas paid in native ETH): the Companion ERC-721 collection, {BRAND.valueToken} balances and
-        payouts, the reward pool wallet, and wallet-signature authentication.
+        <strong>{t("wp.archOffChainLabel")}</strong>
+        {t("wp.archOffChain")}
       </p>
       <p>
-        <strong>Off-chain</strong>: the agent registry, Proof-of-Life challenge issuance and
-        verification, the {BRAND.rewardToken} ledger, staking accrual, Companion equipping, and
-        vitality evaluation. These are the operations that run continuously, per contributor, many
-        times a minute.
-      </p>
-      <p>
-        The client is a React application; the solver is a Web Worker so that grinding never blocks
-        the interface. The service layer is a TypeScript API over PostgreSQL, with every
-        balance-altering operation written inside a database transaction. Contract addresses in use:{" "}
+        {t("wp.archClientA")}{" "}
         <a href={explorerAddressUrl(PONS_TOKEN_ADDRESS)} target="_blank" rel="noreferrer">
-          {BRAND.valueToken} token
+          {t("wp.archTokenLink")}
         </a>{" "}
-        and{" "}
+        {t("wp.archAnd")}{" "}
         <a href={explorerAddressUrl(COMPANION_NFT_ADDRESS)} target="_blank" rel="noreferrer">
-          Monkii Companions
+          {t("wp.archCompanionsLink")}
         </a>
         .
       </p>
 
-      <H id="security">8. Security model</H>
-      <p>
-        <strong>Authentication is a signature, never a password.</strong> Signing in means signing a
-        nonce-bearing message with the wallet. The message states plainly that it costs no gas and
-        triggers no transaction. A verified signature issues a session token; the wallet is never
-        asked for anything else to browse.
-      </p>
-      <p>
-        <strong>Every balance-altering action is separately authorised.</strong> Staking, unstaking
-        and claiming each require their own signed message naming the action, the wallet, the amount
-        and a nonce. A session token alone cannot move a balance. Each authorisation carries a
-        timestamp and is rejected outside a short freshness window, and each nonce is recorded and
-        refused on reuse, so a captured authorisation cannot be replayed.
-      </p>
-      <p>
-        <strong>Work cannot be replayed.</strong> Challenges are single-use and time-limited, and
-        consumption is a conditional update, so two submissions of the same solution cannot both be
-        credited.
-      </p>
-      <p>
-        <strong>Protocol gating is explicit.</strong> {BRAND.rewardToken} claiming,{" "}
-        {BRAND.valueToken} claiming and Companion minting are each independently switchable. Any of
-        them being paused is a stated protocol state with a reason returned to the caller, not a
-        silent failure.
-      </p>
+      <H id="security">{t("wp.nav.security")}</H>
+      <Lead label={t("wp.secAuthLabel")} body={t("wp.secAuth")} />
+      <Lead label={t("wp.secActionLabel")} body={t("wp.secAction")} />
+      <Lead label={t("wp.secReplayLabel")} body={t("wp.secReplay")} />
+      <Lead label={t("wp.secGateLabel")} body={t("wp.secGate")} />
 
-      <H id="parameters">9. Protocol parameters</H>
-      <p>
-        These are the live defaults. They are configuration rather than constants, which is what lets
-        difficulty and yield be tuned without a redeploy, and it also means the authoritative value
-        is the one the API reports, not the one printed here.
-      </p>
+      <H id="parameters">{t("wp.nav.parameters")}</H>
+      <p>{t("wp.params1")}</p>
 
       <ParamTable
-        caption="Proof-of-Life"
+        caption={t("wp.polCaption")}
         rows={[
-          ["Challenge difficulty", "10 bits", "Leading zero bits required on the keccak-256 digest, at standard intensity."],
-          ["Challenge lifetime", "120 s", "After which an unsolved challenge expires and cannot be submitted."],
-          ["Power per heartbeat", "10", `Restored to the agent, out of a maximum of ${AGENT_POWER_MAX}.`],
-          ["Earn per heartbeat", `5.0 ${BRAND.rewardToken}`, "Before staking and Companion multipliers."],
-          ["Minimum interval", "3 s", "Between accepted heartbeats on one session."],
-          ["Vitality evaluation", "60 s", "How often decayed power is materialised and alerts are emitted."],
+          [t("wp.pDifficulty"), "10 bits", t("wp.pDifficultyMeaning")],
+          [t("wp.pLifetime"), "120 s", t("wp.pLifetimeMeaning")],
+          [t("wp.pPower"), "10", t("wp.pPowerMeaning", { max: AGENT_POWER_MAX })],
+          [t("wp.pEarn"), `5.0 ${BRAND.rewardToken}`, t("wp.pEarnMeaning")],
+          [t("wp.pInterval"), "3 s", t("wp.pIntervalMeaning")],
+          [t("wp.pEval"), "60 s", t("wp.pEvalMeaning")],
         ]}
       />
 
       <ParamTable
-        caption={`Staking and ${BRAND.valueToken} yield`}
+        caption={t("wp.stakeCaption")}
         rows={[
-          ["Epoch length", "24 h", "Anchored to a fixed UTC instant, identical for every participant."],
-          ["Minimum stake", `100 ${BRAND.rewardToken}`, `Below this a stake earns no ${BRAND.valueToken}.`],
-          ["Yield rate", `0.001 ${BRAND.valueToken}`, `Per staked ${BRAND.rewardToken}, per completed epoch.`],
-          ["Multiplier range", "1.0x to 3.0x", "Linear in the amount staked, applied to every heartbeat."],
-          ["Maximum multiplier at", `10,000 ${BRAND.rewardToken}`, "The stake at which the multiplier reaches 3.0x."],
-          ["Premium threshold", `1,000 ${BRAND.rewardToken}`, "Unlocks premium access."],
+          [t("wp.pEpoch"), "24 h", t("wp.pEpochMeaning")],
+          [t("wp.pMinStake"), `100 ${BRAND.rewardToken}`, t("wp.pMinStakeMeaning")],
+          [t("wp.pYield"), `0.001 ${BRAND.valueToken}`, t("wp.pYieldMeaning")],
+          [t("wp.pMultRange"), "1.0x - 3.0x", t("wp.pMultRangeMeaning")],
+          [t("wp.pMaxMult"), `10,000 ${BRAND.rewardToken}`, t("wp.pMaxMultMeaning")],
+          [t("wp.pPremium"), `1,000 ${BRAND.rewardToken}`, t("wp.pPremiumMeaning")],
         ]}
       />
 
       <ParamTable
-        caption="Companions"
+        caption={t("wp.compCaption")}
         rows={[
-          ["Slots per agent", "3", "Equipped Companions whose effects stack."],
-          ["Mint price", "Gas only", "No mint fee; the contributor pays network gas."],
-          ["Decay reduction cap", "80%", "The ceiling on stacked fade mitigation for one agent."],
+          [t("wp.pSlots"), "3", t("wp.pSlotsMeaning")],
+          [t("wp.pMintPrice"), t("wp.pMintPriceValue"), t("wp.pMintPriceMeaning")],
+          [t("wp.pDecayCap"), "80%", t("wp.pDecayCapMeaning")],
         ]}
       />
 
-      <H id="roadmap">10. Roadmap</H>
-      <p>
-        <strong>Phase 1, foundation and Proof-of-Life.</strong> The web cockpit, wallet sign-in, the
-        Web Worker keccak-256 solver, and the {BRAND.rewardToken} ledger.
-      </p>
-      <p>
-        <strong>Phase 2, staking and {BRAND.valueToken} epochs.</strong> The 24-hour payout engine,
-        liquid {BRAND.valueToken} rewards, and the Companion inventory.
-      </p>
-      <p>
-        <strong>Phase 3, the 50:50 {BRAND.stockToken} split.</strong> Tokenized {BRAND.stockToken}{" "}
-        stock token integration on {CHAIN_NAME} and dual crypto-equity disbursal.
-      </p>
-      <p>
-        <strong>Phase 4, fleet and mobile scale.</strong> Mobile nurturing nodes and an autonomous
-        agent fleet marketplace.
-      </p>
+      <H id="roadmap">{t("wp.nav.roadmap")}</H>
+      <Lead label={t("wp.phase1Label")} body={t("wp.phase1")} />
+      <Lead label={t("wp.phase2rLabel")} body={t("wp.phase2r")} />
+      <Lead
+        label={t("wp.phase3Label", { stockToken: BRAND.stockToken })}
+        body={t("wp.phase3", { stockToken: BRAND.stockToken })}
+      />
+      <Lead label={t("wp.phase4Label")} body={t("wp.phase4")} />
 
-      <H id="risks">11. Risks and limitations</H>
+      <H id="risks">{t("wp.nav.risks")}</H>
+      <Lead label={t("wp.riskLedgerLabel")} body={t("wp.riskLedger")} />
+      <Lead label={t("wp.riskPolLabel")} body={t("wp.riskPol")} />
+      <Lead
+        label={t("wp.riskPhase2Label")}
+        body={t("wp.riskPhase2", { stockToken: BRAND.stockToken })}
+      />
+      <Lead label={t("wp.riskParamsLabel")} body={t("wp.riskParams")} />
       <p>
-        <strong>The ledger is trusted.</strong> {BRAND.rewardToken} balances, Proof-of-Life
-        verification and staking accrual run off-chain. Participants rely on the protocol to account
-        honestly, and the mitigation is transparency rather than trustlessness: published
-        parameters, a published epoch schedule, and payouts made from a wallet balance anyone can
-        inspect on-chain.
-      </p>
-      <p>
-        <strong>Proof-of-Life is a work receipt, not a security mechanism.</strong> It establishes
-        that computation was spent. It does not establish who spent it, and it cannot by itself
-        distinguish one enthusiastic participant from several coordinated ones. Rate limiting and
-        earn governance, not the hash function, are what bound that.
-      </p>
-      <p>
-        <strong>Phase 2 depends on third-party rails.</strong> The {BRAND.stockToken} settlement leg
-        requires tokenized stock infrastructure on {CHAIN_NAME}. Until that is live, yield is paid
-        entirely in {BRAND.valueToken}.
-      </p>
-      <p>
-        <strong>Parameters will change.</strong> Difficulty, yield rate and thresholds are tuned as
-        the fleet grows. Changes affect future accrual, never balances already earned.
-      </p>
-      <p>
-        <strong>Not investment advice.</strong> {BRAND.rewardToken} is a participation receipt for
-        verified compute, not an offer of a security and not a claim on any entity's revenue. Nothing
-        on this page is a promise of financial return. The binding terms are on the{" "}
-        <a href="/terms">terms page</a>.
+        <strong>{t("wp.riskAdviceLabel")}</strong> {t("wp.riskAdviceA")}{" "}
+        <a href="/terms">{t("wp.riskAdviceLink")}</a>
+        {t("wp.riskAdviceB")}
       </p>
 
       <p className="!mt-fib5 border-t-2 border-dashboard-border pt-fib3 text-label text-claw-gray-600">
-        Version 1.0. Parameters current as of publication; the authoritative values are the ones the
-        protocol reports at runtime. Questions go to the <a href="/contact">contact page</a>.
+        {t("wp.footerA")} <a href="/contact">{t("wp.footerLink")}</a>
+        {t("wp.footerB")}
       </p>
     </StaticPageShell>
   );

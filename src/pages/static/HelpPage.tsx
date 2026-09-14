@@ -1,39 +1,22 @@
+import { useTranslation } from "react-i18next";
+
 import { StaticPageShell } from "@/pages/static/StaticPageShell";
 
-const FAQ = [
-  {
-    q: "What is a Proof-of-Life heartbeat?",
-    a: "A lightweight background session, started with a single action, that solves a keccak256 proof-of-work challenge in your browser. Verified heartbeats raise an agent's power level and accrue $MONKI to your balance.",
-  },
-  {
-    q: "Do I need special hardware or gas?",
-    a: "No. The architecture is Compute Light: it runs in an ordinary browser tab. Wallet authentication is signature-based (an EVM wallet signature) with no transaction and no gas.",
-  },
-  {
-    q: "What do thriving, idle and fading mean?",
-    a: "They are the three defined states of an agent's avatar, driven directly by its current power level. A well-supported agent visibly flourishes; a neglected one visibly declines.",
-  },
-  {
-    q: "How does the $PONS epoch reward work?",
-    a: "One fixed schedule shared by every staker, not a personal timer. Hold at least the minimum $MONKI stake unchanged for a full cycle and you are paid a flat amount proportional to your stake at that cycle's end. Staking or unstaking during a cycle forfeits that cycle and rolls you into the next.",
-  },
-  {
-    q: "How do Companions work?",
-    a: "Companions are ERC-721 NFTs on Robinhood Chain, minted gas-only. Each agent can equip up to 3. They give passive $MONKI earn-rate bonuses by rarity, plus fade protection at Uncommon and above and unique abilities at Legendary. Equipping is instant and free, and Companions trade on any Robinhood Chain NFT marketplace.",
-  },
-  {
-    q: "Can I claim $MONKI to my wallet?",
-    a: "Not yet, $MONKI is currently an off-chain accounting balance with claiming on hold pending launch. It is already fully functional as the unit that gets staked. $PONS claiming is live: the pool wallet sends it directly to your wallet and pays the network fee.",
-  },
-];
+/* Six entries, numbered rather than named, because the order is the reading
+   order and the text itself lives in the locale bundle. */
+const FAQ = ["1", "2", "3", "4", "5", "6"] as const;
 
 export default function HelpPage() {
+  const { t } = useTranslation();
+
   return (
-    <StaticPageShell title="Help">
-      {FAQ.map((item) => (
-        <div key={item.q}>
-          <h2 className="text-base sm:text-lg font-extrabold text-claw-charcoal">{item.q}</h2>
-          <p className="mt-1">{item.a}</p>
+    <StaticPageShell title={t("help.title")}>
+      {FAQ.map((n) => (
+        <div key={n}>
+          <h2 className="text-base sm:text-lg font-extrabold text-claw-charcoal">
+            {t(`help.q${n}`)}
+          </h2>
+          <p className="mt-1">{t(`help.a${n}`)}</p>
         </div>
       ))}
     </StaticPageShell>

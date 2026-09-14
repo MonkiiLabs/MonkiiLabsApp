@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   Coins,
@@ -28,6 +29,7 @@ import { BRAND } from "@/lib/brand";
 const STORAGE_KEY = "monkii_admin_master_key";
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const [adminKey, setAdminKey] = useState<string>(() => sessionStorage.getItem(STORAGE_KEY) || "");
   const [keyInput, setKeyInput] = useState("");
 
@@ -44,30 +46,30 @@ export default function AdminPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyInput.trim()) {
-      toast.error("Enter master admin key");
+      toast.error(t("admin.needKey"));
       return;
     }
     sessionStorage.setItem(STORAGE_KEY, keyInput.trim());
     setAdminKey(keyInput.trim());
-    toast.success("Signed in as Admin");
+    toast.success(t("admin.signedIn"));
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem(STORAGE_KEY);
     setAdminKey("");
-    toast.info("Logged out of admin panel");
+    toast.info(t("admin.loggedOut"));
   };
 
   const handleAirdropSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!recipient.trim().startsWith("0x")) {
-      toast.error("Valid EVM 0x wallet address required");
+      toast.error(t("admin.needAddress"));
       return;
     }
     const monki = Number(monkiAmount) || 0;
     const pons = Number(ponsAmount) || 0;
     if (monki <= 0 && pons <= 0) {
-      toast.error("Enter at least one token amount");
+      toast.error(t("admin.needAmount"));
       return;
     }
 
@@ -92,8 +94,8 @@ export default function AdminPage() {
       <div className="mx-auto max-w-md py-12">
         <Panel raised>
           <PanelHeader
-            title="Monkii Labs Command & Control"
-            hint="Enter MASTER_ADMIN_KEY to access protocol governance."
+            title={t("admin.gateTitle")}
+            hint={t("admin.gateHint")}
           />
           <form onSubmit={handleLogin} className="space-y-4 p-6">
             <div>
@@ -106,7 +108,7 @@ export default function AdminPage() {
                   type="password"
                   value={keyInput}
                   onChange={(e) => setKeyInput(e.target.value)}
-                  placeholder="Enter administrative authorization key…"
+                  placeholder={t("admin.gatePlaceholder")}
                   className="w-full rounded-xl border border-hair/15 bg-bench py-2.5 pl-10 pr-4 font-mono text-sm text-paper focus:border-alive-lit focus:outline-none"
                 />
               </div>
@@ -131,8 +133,8 @@ export default function AdminPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle
-          title="Protocol Administration"
-          intro="Global launch gating, claim switches, on-chain disbursement controls, and telemetry."
+          title={t("admin.title")}
+          intro={t("admin.intro")}
         />
         <button
           type="button"
@@ -147,40 +149,40 @@ export default function AdminPage() {
       {/* Protocol Telemetry Metrics */}
       <Panel raised>
         <PanelHeader
-          title="Laboratory System Metrics"
-          hint="Aggregated real-time platform telemetry across database and smart contracts."
+          title={t("admin.metricsTitle")}
+          hint={t("admin.metricsHint")}
         />
         <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
-            <Stat value={s ? s.totalUsers.toLocaleString() : "—"} label="Total Registered Nurturers" />
+            <Stat value={s ? s.totalUsers.toLocaleString() : "—"} label={t("admin.totalUsers")} />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
-            <Stat value={s ? s.totalAgents.toLocaleString() : "—"} label="Monitored Fleet Agents" />
+            <Stat value={s ? s.totalAgents.toLocaleString() : "—"} label={t("admin.totalAgents")} />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
             <Stat
               value={s ? s.activeSessions.toLocaleString() : "—"}
-              label="Active Proof-of-Life Sessions"
+              label={t("admin.activeSessions")}
               tone="vital"
             />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
             <Stat
               value={s ? s.totalClaimableMonki.toLocaleString() : "—"}
-              label="Accrued Pre-TGE $MONKI"
+              label={t("admin.accruedMonki")}
             />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
             <Stat
               value={s ? s.totalClaimablePons.toFixed(2) : "—"}
-              label="Claimable $PONS Pool Yield"
+              label={t("admin.claimablePons")}
               tone="coral"
             />
           </div>
           <div className="rounded-xl border border-hair/10 bg-hair/[0.04] p-4">
             <Stat
               value={s ? s.totalCompanionsMinted.toLocaleString() : "—"}
-              label="Companions Minted / Unlocked"
+              label={t("admin.companionsMinted")}
               tone="vital"
             />
           </div>
@@ -190,15 +192,15 @@ export default function AdminPage() {
       {/* Protocol Claim & Feature Controls */}
       <Panel>
         <PanelHeader
-          title="Protocol Claim Controls & Launch Gating"
-          hint="Control on-chain settlement availability for the platform in real time."
+          title={t("admin.controlsTitle")}
+          hint={t("admin.controlsHint")}
         />
         <div className="divide-y divide-hair/10 p-5">
           {/* $MONKI Mining Claiming Toggle */}
           <div className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-sm font-bold text-paper">$MONKI Mining Claiming</h3>
+                <h3 className="font-display text-sm font-bold text-paper">{t("admin.monkiHeading")}</h3>
                 <span
                   className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase ${
                     ps?.enableMonkiClaiming
@@ -206,12 +208,11 @@ export default function AdminPage() {
                       : "border-idle/30 bg-idle/10 text-idle"
                   }`}
                 >
-                  {ps?.enableMonkiClaiming ? "🟢 Active (TGE Live)" : "🟡 Gated (Pre-Launch)"}
+                  {ps?.enableMonkiClaiming ? t("admin.monkiActive") : t("admin.monkiGated")}
                 </span>
               </div>
               <p className="mt-1 text-xs text-paper-3 max-w-xl">
-                When gated, users accumulate telemetry mining points on the dashboard, but the claim
-                button shows "Pre-TGE Accrual". Flip to Active when liquidity pool launches on L2.
+                {t("admin.monkiNote")}
               </p>
             </div>
 
@@ -225,7 +226,7 @@ export default function AdminPage() {
                   : "bg-alive-lit text-black hover:opacity-90"
               }`}
             >
-              {ps?.enableMonkiClaiming ? "Pause $MONKI Claims" : "Unlock $MONKI Claims (TGE)"}
+              {ps?.enableMonkiClaiming ? t("admin.monkiPause") : t("admin.monkiUnlock")}
             </button>
           </div>
 
@@ -233,7 +234,7 @@ export default function AdminPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 py-4">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-sm font-bold text-paper">$PONS Staking Epoch Claims</h3>
+                <h3 className="font-display text-sm font-bold text-paper">{t("admin.ponsHeading")}</h3>
                 <span
                   className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase ${
                     ps?.enablePonsClaiming
@@ -241,11 +242,11 @@ export default function AdminPage() {
                       : "border-coral/30 bg-coral/10 text-coral"
                   }`}
                 >
-                  {ps?.enablePonsClaiming ? "🟢 Active" : "🔴 Paused"}
+                  {ps?.enablePonsClaiming ? t("admin.active") : t("admin.paused")}
                 </span>
               </div>
               <p className="mt-1 text-xs text-paper-3 max-w-xl">
-                Controls daily epoch yield disbursements from platform pool wallet on Robinhood Chain.
+                {t("admin.ponsNote")}
               </p>
             </div>
 
@@ -259,7 +260,7 @@ export default function AdminPage() {
                   : "bg-act text-white hover:bg-act-lit"
               }`}
             >
-              {ps?.enablePonsClaiming ? "Pause $PONS Claims" : "Enable $PONS Claims"}
+              {ps?.enablePonsClaiming ? t("admin.ponsPause") : t("admin.ponsEnable")}
             </button>
           </div>
 
@@ -267,7 +268,7 @@ export default function AdminPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 py-4 last:pb-0">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-sm font-bold text-paper">Companion NFT Minting</h3>
+                <h3 className="font-display text-sm font-bold text-paper">{t("admin.mintHeading")}</h3>
                 <span
                   className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase ${
                     ps?.enableCompanionMinting
@@ -275,11 +276,11 @@ export default function AdminPage() {
                       : "border-coral/30 bg-coral/10 text-coral"
                   }`}
                 >
-                  {ps?.enableCompanionMinting ? "🟢 Active" : "🔴 Paused"}
+                  {ps?.enableCompanionMinting ? t("admin.active") : t("admin.paused")}
                 </span>
               </div>
               <p className="mt-1 text-xs text-paper-3 max-w-xl">
-                Controls on-chain ERC-721 mint transaction generation and milestone claiming.
+                {t("admin.mintNote")}
               </p>
             </div>
 
@@ -293,7 +294,7 @@ export default function AdminPage() {
                   : "bg-act text-white hover:bg-act-lit"
               }`}
             >
-              {ps?.enableCompanionMinting ? "Pause NFT Minting" : "Enable NFT Minting"}
+              {ps?.enableCompanionMinting ? t("admin.mintPause") : t("admin.mintEnable")}
             </button>
           </div>
         </div>
@@ -302,8 +303,8 @@ export default function AdminPage() {
       {/* Manual Airdrop & Credit Tool */}
       <Panel>
         <PanelHeader
-          title="Manual Ledger Credit & Airdrop"
-          hint="Directly credit claimable $MONKI or $PONS to a user wallet address."
+          title={t("admin.airdropTitle")}
+          hint={t("admin.airdropHint")}
         />
         <form onSubmit={handleAirdropSubmit} className="space-y-4 p-5">
           <div>
@@ -356,7 +357,7 @@ export default function AdminPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-act px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-act-lit disabled:opacity-50"
           >
             <Send className="h-3.5 w-3.5" />
-            {airdrop.isPending ? "Crediting…" : "Execute Credit"}
+            {airdrop.isPending ? t("admin.crediting") : t("admin.execute")}
           </button>
         </form>
       </Panel>

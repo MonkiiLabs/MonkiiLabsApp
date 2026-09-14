@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 
 import { useClaimable, useStakingStatus } from "@/features/api/hooks";
 import { fmt } from "@/components/dashboard/primitives";
-import { BRAND } from "@/lib/brand";
 
 /** Live countdown to the next 00:00 UTC disbursal. */
 function useCountdown(target: string | null | undefined) {
@@ -30,6 +30,7 @@ function useCountdown(target: string | null | undefined) {
 }
 
 const EpochCard = () => {
+  const { t } = useTranslation();
   const { data: staking } = useStakingStatus();
   const { data: balances } = useClaimable();
   const countdown = useCountdown(staking?.nextEpochAt);
@@ -43,10 +44,10 @@ const EpochCard = () => {
         <header className="border-b border-hair/8 pb-fib2">
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 shrink-0 text-alive-lit" />
-            <h2 className="label-mono text-paper-2">Next disbursal</h2>
+            <h2 className="label-mono text-paper-2">{t("dash.epoch.nextDisbursal")}</h2>
           </div>
           <p className="mt-1 font-mono text-micro tabular-nums text-paper-3">
-            Every 24h at 00:00 UTC
+            {t("dash.epoch.every24h")}
           </p>
         </header>
 
@@ -65,28 +66,32 @@ const EpochCard = () => {
             )}
           </div>
           <p className="mt-2 text-center text-xs text-paper-3">
-            Automated snapshot & $PONS distribution cycle
+            {t("dash.epoch.cycleNote")}
           </p>
 
           <dl className="mt-4 space-y-2 border-t border-hair/10 pt-3 text-xs">
             <div className="flex items-center justify-between">
-              <dt className="text-paper-3">Cycle Eligibility</dt>
+              <dt className="text-paper-3">{t("dash.epoch.eligibility")}</dt>
               <dd
                 className={`font-mono text-xs font-semibold ${
                   staking?.isEligibleForNextEpoch ? "text-alive-lit" : "text-idle"
                 }`}
               >
-                {staking ? (staking.isEligibleForNextEpoch ? "Eligible ✓" : "Pending Next Cycle") : "-"}
+                {staking
+                  ? staking.isEligibleForNextEpoch
+                    ? t("dash.epoch.eligible")
+                    : t("dash.epoch.pending")
+                  : "-"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-paper-3">Current Multiplier</dt>
+              <dt className="text-paper-3">{t("dash.epoch.currentMultiplier")}</dt>
               <dd className="font-mono text-xs font-semibold tabular-nums text-paper">
                 {staking ? `×${staking.rewardMultiplier.toFixed(2)}` : "×1.00"}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-paper-3">{BRAND.valueToken} Yield Accrued</dt>
+              <dt className="text-paper-3">{t("dash.epoch.yieldAccrued")}</dt>
               <dd className="font-mono text-xs font-semibold tabular-nums text-alive-lit">
                 {fmt(balances?.claimablePons, 2)}
               </dd>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Coins, Loader2, Lock, Sparkles, Unlock, Zap } from "lucide-react";
 
 import {
@@ -22,12 +23,13 @@ import {
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 
-const TOKENS: Array<{ value: StakeToken; label: string }> = [
-  { value: "MONKI", label: `$${BRAND.rewardToken} (Mining Multiplier)` },
-  { value: "PONS", label: `$${BRAND.valueToken} (Yield Pool)` },
+const TOKENS: Array<{ value: StakeToken; key: string }> = [
+  { value: "MONKI", key: "staking.tokenMonki" },
+  { value: "PONS", key: "staking.tokenPons" },
 ];
 
 const StakingInner = () => {
+  const { t } = useTranslation();
   const status = useStakingStatus();
   const { data: balances } = useClaimable();
   const stake = useStake();
@@ -52,7 +54,7 @@ const StakingInner = () => {
     return 1 + ratio * (policy.MAX_MULTIPLIER - 1);
   }, [policy, staked, parsed, valid]);
 
-  if (status.isLoading) return <LoadingPanel label="Querying on-chain staking status" />;
+  if (status.isLoading) return <LoadingPanel label={t("staking.loading")} />;
   if (status.isError) return <ErrorPanel error={status.error} onRetry={status.refetch} />;
 
   const data = status.data!;
@@ -62,19 +64,19 @@ const StakingInner = () => {
     <div className="space-y-5">
       {/* Position Overview */}
       <Panel raised>
-        <PanelHeader title="Staking Position & Epoch Telemetry" />
+        <PanelHeader title={t("staking.positionTitle")} />
         <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
-          <Stat value={fmt(data.stakedMonki)} label={`${BRAND.rewardToken} Staked`} />
-          <Stat value={`×${data.rewardMultiplier.toFixed(2)}`} label="Mining Boost" tone="vital" />
-          <Stat value={fmt(data.claimablePons, 2)} label={`${BRAND.valueToken} Accrued`} tone="coral" />
-          <Stat value={timeUntil(data.nextEpochAt)} label="Next Disbursal" />
+          <Stat value={fmt(data.stakedMonki)} label={t("staking.staked")} />
+          <Stat value={`×${data.rewardMultiplier.toFixed(2)}`} label={t("staking.boost")} tone="vital" />
+          <Stat value={fmt(data.claimablePons, 2)} label={t("staking.accrued")} tone="coral" />
+          <Stat value={timeUntil(data.nextEpochAt)} label={t("staking.nextDisbursal")} />
         </div>
 
         {/* Multiplier Progress Bar */}
         <div className="border-t border-hair/10 px-5 py-4">
           <div className="flex items-baseline justify-between text-xs">
             <span className="font-mono text-paper-3">
-              Progress to Max Boost (×{policy?.MAX_MULTIPLIER ?? 3.0})
+              {t("staking.progressTo", { max: policy?.MAX_MULTIPLIER ?? 3.0 })}
             </span>
             <span className="font-mono font-semibold tabular-nums text-alive-lit">
               {fmt(staked)} / {fmt(policy?.STAKE_FOR_MAX ?? 10000)} {BRAND.rewardToken}
@@ -90,8 +92,8 @@ const StakingInner = () => {
 
           <p className="mt-2 text-xs text-paper-3">
             {data.isEligibleForNextEpoch
-              ? "Your position is active and qualified for the upcoming 00:00 UTC snapshot."
-              : "Staking resets your epoch timer. Distribution eligibility begins the next cycle."}
+              ? t("staking.eligible")
+              : t("staking.notEligible")}
           </p>
         </div>
       </Panel>
@@ -99,31 +101,31 @@ const StakingInner = () => {
       {/* Stake & Unstake Console */}
       <Panel>
         <PanelHeader
-          title="Stake / Release Tokens"
-          hint="All staking actions require a gasless cryptographic wallet signature on Robinhood Chain."
+          title={t("staking.consoleTitle")}
+          hint={t("staking.consoleHint")}
         />
         <div className="p-5">
           {/* Token selector */}
           <div className="flex flex-wrap gap-2">
-            {TOKENS.map((t) => (
+            {TOKENS.map((opt) => (
               <button
-                key={t.value}
+                key={opt.value}
                 type="button"
-                onClick={() => setToken(t.value)}
+                onClick={() => setToken(opt.value)}
                 className={`rounded-xl px-3.5 py-2 font-mono text-xs font-semibold transition-all ${
-                  token === t.value
+                  token === opt.value
                     ? "border border-alive/40 bg-alive/15 text-alive-lit"
                     : "border border-hair/10 bg-hair/[0.05] text-paper-3 hover:text-paper"
                 }`}
               >
-                {t.label}
+                {t(opt.key)}
               </button>
             ))}
           </div>
 
           <label className="mt-4 block">
             <span className="font-mono text-xs uppercase tracking-wider text-paper-3">
-              Amount to Stake
+              {t("staking.amountLabel")}
             </span>
             <div className="mt-2 flex items-center gap-2">
               <input
@@ -141,11 +143,11 @@ const StakingInner = () => {
                 onClick={() => setAmount(String(available))}
                 className="rounded-xl border border-hair/10 bg-hair/10 px-3.5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:bg-hair/20"
               >
-                MAX
+                {t("staking.max")}
               </button>
             </div>
             <span className="mt-1.5 block text-xs text-paper-3">
-              Available in wallet/accrual: <span className="font-mono text-paper">{fmt(available, 2)}</span> {token}
+              {t("staking.available")} <span className="font-mono text-paper">{fmt(available, 2)}</span> {token}
             </span>
           </label>
 
@@ -153,7 +155,7 @@ const StakingInner = () => {
             <div className="mt-3 flex items-center gap-2 rounded-xl border border-alive/20 bg-alive/5 p-3 text-xs text-alive-lit">
               <Sparkles className="h-4 w-4 shrink-0 text-alive-lit" />
               <span>
-                Projected mining multiplier will increase to{" "}
+                {t("staking.projected")}{" "}
                 <strong className="font-mono font-bold text-alive-lit">
                   ×{projected.toFixed(2)}
                 </strong>
@@ -173,7 +175,7 @@ const StakingInner = () => {
               ) : (
                 <Lock className="h-4 w-4" />
               )}
-              Stake {token}
+              {t("staking.stakeBtn", { token })}
             </button>
 
             <button
@@ -187,7 +189,7 @@ const StakingInner = () => {
               ) : (
                 <Unlock className="h-4 w-4" />
               )}
-              Unstake
+              {t("staking.unstakeBtn")}
             </button>
           </div>
         </div>
@@ -196,16 +198,17 @@ const StakingInner = () => {
   );
 };
 
-const StakingPage = () => (
-  <>
-    <PageTitle
-      title="Epoch Staking & Multiplier Engine"
-      intro="Stake $MONKI to boost your in-browser Proof-of-Life mining rewards up to ×3.00. Earn liquid $PONS utility tokens distributed across daily 24-hour snapshot epochs."
-    />
-    <AuthGate what="your staking position and epoch allocations">
-      <StakingInner />
-    </AuthGate>
-  </>
-);
+const StakingPage = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <PageTitle title={t("staking.title")} intro={t("staking.intro")} />
+      <AuthGate what={t("staking.authWhat")}>
+        <StakingInner />
+      </AuthGate>
+    </>
+  );
+};
 
 export default StakingPage;

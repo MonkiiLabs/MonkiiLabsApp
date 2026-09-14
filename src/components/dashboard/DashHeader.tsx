@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Coins, Flame, Home, Menu, Radar, Sparkles, Trophy, User } from "lucide-react";
 
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -22,16 +23,17 @@ import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
  * the wordmark, live balance, alerts and wallet.
  */
 export const NAV_ITEMS = [
-  { icon: Home, label: "Home", path: "/dashboard" },
-  { icon: Radar, label: "Fleet", path: "/dashboard/agents" },
-  { icon: Sparkles, label: "Companions", path: "/dashboard/companions" },
-  { icon: Coins, label: "Staking", path: "/dashboard/staking" },
-  { icon: Trophy, label: "Leaderboard", path: "/dashboard/leaderboard" },
-  { icon: Flame, label: "Alerts", path: "/dashboard/alerts" },
-  { icon: User, label: "Profile", path: "/dashboard/profile" },
-];
+  { icon: Home, key: "dash.nav.home", path: "/dashboard" },
+  { icon: Radar, key: "dash.nav.fleet", path: "/dashboard/agents" },
+  { icon: Sparkles, key: "dash.nav.companions", path: "/dashboard/companions" },
+  { icon: Coins, key: "dash.nav.staking", path: "/dashboard/staking" },
+  { icon: Trophy, key: "dash.nav.leaderboard", path: "/dashboard/leaderboard" },
+  { icon: Flame, key: "dash.nav.alerts", path: "/dashboard/alerts" },
+  { icon: User, key: "dash.nav.profile", path: "/dashboard/profile" },
+] as const;
 
 const DashHeader = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const { isAuthenticated } = useWallet();
@@ -52,7 +54,7 @@ const DashHeader = () => {
             <SheetTrigger asChild>
               <button
                 type="button"
-                aria-label="Open navigation menu"
+                aria-label={t("dash.nav.openMenu")}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 border-dashboard-border bg-white text-claw-charcoal transition-all hover:border-sky/50 hover:bg-dashboard-hover btn-bounce"
               >
                 <Menu className="h-5 w-5" />
@@ -62,7 +64,7 @@ const DashHeader = () => {
               side="left"
               className="flex w-[min(20rem,86vw)] flex-col border-r-2 border-dashboard-border bg-white p-0"
             >
-              <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
+              <SheetTitle className="sr-only">{t("dash.nav.navTitle")}</SheetTitle>
 
               <div className="border-b-2 border-dashboard-border p-4">
                 <Wordmark size="sm" />
@@ -81,7 +83,7 @@ const DashHeader = () => {
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {item.label}
+                    {t(item.key)}
                   </Link>
                 ))}
               </nav>
@@ -92,13 +94,13 @@ const DashHeader = () => {
                   onClick={() => setMenuOpen(false)}
                   className="block rounded-xl px-3 py-2 text-sm font-bold text-claw-gray-600 transition-colors hover:bg-cream hover:text-coral"
                 >
-                  Back to site
+                  {t("dash.nav.backToSite")}
                 </Link>
               </div>
             </SheetContent>
           </Sheet>
 
-          <Link to="/" className="group min-w-0 shrink" aria-label="Monkii Labs home">
+          <Link to="/" className="group min-w-0 shrink" aria-label={t("dash.nav.homeLabel")}>
             <Wordmark size="sm" />
           </Link>
         </div>

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+
+import i18n from "@/i18n";
 import { AlertTriangle, KeyRound, Loader2, Sparkles, Wallet } from "lucide-react";
 
 import { useWallet } from "@/hooks/useWallet";
@@ -126,10 +128,10 @@ export function Stat({
 
 export const STATE_META: Record<
   AgentState,
-  { label: string; text: string; bg: string; border: string; dot: string; bar: string }
+  { labelKey: string; text: string; bg: string; border: string; dot: string; bar: string }
 > = {
   thriving: {
-    label: "Thriving",
+    labelKey: "prim.state.thriving",
     text: "text-alive-lit",
     bg: "bg-alive/10",
     border: "border-alive/30",
@@ -137,7 +139,7 @@ export const STATE_META: Record<
     bar: "bg-alive",
   },
   idle: {
-    label: "Idle",
+    labelKey: "prim.state.idle",
     text: "text-idle",
     bg: "bg-idle/10",
     border: "border-idle/28",
@@ -145,7 +147,7 @@ export const STATE_META: Record<
     bar: "bg-idle",
   },
   fading: {
-    label: "Fading",
+    labelKey: "prim.state.fading",
     text: "text-act-lit",
     bg: "bg-act/10",
     border: "border-act/32",
@@ -157,13 +159,14 @@ export const STATE_META: Record<
 };
 
 export function StateChip({ state }: { state: AgentState }) {
+  const { t } = useTranslation();
   const meta = STATE_META[state];
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-sm border px-fib2 py-0.5 font-mono text-micro font-semibold uppercase ${meta.bg} ${meta.border} ${meta.text}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} aria-hidden />
-      {meta.label}
+      {t(meta.labelKey)}
     </span>
   );
 }
@@ -189,6 +192,7 @@ export function PowerMeter({
   segments?: number;
   showValue?: boolean;
 }) {
+  const { t } = useTranslation();
   const pct = max > 0 ? Math.max(0, Math.min(1, power / max)) : 0;
   const filled = Math.round(pct * segments);
   const meta = STATE_META[state];
@@ -201,7 +205,7 @@ export function PowerMeter({
         aria-valuenow={Math.round(pct * 100)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Agent vitality"
+        aria-label={t("prim.agentVitality")}
       >
         {Array.from({ length: segments }).map((_, i) => {
           const isFloor = i === 0;
@@ -218,9 +222,9 @@ export function PowerMeter({
       </div>
       {showValue && (
         <div className="mt-1.5 flex items-baseline justify-between text-xs">
-          <span className="label-mono text-paper-3">Vitality</span>
+          <span className="label-mono text-paper-3">{t("prim.vitality")}</span>
           <span className={`font-mono text-label font-semibold tabular-nums ${meta.text}`}>
-            {Math.round(power).toLocaleString()} / {Math.round(max).toLocaleString()} pw
+            {Math.round(power).toLocaleString()} / {Math.round(max).toLocaleString()} {t("prim.pw")}
           </span>
         </div>
       )}
@@ -230,23 +234,25 @@ export function PowerMeter({
 
 /* ---- Status Panels ------------------------------------------------------ */
 
-export function LoadingPanel({ label = "Loading telemetry" }: { label?: string }) {
+export function LoadingPanel({ label }: { label?: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center gap-fib2 rounded-xl border border-hair/9 bg-bench-2 p-fib5 text-paper-3">
       <Loader2 className="h-4 w-4 animate-spin text-paper-3" />
-      <span className="label-mono">{label}…</span>
+      <span className="label-mono">{label ?? t("prim.loading")}…</span>
     </div>
   );
 }
 
 export function ErrorPanel({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
-  const message = (error as Error)?.message ?? "An unexpected error occurred.";
+  const { t } = useTranslation();
+  const message = (error as Error)?.message ?? t("prim.unexpectedError");
   return (
     <div className="rounded-xl border border-act/30 bg-act/[0.07] p-fib3">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-act-lit" />
         <div className="min-w-0">
-          <p className="font-semibold text-paper">Telemetry read failed</p>
+          <p className="font-semibold text-paper">{t("prim.readFailed")}</p>
           <p className="mt-1 break-words text-label text-paper-2">{message}</p>
           {onRetry && (
             <button
@@ -254,7 +260,7 @@ export function ErrorPanel({ error, onRetry }: { error: unknown; onRetry?: () =>
               onClick={onRetry}
               className="act mt-fib2 inline-flex h-9 items-center px-fib3 text-label font-semibold"
             >
-              Retry
+              {t("prim.retry")}
             </button>
           )}
         </div>
@@ -374,20 +380,20 @@ export function timeUntil(iso: string | null | undefined): string {
   if (!iso) return "-";
   const ms = new Date(iso).getTime() - Date.now();
   if (Number.isNaN(ms)) return "-";
-  if (ms <= 0) return "now";
+  if (ms <= 0) return i18n.t("prim.time.now");
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
-  if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  if (h >= 24) return i18n.t("prim.time.dh", { d: Math.floor(h / 24), h: h % 24 });
+  return h > 0 ? i18n.t("prim.time.hm", { h, m }) : i18n.t("prim.time.m", { m });
 }
 
 export function timeAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
   if (Number.isNaN(ms)) return "";
   const m = Math.floor(ms / 60_000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return i18n.t("prim.time.justNow");
+  if (m < 60) return i18n.t("prim.time.mAgo", { m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return i18n.t("prim.time.hAgo", { h });
+  return i18n.t("prim.time.dAgo", { d: Math.floor(h / 24) });
 }

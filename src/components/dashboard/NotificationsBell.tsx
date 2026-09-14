@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Bell, Heart, Zap } from "lucide-react";
 
 import { useAgents } from "@/features/api/hooks";
@@ -7,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { monkiiMark } from "@/lib/brand";
 
 export function NotificationsBell() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: agents = [] } = useAgents();
 
@@ -21,7 +23,7 @@ export function NotificationsBell() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Vitality alerts"
+          aria-label={t("dash.bell.label")}
           className="relative grid h-9 w-9 place-items-center rounded-xl border border-hair/10 bg-hair/[0.05] text-paper-2 transition-all hover:border-alive/40 hover:bg-alive/10 hover:text-paper"
         >
           <Bell className="h-4 w-4" />
@@ -46,18 +48,18 @@ export function NotificationsBell() {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-alive" />
             </span>
             <span className="font-mono text-xs font-semibold uppercase tracking-wider text-paper-2">
-              Vitality Telemetry
+              {t("dash.bell.title")}
             </span>
           </div>
           <span className="rounded-full bg-hair/10 px-2 py-0.5 text-[10px] font-medium text-paper-3">
-            {totalAlerts} at risk
+            {t("dash.bell.atRisk", { count: totalAlerts })}
           </span>
         </div>
 
         <div className="max-h-72 overflow-y-auto divide-y divide-hair/[0.05] p-1">
           {fadingAgents.length > 0 && (
             <div className="px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-act-lit">
-              Critical: fading
+              {t("dash.bell.critical")}
             </div>
           )}
           {fadingAgents.slice(0, 4).map((agent) => (
@@ -76,10 +78,10 @@ export function NotificationsBell() {
                 <div className="flex items-center justify-between">
                   <span className="truncate text-xs font-semibold text-paper">{agent.name}</span>
                   <span className="font-mono text-[10px] font-bold text-act-lit">
-                    {Math.round(agent.power)} pw
+                    {t("dash.bell.pw", { value: Math.round(agent.power) })}
                   </span>
                 </div>
-                <p className="text-[11px] text-red-300/80">Power depleted below threshold</p>
+                <p className="text-[11px] text-red-300/80">{t("dash.bell.depleted")}</p>
               </div>
               <span className="grid h-7 w-7 place-items-center rounded-lg bg-act/20 text-act-lit">
                 <Heart className="h-3.5 w-3.5 animate-pulse" />
@@ -89,7 +91,7 @@ export function NotificationsBell() {
 
           {idleAgents.length > 0 && (
             <div className="px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-idle">
-              Needs attention: idle
+              {t("dash.bell.needsAttention")}
             </div>
           )}
           {idleAgents.slice(0, 3).map((agent) => (
@@ -108,10 +110,10 @@ export function NotificationsBell() {
                 <div className="flex items-center justify-between">
                   <span className="truncate text-xs font-semibold text-paper">{agent.name}</span>
                   <span className="font-mono text-[10px] font-bold text-idle">
-                    {Math.round(agent.power)} pw
+                    {t("dash.bell.pw", { value: Math.round(agent.power) })}
                   </span>
                 </div>
-                <p className="text-[11px] text-idle/70">Ready for Proof-of-Life compute</p>
+                <p className="text-[11px] text-idle/70">{t("dash.bell.readyForCompute")}</p>
               </div>
               <span className="grid h-7 w-7 place-items-center rounded-lg bg-idle/20 text-idle">
                 <Zap className="h-3.5 w-3.5" />
@@ -121,7 +123,7 @@ export function NotificationsBell() {
 
           {totalAlerts === 0 && (
             <div className="p-6 text-center text-xs text-paper-3">
-              All monitored agents are currently thriving.
+              {t("dash.bell.allThriving")}
             </div>
           )}
         </div>
@@ -132,7 +134,7 @@ export function NotificationsBell() {
             onClick={() => setOpen(false)}
             className="block rounded-lg py-1.5 text-xs font-medium text-alive-lit transition-colors hover:bg-hair/[0.05]"
           >
-            View all fleet agents →
+            {t("dash.bell.viewAll")}
           </Link>
         </div>
       </PopoverContent>

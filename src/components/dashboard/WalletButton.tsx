@@ -1,4 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useTranslation } from "react-i18next";
 import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 
 import { useWallet } from "@/hooks/useWallet";
@@ -24,6 +25,7 @@ import { useWallet } from "@/hooks/useWallet";
    ===================================================================== */
 
 export function WalletButton() {
+  const { t } = useTranslation();
   const { isAuthenticated, isAuthenticating, connectAndSignIn, switchWallet, authError } =
     useWallet();
 
@@ -44,7 +46,7 @@ export function WalletButton() {
               onClick={connectAndSignIn}
               className="act inline-flex h-9 items-center gap-2 px-fib3 text-label font-semibold"
             >
-              Open session
+              {t("dash.wallet.openSession")}
             </button>
           );
         }
@@ -56,7 +58,7 @@ export function WalletButton() {
               onClick={openChainModal}
               className="act inline-flex h-9 items-center gap-2 px-fib3 text-label font-semibold"
             >
-              Switch to Robinhood Chain
+              {t("dash.wallet.switchChain")}
             </button>
           );
         }
@@ -68,7 +70,7 @@ export function WalletButton() {
                 type="button"
                 disabled={isAuthenticating}
                 onClick={connectAndSignIn}
-                title={authError ?? "Sign a plain-text message to open your session. No gas."}
+                title={authError ?? t("dash.wallet.signTooltip")}
                 className="act inline-flex h-9 items-center gap-1.5 px-fib2 text-label font-semibold"
               >
                 {isAuthenticating ? (
@@ -76,22 +78,22 @@ export function WalletButton() {
                 ) : (
                   <KeyRound className="h-3.5 w-3.5" />
                 )}
-                <span>Open session</span>
+                <span>{t("dash.wallet.openSession")}</span>
               </button>
             ) : (
               <span
-                title="Monkii Labs session active"
+                title={t("dash.wallet.sessionActive")}
                 className="hidden h-9 items-center gap-1.5 rounded-sm border border-alive/28 bg-alive/[0.08] px-fib2 font-mono text-micro font-semibold uppercase text-alive-lit sm:inline-flex"
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Session
+                {t("dash.wallet.session")}
               </span>
             )}
 
             <button
               type="button"
               onClick={isAuthenticated ? openAccountModal : switchWallet}
-              title={isAuthenticated ? "Wallet details" : "Use a different wallet"}
+              title={isAuthenticated ? t("dash.wallet.walletDetails") : t("dash.wallet.useDifferent")}
               className="act-quiet inline-flex h-9 items-center gap-2 px-fib2 font-mono text-micro font-semibold tabular-nums text-paper-2"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-alive" aria-hidden />

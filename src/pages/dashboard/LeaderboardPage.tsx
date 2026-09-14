@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Award, Flame, Heart, Medal, Trophy } from "lucide-react";
 
 import { useTopAgents, useTopNurturers } from "@/features/api/hooks";
@@ -48,6 +49,7 @@ function rankBadge(rank: number) {
 }
 
 const LeaderboardPage = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("nurturers");
   const nurturers = useTopNurturers();
   const agentsQuery = useTopAgents();
@@ -58,45 +60,45 @@ const LeaderboardPage = () => {
   return (
     <>
       <PageTitle
-        title="Leaderboard & High-Power Telemetry"
-        intro="Recognizing the top distributed compute nodes sustaining the autonomous agent ecosystem on Robinhood Chain."
+        title={t("leaderboard.title")}
+        intro={t("leaderboard.intro")}
       />
 
       <div className="mb-6 flex gap-2">
         {[
-          { value: "nurturers" as const, label: "Top Compute Nurturers", icon: Trophy },
-          { value: "agents" as const, label: "Top Agents by Power", icon: Flame },
-        ].map((t) => {
-          const Icon = t.icon;
+          { value: "nurturers" as const, key: "leaderboard.tabNurturers", icon: Trophy },
+          { value: "agents" as const, key: "leaderboard.tabAgents", icon: Flame },
+        ].map((opt) => {
+          const Icon = opt.icon;
           return (
             <button
-              key={t.value}
+              key={opt.value}
               type="button"
-              onClick={() => setTab(t.value)}
+              onClick={() => setTab(opt.value)}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition-all ${
-                tab === t.value
+                tab === opt.value
                   ? "border border-alive/40 bg-alive/15 text-alive-lit"
                   : "border border-hair/10 bg-hair/[0.05] text-paper-3 hover:text-paper"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
-              {t.label}
+              {t(opt.key)}
             </button>
           );
         })}
       </div>
 
-      {active.isLoading && <LoadingPanel label="Querying fleet rankings" />}
+      {active.isLoading && <LoadingPanel label={t("leaderboard.loading")} />}
       {active.isError && <ErrorPanel error={active.error} onRetry={active.refetch} />}
 
       {tab === "nurturers" && nurturers.data && (
         <Panel raised>
-          <PanelHeader title={`Lifetime $${BRAND.rewardToken} Compute Receipts`} />
+          <PanelHeader title={t("leaderboard.receiptsTitle")} />
           {nurturers.data.length === 0 ? (
             <div className="p-5">
               <EmptyPanel
-                title="No nurturer entries recorded"
-                body="Submit your first Proof-of-Life heartbeat to take the #1 podium position."
+                title={t("leaderboard.noNurturersTitle")}
+                body={t("leaderboard.noNurturersBody")}
               />
             </div>
           ) : (
@@ -118,13 +120,13 @@ const LeaderboardPage = () => {
                         </span>
                         {isYou && (
                           <span className="rounded bg-alive/20 px-1.5 py-0.2 font-mono text-[10px] font-bold text-alive-lit">
-                            YOU
+                            {t("leaderboard.you")}
                           </span>
                         )}
                       </div>
                       {row.agentsNurtured != null && (
                         <p className="text-xs text-paper-3">
-                          {fmt(row.agentsNurtured)} agents maintained
+                          {t("leaderboard.agentsMaintained", { count: fmt(row.agentsNurtured) })}
                         </p>
                       )}
                     </div>
@@ -147,12 +149,12 @@ const LeaderboardPage = () => {
 
       {tab === "agents" && agentsQuery.data && (
         <Panel raised>
-          <PanelHeader title="Live Fleet Power Ranking" />
+          <PanelHeader title={t("leaderboard.fleetRankTitle")} />
           {agentsQuery.data.length === 0 ? (
             <div className="p-5">
               <EmptyPanel
-                title="No agents ranked"
-                body="Power rankings compute once agent heartbeat sessions are active."
+                title={t("leaderboard.noAgentsTitle")}
+                body={t("leaderboard.noAgentsBody")}
               />
             </div>
           ) : (
@@ -177,7 +179,7 @@ const LeaderboardPage = () => {
                         <StateChip state={row.state} />
                       </div>
                       <p className="text-xs text-paper-3">
-                        {fmt(row.nurturerCount)} active nurturers
+                        {t("leaderboard.activeNurturers", { count: fmt(row.nurturerCount) })}
                       </p>
                     </div>
 
@@ -186,7 +188,7 @@ const LeaderboardPage = () => {
                         {Math.round(row.power)}
                       </span>
                       <span className="block font-mono text-[10px] uppercase text-paper-4">
-                        power
+                        {t("leaderboard.power")}
                       </span>
                     </div>
 

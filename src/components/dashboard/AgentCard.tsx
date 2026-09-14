@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Heart, Star, Users } from "lucide-react";
 
 import type { Agent } from "@/features/api/types";
@@ -12,6 +13,7 @@ import { AGENT_POWER_MAX } from "@/lib/config";
  * Precision telemetry gauge, live vitality indicator, and watchlist star.
  */
 const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean }) => {
+  const { t } = useTranslation();
   const { isStarred, toggleStar } = useWatchlist();
   const starred = isStarred(agent.id);
 
@@ -41,7 +43,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
         {/* Watchlist star toggle */}
         <button
           type="button"
-          aria-label={starred ? "Remove from watchlist" : "Add to watchlist"}
+          aria-label={starred ? t("dash.agentCard.removeWatch") : t("dash.agentCard.addWatch")}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -67,7 +69,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
         <div className="mb-2 flex items-center justify-between">
           <StateChip state={agent.state} />
           <span className="font-mono text-[11px] font-semibold text-paper-3">
-            {Math.round(agent.power)} pw
+            {t("dash.agentCard.pw", { value: Math.round(agent.power) })}
           </span>
         </div>
         <PowerMeter
@@ -82,7 +84,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-hair/[0.05] pt-3 text-xs text-paper-3">
         <span className="inline-flex items-center gap-1.5 font-mono text-[11px]">
           <Users className="h-3.5 w-3.5 text-paper-4" />
-          {fmt(agent.nurturerCount)} nurturers
+          {t("dash.agentCard.nurturers", { count: fmt(agent.nurturerCount) })}
         </span>
 
         <Link
@@ -90,7 +92,7 @@ const AgentCard = ({ agent, compact = false }: { agent: Agent; compact?: boolean
           className="inline-flex items-center gap-1 rounded-lg border border-alive/20 bg-alive/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-alive-lit transition-all hover:border-alive-lit/40 hover:bg-alive/20"
         >
           <Heart className="h-3 w-3" />
-          <span>Nurture</span>
+          <span>{t("dash.agentCard.nurture")}</span>
         </Link>
       </div>
     </article>

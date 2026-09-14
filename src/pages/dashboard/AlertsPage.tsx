@@ -2,6 +2,7 @@ import { Check, Copy, Heart, Send, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useDashboardSummary, useProfile, useTelegramLinkCode } from "@/features/api/hooks";
 import {
@@ -14,11 +15,12 @@ import {
   StateChip,
   timeAgo,
 } from "@/components/dashboard/primitives";
-import { BRAND, monkiiMark } from "@/lib/brand";
+import { monkiiMark } from "@/lib/brand";
 
 const BOT_HANDLE = "MonkiiLabsBot";
 
 const AlertsInner = () => {
+  const { t } = useTranslation();
   const profile = useProfile();
   const summary = useDashboardSummary();
   const linkCode = useTelegramLinkCode();
@@ -33,9 +35,9 @@ const AlertsInner = () => {
       await navigator.clipboard.writeText(`/start ${code}`);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-      toast.success("Command copied to clipboard");
+      toast.success(t("alerts.copied"));
     } catch {
-      toast.error("Could not copy. Highlight the text and copy it manually.");
+      toast.error(t("alerts.copyFailed"));
     }
   };
 
@@ -47,19 +49,19 @@ const AlertsInner = () => {
       {/* Telegram Sentinel Integration */}
       <Panel raised>
         <PanelHeader
-          title="Vitality Sentinel Bot (@MonkiiLabsBot)"
-          hint={`Receive immediate real-time push alerts via Telegram the second any of your nurtured agents slip into idle or fading.`}
+          title={t("alerts.botTitle", { bot: BOT_HANDLE })}
+          hint={t("alerts.botHint")}
         />
         <div className="p-5">
           {linked ? (
             <div className="flex items-center gap-3 rounded-xl border border-alive/30 bg-alive/10 p-4">
               <Check className="h-5 w-5 shrink-0 text-alive-lit" />
               <div className="min-w-0">
-                <p className="text-xs font-bold text-paper">Telegram Sentinel Active</p>
+                <p className="text-xs font-bold text-paper">{t("alerts.activeTitle")}</p>
                 <p className="text-xs text-paper-3">
                   {profile.data?.telegram.username
-                    ? `Telemetry drop alerts configured for @${profile.data.telegram.username}.`
-                    : "Power-drop warnings are active."}
+                    ? t("alerts.activeFor", { username: profile.data.telegram.username })
+                    : t("alerts.activeGeneric")}
                 </p>
               </div>
             </div>
@@ -67,10 +69,10 @@ const AlertsInner = () => {
             <>
               <ol className="space-y-2 text-xs text-paper-3">
                 <li>
-                  <strong className="text-paper">1.</strong> Request a one-time cryptographic pairing code below.
+                  <strong className="text-paper">1.</strong> {t("alerts.step1")}
                 </li>
                 <li>
-                  <strong className="text-paper">2.</strong> Open{" "}
+                  <strong className="text-paper">2.</strong> {t("alerts.step2a")}{" "}
                   <a
                     href={`https://t.me/${BOT_HANDLE}`}
                     target="_blank"
@@ -79,10 +81,10 @@ const AlertsInner = () => {
                   >
                     @{BOT_HANDLE}
                   </a>{" "}
-                  in Telegram.
+                  {t("alerts.step2b")}
                 </li>
                 <li>
-                  <strong className="text-paper">3.</strong> Send:{" "}
+                  <strong className="text-paper">3.</strong> {t("alerts.step3")}{" "}
                   <code className="rounded border border-hair/15 bg-cream px-2 py-0.5 font-mono text-alive-lit">
                     /start {code ?? "YOUR_CODE"}
                   </code>
@@ -97,7 +99,7 @@ const AlertsInner = () => {
                   className="inline-flex items-center gap-2 rounded-xl bg-act px-4 py-2 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit active:scale-[0.97] disabled:opacity-50"
                 >
                   <Send className="h-3.5 w-3.5" />
-                  {code ? "Regenerate Code" : "Get Pairing Code"}
+                  {code ? t("alerts.regenerate") : t("alerts.getCode")}
                 </button>
 
                 {code && (
@@ -123,16 +125,16 @@ const AlertsInner = () => {
       {/* Agents Needing Immediate Attention */}
       <Panel>
         <PanelHeader
-          title="Agents Requiring Compute Support"
-          hint="Agents in idle or fading states suffering from power decay."
+          title={t("alerts.riskTitle")}
+          hint={t("alerts.riskHint")}
         />
         <div className="p-5">
           {summary.isLoading ? (
-            <LoadingPanel label="Scanning agent power telemetry" />
+            <LoadingPanel label={t("alerts.scanning")} />
           ) : atRisk.length === 0 ? (
             <EmptyPanel
-              title="All monitored agents are thriving"
-              body="None of your agents have dipped below the healthy vitality threshold."
+              title={t("alerts.allThrivingTitle")}
+              body={t("alerts.allThrivingBody")}
             />
           ) : (
             <ul className="space-y-2.5">
@@ -150,7 +152,7 @@ const AlertsInner = () => {
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-paper">{agent.name}</p>
                       <p className="font-mono text-[11px] text-paper-3">
-                        Current Power: {Math.round(agent.power)} pw
+                        {t("alerts.currentPower", { value: Math.round(agent.power) })}
                       </p>
                     </div>
                   </div>
@@ -162,7 +164,7 @@ const AlertsInner = () => {
                       className="inline-flex items-center gap-1.5 rounded-lg bg-act px-3 py-1.5 font-mono text-micro font-semibold uppercase text-white transition-colors hover:bg-act-lit"
                     >
                       <Heart className="h-3 w-3" />
-                      Revive
+                      {t("alerts.revive")}
                     </Link>
                   </div>
                 </li>
@@ -175,16 +177,17 @@ const AlertsInner = () => {
   );
 };
 
-const AlertsPage = () => (
-  <>
-    <PageTitle
-      title="Vitality Alerts & Telegram Sentinel"
-      intro="Connect @MonkiiLabsBot for instant automated notifications whenever your nurtured fleet agents slip into idle or fading states."
-    />
-    <AuthGate what="your alert feeds and Telegram pairing">
-      <AlertsInner />
-    </AuthGate>
-  </>
-);
+const AlertsPage = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <PageTitle title={t("alerts.title")} intro={t("alerts.intro", { bot: BOT_HANDLE })} />
+      <AuthGate what={t("alerts.authWhat")}>
+        <AlertsInner />
+      </AuthGate>
+    </>
+  );
+};
 
 export default AlertsPage;

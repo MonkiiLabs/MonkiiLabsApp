@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Heart,
@@ -39,15 +40,16 @@ import {
 import { BRAND, monkiiMark } from "@/lib/brand";
 import { AGENT_POWER_MAX } from "@/lib/config";
 
-const INTENSITIES: Array<{ value: Intensity; label: string; blurb: string }> = [
-  { value: "light", label: "Light", blurb: "Low CPU/GPU overhead" },
-  { value: "standard", label: "Standard", blurb: "Optimal compute loop" },
-  { value: "max", label: "Max", blurb: "Maximum $MONKI throughput" },
+const INTENSITIES: Array<{ value: Intensity; key: string }> = [
+  { value: "light", key: "light" },
+  { value: "standard", key: "standard" },
+  { value: "max", key: "max" },
 ];
 
 const MAX_SLOTS = 3;
 
 const AgentDetailInner = ({ agentId }: { agentId: string }) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error, refetch } = useAgent(agentId);
   const inventory = useInventory();
   const equip = useEquipCompanion();
@@ -87,8 +89,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden" && nurture.isRunning) {
         void nurture.stop();
-        toast.info("Nurturing paused", {
-          description: "Proof-of-life compute was paused to protect your device resources.",
+        toast.info(t("detail.pausedTitle"), {
+          description: t("detail.pausedBody"),
         });
       }
     };
@@ -97,7 +99,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [nurture]);
 
-  if (isLoading) return <LoadingPanel label="Connecting to agent stream" />;
+  if (isLoading) return <LoadingPanel label={t("detail.loading")} />;
   if (isError) return <ErrorPanel error={error} onRetry={refetch} />;
   if (!data) return null;
 
@@ -172,7 +174,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              aria-label={starred ? "Remove from watchlist" : "Add to watchlist"}
+              aria-label={starred ? t("detail.removeWatch") : t("detail.addWatch")}
               onClick={() => toggleStar(agentId)}
               className={`grid h-9 w-9 place-items-center rounded-xl border transition-all ${
                 starred
@@ -186,11 +188,11 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             <button
               type="button"
               onClick={shareToX}
-              title="Share to X"
+              title={t("detail.shareTitle")}
               className="inline-flex items-center gap-1.5 rounded-xl border border-hair/10 bg-hair/[0.05] px-3 py-2 text-xs font-semibold text-paper-2 transition-all hover:border-hair/25 hover:bg-hair/10 hover:text-paper"
             >
               <Share2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Share</span>
+              <span className="hidden sm:inline">{t("detail.share")}</span>
             </button>
           </div>
         </div>
@@ -202,11 +204,11 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 
         {/* Telemetry Metrics */}
         <div className="grid grid-cols-3 gap-4 border-t border-hair/10 p-5 text-center sm:text-left">
-          <Stat value={fmt(agent.nurturerCount)} label="Nurturers" />
-          <Stat value={`−${fmt(agent.powerDecayRate, 1)}/h`} label="Power Decay" tone="coral" />
+          <Stat value={fmt(agent.nurturerCount)} label={t("detail.nurturers")} />
+          <Stat value={`−${fmt(agent.powerDecayRate, 1)}/h`} label={t("detail.powerDecay")} tone="coral" />
           <Stat
             value={`+${fmt(companionBuffs?.totalBonusEarnPct ?? 0, 0)}%`}
-            label="Companion Buff"
+            label={t("detail.companionBuff")}
             tone="vital"
           />
         </div>
@@ -225,7 +227,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-alive" />
             </span>
             <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-alive-lit">
-              Proof-of-Life Activation Chamber
+              {t("detail.chamber")}
             </h2>
           </div>
 
@@ -237,7 +239,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
             )}
             <button
               type="button"
-              aria-label={soundEnabled ? "Mute audio feedback" : "Enable audio feedback"}
+              aria-label={soundEnabled ? t("detail.mute") : t("detail.unmute")}
               onClick={() => setSoundEnabled((v) => !v)}
               className="text-paper-3 hover:text-paper transition-colors"
             >
@@ -254,7 +256,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                 {nurture.stats.heartbeats}
               </div>
               <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
-                Heartbeats Sent
+                {t("detail.heartbeatsSent")}
               </div>
             </div>
 
@@ -263,7 +265,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                 +{fmt(nurture.stats.monkiEarned, 2)}
               </div>
               <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
-                {BRAND.rewardToken} Earned
+                {t("detail.earned")}
               </div>
             </div>
 
@@ -272,7 +274,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                 ×{nurture.stats.lastMultiplier.toFixed(2)}
               </div>
               <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
-                Epoch Multiplier
+                {t("detail.epochMultiplier")}
               </div>
             </div>
 
@@ -281,7 +283,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                 {nurture.stats.hashRate ? `${fmt(nurture.stats.hashRate)} H/s` : "-"}
               </div>
               <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-paper-3">
-                Compute Hash Rate
+                {t("detail.hashRate")}
               </div>
             </div>
           </div>
@@ -289,7 +291,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           {/* Intensity Selector */}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-paper-3">Load Intensity:</span>
+              <span className="font-mono text-xs text-paper-3">{t("detail.loadIntensity")}</span>
               <div className="flex rounded-xl border border-hair/10 bg-hair/[0.05] p-1">
                 {INTENSITIES.map((opt) => (
                   <button
@@ -297,14 +299,14 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
                     type="button"
                     disabled={nurture.isRunning}
                     onClick={() => setIntensity(opt.value)}
-                    title={opt.blurb}
+                    title={t(`detail.intensity.${opt.key}Blurb`)}
                     className={`rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-all disabled:opacity-40 ${
                       intensity === opt.value
                         ? "bg-act text-white"
                         : "text-paper-3 hover:text-paper"
                     }`}
                   >
-                    {opt.label}
+                    {t(`detail.intensity.${opt.key}Label`)}
                   </button>
                 ))}
               </div>
@@ -312,7 +314,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 
             {nurture.difficulty != null && (
               <span className="font-mono text-[11px] text-paper-4">
-                Target Difficulty: {nurture.difficulty} bits
+                {t("detail.difficulty", { bits: nurture.difficulty })}
               </span>
             )}
           </div>
@@ -330,11 +332,11 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
           >
             {nurture.isRunning ? (
               <>
-                <Square className="h-4 w-4" /> Stop Proof-of-Life Session
+                <Square className="h-4 w-4" /> {t("detail.stop")}
               </>
             ) : (
               <>
-                <Heart className="h-4 w-4 animate-pulse" /> Start Nurturing (Prove Presence)
+                <Heart className="h-4 w-4 animate-pulse" /> {t("detail.start")}
               </>
             )}
           </button>
@@ -346,8 +348,8 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
       {/* Companion Collectibles Slots */}
       <Panel>
         <PanelHeader
-          title={`Companion Slots · ${equipped.length}/${MAX_SLOTS}`}
-          hint="Off-chain equipment is instantaneous and 100% gasless on Robinhood Chain."
+          title={t("detail.slots", { used: equipped.length, total: MAX_SLOTS })}
+          hint={t("detail.slotsHint")}
         />
         <div className="space-y-3 p-5">
           {equipped.map((c) => (
@@ -363,12 +365,15 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-paper">{c.name}</p>
                 <p className="text-[11px] text-paper-3">
-                  +{c.bonusEarnPct}% Earn Boost · {c.decayReductionPct}% Power Decay Shield
+                  {t("detail.buffLine", {
+                    earn: c.bonusEarnPct,
+                    decay: c.decayReductionPct,
+                  })}
                 </p>
               </div>
               <button
                 type="button"
-                aria-label={`Unequip ${c.name}`}
+                aria-label={t("detail.unequip", { name: c.name })}
                 onClick={() => unequip.mutate(c.userCompanionId)}
                 disabled={unequip.isPending}
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-hair/10 bg-hair/[0.05] text-act-lit transition-colors hover:bg-act/20 disabled:opacity-50"
@@ -380,15 +385,15 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 
           {equipped.length === 0 && (
             <EmptyPanel
-              title="No companions equipped"
-              body="Companions grant permanent passive earn rate boosts and power decay resistance to this agent."
+              title={t("detail.noneTitle")}
+              body={t("detail.noneBody")}
             />
           )}
 
           {freeSlots > 0 && spare.length > 0 && (
             <div className="rounded-xl border border-dashed border-hair/15 p-4">
               <p className="font-mono text-xs uppercase tracking-wider text-paper-3">
-                Equip from your Inventory
+                {t("detail.equipFrom")}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {spare.slice(0, 6).map((c) => (
@@ -419,11 +424,11 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 
           {freeSlots > 0 && spare.length === 0 && (
             <p className="text-xs text-paper-3">
-              No unequipped companions in inventory.{" "}
+              {t("detail.noSpare")}{" "}
               <Link to="/dashboard/companions" className="font-semibold text-alive-lit hover:underline">
-                Mint free companions
+                {t("detail.mintFree")}
               </Link>{" "}
-              (standard ETH network gas only).
+              {t("detail.gasOnly")}
             </p>
           )}
         </div>
@@ -433,6 +438,7 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
 };
 
 const AgentDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useWallet();
 
@@ -442,15 +448,15 @@ const AgentDetailPage = () => {
         to="/dashboard/agents"
         className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-paper-3 hover:text-alive-lit transition-colors"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to Fleet Telemetry
+        <ArrowLeft className="h-3.5 w-3.5" /> {t("detail.back")}
       </Link>
 
       {!id ? (
-        <ErrorPanel error={new Error("No agent specified.")} />
+        <ErrorPanel error={new Error(t("detail.noAgent"))} />
       ) : isAuthenticated ? (
         <AgentDetailInner agentId={id} />
       ) : (
-        <AuthGate what="this agent and start a Proof-of-Life heartbeat">
+        <AuthGate what={t("detail.authWhat")}>
           <AgentDetailInner agentId={id} />
         </AuthGate>
       )}

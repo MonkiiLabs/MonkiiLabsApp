@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowUpDown, Search, Star } from "lucide-react";
 
 import { useAgents } from "@/features/api/hooks";
@@ -15,15 +16,16 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 type FilterTab = AgentState | "all" | "watchlist";
 type SortOption = "power_desc" | "power_asc" | "nurturers" | "name";
 
-const TABS: Array<{ value: FilterTab; label: string; icon?: typeof Star }> = [
-  { value: "all", label: "All Fleet" },
-  { value: "watchlist", label: "Watchlist", icon: Star },
-  { value: "thriving", label: "Thriving" },
-  { value: "idle", label: "Idle" },
-  { value: "fading", label: "Fading" },
+const TABS: Array<{ value: FilterTab; key: string; icon?: typeof Star }> = [
+  { value: "all", key: "agents.tabs.all" },
+  { value: "watchlist", key: "agents.tabs.watchlist", icon: Star },
+  { value: "thriving", key: "agents.tabs.thriving" },
+  { value: "idle", key: "agents.tabs.idle" },
+  { value: "fading", key: "agents.tabs.fading" },
 ];
 
 const AgentsPage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -75,8 +77,8 @@ const AgentsPage = () => {
   return (
     <>
       <PageTitle
-        title="Autonomous Agent Fleet"
-        intro="Live agents synced from Virtuals Protocol on Robinhood Chain. Contribute Proof-of-Life compute to keep fading agents alive."
+        title={t("agents.title")}
+        intro={t("agents.intro")}
       />
 
       {/* Controls: Search, Tabs, Sorting, Categories */}
@@ -88,7 +90,7 @@ const AgentsPage = () => {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search agents by name, handle, or thesis…"
+              placeholder={t("agents.search")}
               className="h-10 w-full rounded-xl border border-hair/10 bg-bench-2 pl-10 pr-4 text-xs text-paper placeholder:text-paper-4 focus:border-alive/50 focus:outline-none focus:ring-1 focus:ring-alive/50"
             />
           </div>
@@ -101,10 +103,10 @@ const AgentsPage = () => {
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="bg-transparent text-xs text-paper focus:outline-none"
               >
-                <option value="power_desc" className="bg-bench-2">Highest Power</option>
-                <option value="power_asc" className="bg-bench-2">Needs Help (Lowest Power)</option>
-                <option value="nurturers" className="bg-bench-2">Most Nurturers</option>
-                <option value="name" className="bg-bench-2">Name (A-Z)</option>
+                <option value="power_desc" className="bg-bench-2">{t("agents.sort.powerDesc")}</option>
+                <option value="power_asc" className="bg-bench-2">{t("agents.sort.powerAsc")}</option>
+                <option value="nurturers" className="bg-bench-2">{t("agents.sort.nurturers")}</option>
+                <option value="name" className="bg-bench-2">{t("agents.sort.name")}</option>
               </select>
             </div>
           </div>
@@ -133,7 +135,7 @@ const AgentsPage = () => {
                     }`}
                   />
                 )}
-                <span>{tab.label}</span>
+                <span>{t(tab.key)}</span>
                 {tab.value === "watchlist" && watchlist.length > 0 && (
                   <span className="ml-1 rounded-full bg-idle/20 px-1.5 py-0.2 text-[10px] text-idle">
                     {watchlist.length}
@@ -158,24 +160,20 @@ const AgentsPage = () => {
                     : "text-paper-3 hover:bg-hair/[0.05] hover:text-paper"
                 }`}
               >
-                {c === "all" ? "All categories" : c}
+                {c === "all" ? t("agents.allCategories") : c}
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {isLoading && <LoadingPanel label="Connecting to Virtuals Protocol stream" />}
+      {isLoading && <LoadingPanel label={t("agents.loading")} />}
       {isError && <ErrorPanel error={error} onRetry={refetch} />}
 
       {!isLoading && !isError && visible.length === 0 && (
         <EmptyPanel
-          title={activeTab === "watchlist" ? "No starred agents in watchlist" : "No matching agents found"}
-          body={
-            activeTab === "watchlist"
-              ? "Click the star icon on any agent card to pin it to your quick-access watchlist."
-              : "Try adjusting your search query or vitality filter."
-          }
+          title={activeTab === "watchlist" ? t("agents.emptyWatchTitle") : t("agents.emptyTitle")}
+          body={activeTab === "watchlist" ? t("agents.emptyWatchBody") : t("agents.emptyBody")}
         />
       )}
 
@@ -183,7 +181,7 @@ const AgentsPage = () => {
         <>
           <div className="mb-3 flex items-center justify-between text-xs text-paper-3">
             <span className="font-mono text-[11px] uppercase tracking-wider">
-              Displaying {visible.length} Agent{visible.length === 1 ? "" : "s"}
+              {t("agents.displaying", { count: visible.length })}
             </span>
           </div>
 

@@ -1,4 +1,5 @@
 import { Award, CheckCircle2, Gift, Loader2, Lock, Shield, Sparkles, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useClaimMilestone,
@@ -19,82 +20,25 @@ import {
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 
-/* The companion roster with unlock criteria */
+/* The companion roster. Ids, rarity and numbers stay here; every readable
+   string lives in the locale bundle under comp.roster.<id>. */
 const ROSTER: Array<{
   id: string;
-  name: string;
   rarity: Rarity;
   category: string;
   earn: number;
   decay: number;
-  unlockRequirement: string;
   isMilestoneReward?: boolean;
   milestoneKey?: MilestoneKey;
   minHeartbeats?: number;
   minMonki?: number;
 }> = [
-  {
-    id: "cyber-chimp-drone",
-    name: "Cyber-Chimp Drone",
-    rarity: "Common",
-    category: "mech",
-    earn: 6,
-    decay: 0,
-    unlockRequirement: "Submit 1st Proof-of-Life heartbeat",
-    isMilestoneReward: true,
-    milestoneKey: "first_heartbeat",
-  },
-  {
-    id: "nano-baboon-core",
-    name: "Nano-Baboon Core",
-    rarity: "Common",
-    category: "construct",
-    earn: 8,
-    decay: 0,
-    unlockRequirement: "Open Free Mint for all nurturers",
-  },
-  {
-    id: "plasma-lemur",
-    name: "Plasma Lemur",
-    rarity: "Uncommon",
-    category: "spirit",
-    earn: 12,
-    decay: 10,
-    unlockRequirement: "Keep agents thriving for 7 active days",
-    isMilestoneReward: true,
-    milestoneKey: "thriving_streak_7d",
-  },
-  {
-    id: "mecha-mandrill",
-    name: "Mecha Mandrill",
-    rarity: "Uncommon",
-    category: "guardian",
-    earn: 15,
-    decay: 15,
-    unlockRequirement: "Complete at least 5 heartbeat sessions",
-    minHeartbeats: 5,
-  },
-  {
-    id: "quantum-ape-sentinel",
-    name: "Quantum Ape Sentinel",
-    rarity: "Rare",
-    category: "sentinel",
-    earn: 20,
-    decay: 25,
-    unlockRequirement: "Mine at least 1,000 $MONKI",
-    minMonki: 1000,
-  },
-  {
-    id: "celestial-king-monkii",
-    name: "Celestial King Monkii",
-    rarity: "Epic",
-    category: "celestial",
-    earn: 30,
-    decay: 40,
-    unlockRequirement: "Earn 10,000 $MONKI mined (Elite Tier)",
-    isMilestoneReward: true,
-    milestoneKey: "top_nurturer_10k",
-  },
+  { id: "cyber-chimp-drone", rarity: "Common", category: "mech", earn: 6, decay: 0, isMilestoneReward: true, milestoneKey: "first_heartbeat" },
+  { id: "nano-baboon-core", rarity: "Common", category: "construct", earn: 8, decay: 0 },
+  { id: "plasma-lemur", rarity: "Uncommon", category: "spirit", earn: 12, decay: 10, isMilestoneReward: true, milestoneKey: "thriving_streak_7d" },
+  { id: "mecha-mandrill", rarity: "Uncommon", category: "guardian", earn: 15, decay: 15, minHeartbeats: 5 },
+  { id: "quantum-ape-sentinel", rarity: "Rare", category: "sentinel", earn: 20, decay: 25, minMonki: 1000 },
+  { id: "celestial-king-monkii", rarity: "Epic", category: "celestial", earn: 30, decay: 40, isMilestoneReward: true, milestoneKey: "top_nurturer_10k" },
 ];
 
 const RARITY_CHIP: Record<Rarity, string> = {
@@ -108,42 +52,15 @@ const RARITY_CHIP: Record<Rarity, string> = {
 const MILESTONE_CARDS: Array<{
   key: MilestoneKey;
   companionId: string;
-  title: string;
-  companionName: string;
   rarity: Rarity;
-  description: string;
-  requirement: string;
 }> = [
-  {
-    key: "first_heartbeat",
-    companionId: "cyber-chimp-drone",
-    title: "Initiation Ritual",
-    companionName: "Cyber-Chimp Drone",
-    rarity: "Common",
-    description: "Granted automatically upon completing your first Proof-of-Life heartbeat session.",
-    requirement: "1 Completed Heartbeat",
-  },
-  {
-    key: "thriving_streak_7d",
-    companionId: "plasma-lemur",
-    title: "Vitality Guardian",
-    companionName: "Plasma Lemur",
-    rarity: "Uncommon",
-    description: "Granted for maintaining active nurturer heartbeats across 7 separate days.",
-    requirement: "7 Active Nurturing Days",
-  },
-  {
-    key: "top_nurturer_10k",
-    companionId: "celestial-king-monkii",
-    title: "Celestial Sovereign",
-    companionName: "Celestial King Monkii",
-    rarity: "Epic",
-    description: "Awarded to elite laboratory participants who mine over 10,000 $MONKI compute tokens.",
-    requirement: "10,000 $MONKI Mined",
-  },
-];
+  { key: "first_heartbeat", companionId: "cyber-chimp-drone", rarity: "Common" },
+  { key: "thriving_streak_7d", companionId: "plasma-lemur", rarity: "Uncommon" },
+  { key: "top_nurturer_10k", companionId: "celestial-king-monkii", rarity: "Epic" },
+]
 
 const CompanionsInner = () => {
+  const { t } = useTranslation();
   const inventory = useInventory();
   const mint = useMintCompanion();
   const unequip = useUnequipCompanion();
@@ -165,7 +82,7 @@ const CompanionsInner = () => {
       {!isMintingEnabled && (
         <div className="rounded-2xl border border-hair/15 bg-hair/5 p-4 text-center">
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-paper-2">
-            ⚠️ Companion NFT minting is temporarily paused by protocol administration.
+            {t("comp.paused")}
           </p>
         </div>
       )}
@@ -173,16 +90,16 @@ const CompanionsInner = () => {
       {/* Inventory */}
       <Panel raised>
         <PanelHeader
-          title={`Your Collectibles Inventory (${owned.length})`}
-          hint="Equip up to 3 per agent for permanent passive boosts. Equipping is off-chain and gasless."
+          title={t("comp.inventoryTitle", { count: owned.length })}
+          hint={t("comp.inventoryHint")}
         />
         <div className="p-5">
           {inventory.isLoading ? (
-            <LoadingPanel label="Querying Robinhood Chain inventory" />
+            <LoadingPanel label={t("comp.loading")} />
           ) : owned.length === 0 ? (
             <EmptyPanel
-              title="No companions in your wallet inventory"
-              body="Complete milestones or mint companions below to equip passive boosts to your agents."
+              title={t("comp.emptyTitle")}
+              body={t("comp.emptyBody")}
             />
           ) : (
             <ul className="grid gap-3 sm:grid-cols-2">
@@ -199,12 +116,13 @@ const CompanionsInner = () => {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-bold text-paper">{c.name}</p>
                     <p className="text-[11px] text-paper-3">
-                      +{c.earnBoostPct}% earn boost
-                      {c.decayReductionPct > 0 && ` · ${c.decayReductionPct}% decay shield`}
+                      {t("comp.earnBoost", { pct: c.earnBoostPct })}
+                      {c.decayReductionPct > 0 &&
+                        t("comp.decayShield", { pct: c.decayReductionPct })}
                     </p>
                     {c.equippedAgentId && (
                       <p className="mt-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-alive-lit">
-                        Equipped · {c.agentName ?? "Active Slot"}
+                        {t("comp.equipped", { agent: c.agentName ?? t("comp.activeSlot") })}
                       </p>
                     )}
                   </div>
@@ -215,7 +133,7 @@ const CompanionsInner = () => {
                       disabled={unequip.isPending}
                       className="shrink-0 rounded-lg border border-hair/10 bg-hair/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase text-paper hover:bg-hair/20 disabled:opacity-50"
                     >
-                      Unequip
+                      {t("comp.unequip")}
                     </button>
                   )}
                 </li>
@@ -228,8 +146,8 @@ const CompanionsInner = () => {
       {/* Milestone Achievements Track */}
       <Panel>
         <PanelHeader
-          title="Milestone Earned Rewards"
-          hint="Earn exclusive companion collectibles by meeting nurturing achievements. Zero mint gas required."
+          title={t("comp.milestoneTitle")}
+          hint={t("comp.milestoneHint")}
         />
         <div className="grid gap-4 p-5 md:grid-cols-3">
           {MILESTONE_CARDS.map((m) => {
@@ -254,27 +172,33 @@ const CompanionsInner = () => {
                       {m.rarity}
                     </span>
                     <span className="font-mono text-[10px] font-semibold text-alive-lit">
-                      {isClaimed ? "Claimed ✓" : `${pct}% Unlocked`}
+                      {isClaimed ? t("comp.claimed") : t("comp.unlockedPct", { pct })}
                     </span>
                   </div>
 
                   <div className="mt-3 flex items-center gap-3">
                     <img
                       src={`/companions/${m.companionId}.jpg`}
-                      alt={m.companionName}
+                      alt={t(`comp.cards.${m.key}.companion`)}
                       className="h-14 w-14 rounded-xl border border-hair/15 object-cover"
                     />
                     <div>
-                      <h4 className="font-display text-sm font-bold text-paper">{m.title}</h4>
-                      <p className="font-mono text-xs text-alive-lit">{m.companionName}</p>
+                      <h4 className="font-display text-sm font-bold text-paper">
+                        {t(`comp.cards.${m.key}.title`)}
+                      </h4>
+                      <p className="font-mono text-xs text-alive-lit">
+                        {t(`comp.cards.${m.key}.companion`)}
+                      </p>
                     </div>
                   </div>
 
-                  <p className="mt-3 text-xs text-paper-3 leading-relaxed">{m.description}</p>
+                  <p className="mt-3 text-xs text-paper-3 leading-relaxed">
+                    {t(`comp.cards.${m.key}.description`)}
+                  </p>
 
                   <div className="mt-3">
                     <div className="flex items-center justify-between text-[10px] font-mono text-paper-3">
-                      <span>{m.requirement}</span>
+                      <span>{t(`comp.cards.${m.key}.requirement`)}</span>
                       <span>
                         {current.toLocaleString()} / {target.toLocaleString()}
                       </span>
@@ -295,7 +219,7 @@ const CompanionsInner = () => {
                       disabled
                       className="w-full rounded-xl border border-hair/10 bg-hair/5 py-2 font-mono text-xs font-semibold uppercase tracking-wider text-paper-4 cursor-default"
                     >
-                      Reward Unlocked
+                      {t("comp.rewardUnlocked")}
                     </button>
                   ) : isEligible ? (
                     <button
@@ -304,7 +228,7 @@ const CompanionsInner = () => {
                       onClick={() => milestone.mutate(m.key)}
                       className="w-full rounded-xl bg-alive-lit py-2 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.98]"
                     >
-                      {milestone.isPending ? "Unlocking…" : "Claim Milestone Reward"}
+                      {milestone.isPending ? t("comp.unlocking") : t("comp.claimMilestone")}
                     </button>
                   ) : (
                     <button
@@ -313,7 +237,7 @@ const CompanionsInner = () => {
                       className="w-full rounded-xl border border-hair/10 bg-hair/5 py-2 font-mono text-xs font-semibold uppercase tracking-wider text-paper-3 cursor-not-allowed opacity-60 inline-flex items-center justify-center gap-1.5"
                     >
                       <Lock className="h-3 w-3" />
-                      Locked ({pct}%)
+                      {t("comp.locked", { pct })}
                     </button>
                   )}
                 </div>
@@ -326,8 +250,8 @@ const CompanionsInner = () => {
       {/* Full Companion Roster */}
       <Panel>
         <PanelHeader
-          title="Companion Roster & Minting Requirements"
-          hint="Each companion provides specific power perks. Free minting directly on Robinhood Chain."
+          title={t("comp.rosterTitle")}
+          hint={t("comp.rosterHint")}
         />
         <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
           {ROSTER.map((c) => {
@@ -345,14 +269,20 @@ const CompanionsInner = () => {
               const ms = c.milestoneKey ? msData?.[c.milestoneKey] : undefined;
               if (!ms?.eligible && !isOwned) {
                 isLocked = true;
-                lockReason = c.unlockRequirement;
+                lockReason = t(`comp.roster.${c.id}.unlock`);
               }
             } else if (c.minHeartbeats && heartbeats < c.minHeartbeats && !isOwned) {
               isLocked = true;
-              lockReason = `Requires ${c.minHeartbeats} heartbeats (${heartbeats}/${c.minHeartbeats})`;
+              lockReason = t("comp.requiresHeartbeats", {
+                need: c.minHeartbeats,
+                have: heartbeats,
+              });
             } else if (c.minMonki && monki < c.minMonki && !isOwned) {
               isLocked = true;
-              lockReason = `Requires ${c.minMonki.toLocaleString()} $MONKI (${monki}/${c.minMonki})`;
+              lockReason = t("comp.requiresMonki", {
+                need: c.minMonki.toLocaleString(),
+                have: monki,
+              });
             }
 
             return (
@@ -363,7 +293,7 @@ const CompanionsInner = () => {
                 <div className="relative aspect-[4/3] bg-bench">
                   <img
                     src={`/companions/${c.id}.jpg`}
-                    alt={c.name}
+                    alt={t(`comp.roster.${c.id}.name`)}
                     loading="lazy"
                     className="h-full w-full object-cover"
                   />
@@ -374,17 +304,21 @@ const CompanionsInner = () => {
                   </span>
                   {c.isMilestoneReward && (
                     <span className="absolute right-2.5 top-2.5 rounded-md border border-alive/30 bg-black/80 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase text-alive-lit">
-                      Milestone
+                      {t("comp.milestoneBadge")}
                     </span>
                   )}
                 </div>
 
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="truncate font-display text-sm font-bold text-paper">{c.name}</h3>
+                  <h3 className="truncate font-display text-sm font-bold text-paper">
+                    {t(`comp.roster.${c.id}.name`)}
+                  </h3>
                   <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="font-mono text-alive-lit font-semibold">+{c.earn}% Earn</span>
+                    <span className="font-mono text-alive-lit font-semibold">
+                      {t("comp.earnPct", { pct: c.earn })}
+                    </span>
                     <span className="font-mono text-paper-3">
-                      {c.decay > 0 ? `${c.decay}% Shield` : "Standard"}
+                      {c.decay > 0 ? t("comp.shieldPct", { pct: c.decay }) : t("comp.standard")}
                     </span>
                   </div>
 
@@ -394,7 +328,7 @@ const CompanionsInner = () => {
                         <Lock className="h-3 w-3 inline" /> {lockReason}
                       </span>
                     ) : (
-                      <span className="text-paper-3">Criteria Met · Available</span>
+                      <span className="text-paper-3">{t("comp.criteriaMet")}</span>
                     )}
                   </p>
 
@@ -413,14 +347,14 @@ const CompanionsInner = () => {
                     >
                       {busy ? (
                         <span className="inline-flex items-center gap-1.5 justify-center">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Minting…
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("comp.minting")}
                         </span>
                       ) : isOwned ? (
-                        "Owned in Wallet"
+                        t("comp.owned")
                       ) : isLocked ? (
-                        "Locked"
+                        t("comp.lockedShort")
                       ) : (
-                        "Free Mint (0 ETH)"
+                        t("comp.freeMint")
                       )}
                     </button>
                   </div>
@@ -434,16 +368,17 @@ const CompanionsInner = () => {
   );
 };
 
-const CompanionsPage = () => (
-  <>
-    <PageTitle
-      title="Companion Collectibles"
-      intro="Free collectible ERC-721 companions minted natively on Robinhood Chain. Equip up to three per agent to boost Proof-of-Life $MONKI accrual and resist power fade."
-    />
-    <AuthGate what="your companion inventory and minting">
-      <CompanionsInner />
-    </AuthGate>
-  </>
-);
+const CompanionsPage = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <PageTitle title={t("comp.title")} intro={t("comp.intro")} />
+      <AuthGate what={t("comp.authWhat")}>
+        <CompanionsInner />
+      </AuthGate>
+    </>
+  );
+};
 
 export default CompanionsPage;
