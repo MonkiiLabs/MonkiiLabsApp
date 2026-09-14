@@ -17,6 +17,27 @@ export interface EligibleTokenRecord {
   isSuspended: boolean;
 }
 
+const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
+
+/**
+ * A token can only be elected if both of its addresses are real addresses.
+ *
+ * The registry column is TEXT, so a typo or a placeholder stores happily and
+ * only fails later, at the point where the settlement leg tries to read a
+ * price. Checking the shape here means an unpriceable row is reported as
+ * suspended and illiquid instead, which the election validator already
+ * refuses, so a nurturer can never hold an allocation we cannot settle.
+ */
+function isPriceable(token: EligibleTokenRecord): boolean {
+  return EVM_ADDRESS.test(token.contractAddress) && EVM_ADDRESS.test(token.chainlinkFeedAddress);
+}
+
+/** Force an unpriceable token into the state the election validator rejects. */
+function gateOnPriceability(token: EligibleTokenRecord): EligibleTokenRecord {
+  if (isPriceable(token)) return token;
+  return { ...token, isLiquid: false, isSuspended: true };
+}
+
 const FALLBACK_TOKENS: EligibleTokenRecord[] = [
   {
     symbol: "NVDA",
@@ -36,34 +57,13 @@ const FALLBACK_TOKENS: EligibleTokenRecord[] = [
     isLiquid: true,
     isSuspended: false,
   },
-  {
-    symbol: "TSLA",
-    name: "Tesla Inc Tokenized Stock",
-    contractAddress: "0x3C6d83D234EAAcfF29F011B500897788E3752aF1",
-    chainlinkFeedAddress: "0x7dG62eF90F7D304C9E53dG7D9G87f9f69G2g9G37",
-    corporateActionMultiplier: 1.0,
-    isLiquid: true,
-    isSuspended: false,
-  },
-  {
-    symbol: "AAPL",
-    name: "Apple Inc Tokenized Stock",
-    contractAddress: "0x4D7e94E345FBBD00300122C611908899F4863b02",
-    chainlinkFeedAddress: "0x8eH73fG01G8E415D0F64eH8E0H98g0g70H3h0H48",
-    corporateActionMultiplier: 1.0,
-    isLiquid: true,
-    isSuspended: false,
-  },
-  {
-    symbol: "AMZN",
-    name: "Amazon.com Inc Tokenized Stock",
-    contractAddress: "0x5E8f05F456ACCE11411233D722019900A5974c13",
-    chainlinkFeedAddress: "0x9fI84gH12H9F526E1G75fI9F1I09h1h81I4i1I59",
-    corporateActionMultiplier: 1.0,
-    isLiquid: true,
-    isSuspended: false,
-  },
 ];
+
+/* TSLA, AAPL and AMZN were seeded with placeholder Chainlink feeds that are
+   not valid hex, so nothing can price them. They are held back from the
+   fallback registry until real feed addresses land, and migration 009
+   suspends the matching rows in the database. NVDA and SPY both carry real
+   addresses and cover the default 60/40 preset. */
 
 const allocationItemSchema = z.object({
   symbol: z.string().min(1).max(16),
@@ -95,20 +95,22 @@ export async function fetchEligibleTokens(): Promise<EligibleTokenRecord[]> {
     );
 
     if (rows && rows.length > 0) {
-      return rows.map((r) => ({
-        symbol: r.symbol,
-        name: r.name,
-        contractAddress: r.contract_address,
-        chainlinkFeedAddress: r.chainlink_feed_address,
-        corporateActionMultiplier: Number(r.corporate_action_multiplier || 1.0),
-        isLiquid: Boolean(r.is_liquid),
-        isSuspended: Boolean(r.is_suspended),
-      }));
+      return rows.map((r) =>
+        gateOnPriceability({
+          symbol: r.symbol,
+          name: r.name,
+          contractAddress: r.contract_address,
+          chainlinkFeedAddress: r.chainlink_feed_address,
+          corporateActionMultiplier: Number(r.corporate_action_multiplier || 1.0),
+          isLiquid: Boolean(r.is_liquid),
+          isSuspended: Boolean(r.is_suspended),
+        }),
+      );
     }
   } catch (err) {
     console.warn("[rwa] Error fetching rwa_eligible_tokens, using fallback registry:", err);
   }
-  return FALLBACK_TOKENS;
+  return FALLBACK_TOKENS.map(gateOnPriceability);
 }
 
 // GET /api/rwa/tokens — public registry of eligible Stock Tokens on Robinhood Chain (4663)
