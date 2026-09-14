@@ -198,7 +198,7 @@ type ClaimKind = "pons" | "monki" | "meta";
 
 const CLAIM_LABEL: Record<ClaimKind, string> = {
   pons: "$PONS",
-  monki: "$MONKII",
+  monki: "$MONKI",
   meta: "$META",
 };
 

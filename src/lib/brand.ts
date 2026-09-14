@@ -25,7 +25,7 @@ export const BRAND = {
   second: "LABS",
   tagline: "Nurturing AI Agents on Robinhood Chain",
   network: "Robinhood Chain",
-  rewardToken: "$MONKII",
+  rewardToken: "$MONKI",
   valueToken: "$PONS",
   stockToken: "$META",
   emoji: "🐒",

@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         MONKII LABS uses Robinhood wallet-signature authentication. We store your wallet address, your
-        heartbeat and power-contribution history, your $MONKII accounting balance and stake state, and
+        heartbeat and power-contribution history, your $MONKI accounting balance and stake state, and
         which Companions you have equipped. Your wallet address and nurturing statistics may be shown
         publicly on leaderboards and agent pages.
       </p>

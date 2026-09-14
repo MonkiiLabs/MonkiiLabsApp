@@ -23,7 +23,7 @@ export interface Agent {
   nurturers: number;
   premium: boolean;
   category: string;
-  earnRate: number; // $MONKII per heartbeat tick
+  earnRate: number; // $MONKI per heartbeat tick
 }
 
 export interface Companion {
@@ -45,35 +45,35 @@ export const RARITY_STYLES: Record<Rarity, { text: string; bg: string; border: s
     text: "text-claw-gray-600",
     bg: "bg-cream-dark",
     border: "border-dashboard-border",
-    bonus: "+5–10% $MONKII earn rate",
+    bonus: "+5–10% $MONKI earn rate",
     effect: "—",
   },
   Uncommon: {
     text: "text-human-green",
     bg: "bg-human-green-bg",
     border: "border-human-green/30",
-    bonus: "+10–15% $MONKII earn rate",
+    bonus: "+10–15% $MONKI earn rate",
     effect: "Minor fade protection",
   },
   Rare: {
     text: "text-sky-dark",
     bg: "bg-sky/15",
     border: "border-sky/40",
-    bonus: "+15–25% $MONKII earn rate",
+    bonus: "+15–25% $MONKI earn rate",
     effect: "Moderate fade protection",
   },
   Epic: {
     text: "text-ai-purple",
     bg: "bg-ai-purple-bg",
     border: "border-ai-purple/30",
-    bonus: "+25–35% $MONKII earn rate",
+    bonus: "+25–35% $MONKI earn rate",
     effect: "Strong fade protection + visual aura",
   },
   Legendary: {
     text: "text-coral-dark",
     bg: "bg-coral/15",
     border: "border-coral/40",
-    bonus: "+35–50% $MONKII earn rate",
+    bonus: "+35–50% $MONKI earn rate",
     effect: "Strong protection + unique ability",
   },
 };
@@ -161,7 +161,7 @@ export const AGENTS: Agent[] = [
     emoji: "🕶️",
     tagline: "Treasury agent managing an agentic index",
     description:
-      "Rebalances, reports, and answers holders. Premium tier: requires a qualifying $MONKII stake to nurture.",
+      "Rebalances, reports, and answers holders. Premium tier: requires a qualifying $MONKI stake to nurture.",
     power: 46,
     nurturers: 2401,
     premium: true,

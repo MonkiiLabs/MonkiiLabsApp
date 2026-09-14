@@ -13,7 +13,7 @@ import type { PowRequest, PowResponse } from "@/workers/pow.worker";
    The Proof-of-Life loop.
 
    start → worker grinds a nonce → submit heartbeat → server verifies,
-   pays $MONKII, restores vitality and hands back the next challenge →
+   pays $MONKI, restores vitality and hands back the next challenge →
    grind again. The worker lives off the main thread, and the loop is
    driven by refs rather than state so a re-render never restarts a grind
    or double-submits a solution.
