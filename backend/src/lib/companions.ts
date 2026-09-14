@@ -1,4 +1,7 @@
 import { pool } from "../db/index";
+import { getPublicClient } from "./chain";
+import { env } from "./env";
+import { parseAbiItem } from "viem";
 
 export interface CompanionRow {
   id: string;
@@ -32,6 +35,38 @@ export interface UserCompanionRow {
   earn_boost_pct?: number;
   decay_reduction_pct?: number;
   agent_name?: string | null;
+  on_chain_mint?: string | null;
+  mint_tx_hash?: string | null;
+  companionId?: string;
+  imageUrl?: string;
+  earnBoostPct?: number;
+  decayReductionPct?: number;
+  equippedAgentId?: string | null;
+  agentName?: string | null;
+  slotIndex?: number | null;
+  acquiredAt?: string;
+  description?: string;
+}
+
+interface UserCompanionDbRow {
+  id: number;
+  user_companion_id?: number;
+  user_address: string;
+  companion_id: string;
+  equipped_agent_id: string | null;
+  slot_index: number | null;
+  acquired_at: string;
+  on_chain_mint: string | null;
+  mint_tx_hash: string | null;
+  name: string;
+  slug: string;
+  description: string;
+  category: string;
+  rarity: string;
+  image_url: string;
+  earn_boost_pct: number;
+  decay_reduction_pct: number;
+  agent_name: string | null;
 }
 
 export interface AgentCompanionBuffs {
@@ -52,6 +87,145 @@ export interface AgentCompanionBuffs {
   }>;
 }
 
+const COMPANION_TYPE_TO_ID: Record<string, string> = {
+  "1": "cyber-chimp-drone",
+  "2": "nano-baboon-core",
+  "3": "plasma-lemur",
+  "4": "mecha-mandrill",
+  "5": "quantum-ape-sentinel",
+  "6": "celestial-king-monkii",
+};
+
+const transferEvent = parseAbiItem(
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+);
+const zeroAddress = "0x0000000000000000000000000000000000000000" as const;
+
+const companionContractAbi = [
+  {
+    type: "function",
+    name: "ownerOf",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "companionTypeOf",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
+export function companionIdForType(typeId: bigint | number | string): string | undefined {
+  return COMPANION_TYPE_TO_ID[String(typeId)];
+}
+
+export function toOwnedCompanion(row: UserCompanionDbRow): UserCompanionRow {
+  return {
+    id: Number(row.id),
+    user_address: row.user_address,
+    companion_id: row.companion_id,
+    equipped_agent_id: row.equipped_agent_id,
+    slot_index: row.slot_index === null ? null : Number(row.slot_index),
+    acquired_at: row.acquired_at,
+    on_chain_mint: row.on_chain_mint,
+    mint_tx_hash: row.mint_tx_hash,
+    companionId: row.companion_id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    category: row.category,
+    rarity: row.rarity,
+    image_url: row.image_url,
+    imageUrl: row.image_url,
+    earn_boost_pct: Number(row.earn_boost_pct),
+    earnBoostPct: Number(row.earn_boost_pct),
+    decay_reduction_pct: Number(row.decay_reduction_pct),
+    decayReductionPct: Number(row.decay_reduction_pct),
+    equippedAgentId: row.equipped_agent_id,
+    agentName: row.agent_name,
+    slotIndex: row.slot_index === null ? null : Number(row.slot_index),
+    acquiredAt: row.acquired_at,
+  };
+}
+
+/**
+ * Repair the off-chain inventory from the ERC-721 source of truth. Mint
+ * verification can fail after a transaction is already confirmed, so an
+ * inventory read must be able to recover those tokens instead of returning 0.
+ */
+async function syncOnChainInventory(userAddress: string): Promise<void> {
+  if (!env.companionsNftAddress) return;
+
+  try {
+    const publicClient = getPublicClient();
+    const mintTransfers = await publicClient.getLogs({
+      address: env.companionsNftAddress as `0x${string}`,
+      event: transferEvent,
+      args: {
+        from: zeroAddress,
+        to: userAddress as `0x${string}`,
+      },
+      fromBlock: 0n,
+      toBlock: "latest",
+    });
+
+    const tokenIds = [...new Set(mintTransfers.map((event) => event.args.tokenId).filter(Boolean))];
+    if (tokenIds.length === 0) return;
+
+    const ownedTokens = (
+      await Promise.all(
+        tokenIds.map(async (tokenId) => {
+          try {
+            const [owner, typeId] = await Promise.all([
+              publicClient.readContract({
+                address: env.companionsNftAddress as `0x${string}`,
+                abi: companionContractAbi,
+                functionName: "ownerOf",
+                args: [tokenId!],
+              }),
+              publicClient.readContract({
+                address: env.companionsNftAddress as `0x${string}`,
+                abi: companionContractAbi,
+                functionName: "companionTypeOf",
+                args: [tokenId!],
+              }),
+            ]);
+            const companionId = companionIdForType(typeId);
+            if (owner.toLowerCase() !== userAddress.toLowerCase() || !companionId) return null;
+
+            const transfer = mintTransfers.find((event) => event.args.tokenId === tokenId);
+            return {
+              tokenId: tokenId!.toString(),
+              companionId,
+              mintTxHash: transfer?.transactionHash,
+            };
+          } catch {
+            return null;
+          }
+        }),
+      )
+    ).filter((token): token is { tokenId: string; companionId: string; mintTxHash: `0x${string}` | undefined } => Boolean(token));
+
+    for (const token of ownedTokens) {
+      if (!token.mintTxHash) continue;
+      await pool.query(
+        `INSERT INTO user_companions
+           (user_address, companion_id, on_chain_mint, mint_tx_hash, acquisition_type)
+         VALUES ($1, $2, $3, $4, 'paid_mint')
+         ON CONFLICT DO NOTHING`,
+        [userAddress, token.companionId, token.tokenId, token.mintTxHash],
+      );
+    }
+  } catch (error) {
+    // The chain is authoritative, but a temporary RPC outage must not make
+    // already registered off-chain inventory disappear from the UI.
+    console.warn("[companions] on-chain inventory sync skipped:", error);
+  }
+}
+
 export async function getAgentCompanionBuffs(
   agentId: string,
   userAddress?: string,
@@ -63,7 +237,7 @@ export async function getAgentCompanionBuffs(
     userClause = `AND uc.user_address = $2`;
   }
 
-  const { rows } = await pool.query<any>(
+  const { rows } = await pool.query<UserCompanionDbRow>(
     `SELECT uc.id AS user_companion_id,
             uc.companion_id,
             uc.slot_index,
@@ -122,7 +296,9 @@ export async function getCompanionsCatalog(): Promise<CompanionRow[]> {
 }
 
 export async function getUserInventory(userAddress: string): Promise<UserCompanionRow[]> {
-  const { rows } = await pool.query<any>(
+  await syncOnChainInventory(userAddress);
+
+  const { rows } = await pool.query<UserCompanionDbRow>(
     `SELECT uc.*,
             c.slug,
             c.name,
@@ -140,7 +316,7 @@ export async function getUserInventory(userAddress: string): Promise<UserCompani
       ORDER BY uc.equipped_agent_id NULLS LAST, uc.id DESC`,
     [userAddress],
   );
-  return rows;
+  return rows.map(toOwnedCompanion);
 }
 
 export async function equipCompanion(
