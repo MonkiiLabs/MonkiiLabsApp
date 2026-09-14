@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { useClaimable, useDashboardSummary, useProfile } from "@/features/api/hooks";
+import { useRealtimeRwaBalances } from "@/features/api/useRealtimeRwaBalances";
 import { useWallet } from "@/hooks/useWallet";
 import {
   AuthGate,
@@ -24,6 +25,7 @@ const ProfileInner = () => {
   const profile = useProfile();
   const summary = useDashboardSummary();
   const { data: balances } = useClaimable();
+  const { rwaHoldings, isRefetching, refetch } = useRealtimeRwaBalances();
   const { address, disconnect, walletType } = useWallet();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
@@ -155,7 +157,19 @@ const ProfileInner = () => {
 
       {/* Balances Ledger */}
       <Panel>
-        <PanelHeader title={t("profile.ledgerTitle")} />
+        <PanelHeader
+          title={t("profile.ledgerTitle")}
+          action={
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="text-xs font-mono text-alive-lit hover:underline transition-colors disabled:opacity-50"
+            >
+              {isRefetching ? "Syncing..." : "Sync Live"}
+            </button>
+          }
+        />
         <dl className="divide-y divide-hair/[0.05] px-5">
           {[
             { k: "profile.ledger.accrued", v: fmt(balances?.claimableMonki, 2) },
@@ -163,11 +177,30 @@ const ProfileInner = () => {
             { k: "profile.ledger.stakedLedger", v: fmt(balances?.stakedMonki) },
             { k: "profile.ledger.ponsClaimable", v: fmt(balances?.claimablePons, 2) },
             { k: "profile.ledger.ponsClaimed", v: fmt(balances?.claimedPons, 2) },
-            { k: "profile.ledger.stock", v: fmt(balances?.claimedMetaStock, 4) },
           ].map((row) => (
             <div key={row.k} className="flex items-center justify-between py-3 text-xs">
               <dt className="text-paper-3">{t(row.k, { stockToken: BRAND.stockToken })}</dt>
               <dd className="font-mono font-semibold tabular-nums text-paper">{row.v}</dd>
+            </div>
+          ))}
+
+          {/* Robinhood Chain RWA Token Holdings */}
+          {rwaHoldings.map((token) => (
+            <div key={token.symbol} className="flex items-center justify-between py-3 text-xs">
+              <dt className="flex items-center gap-2 text-paper-3">
+                <span className="font-mono font-bold text-paper">{token.symbol}</span>
+                <span className="text-[10px] text-paper-3 hidden sm:inline">
+                  ({token.name.replace(" Tokenized Stock", "")})
+                </span>
+                {token.electedPercentage > 0 && (
+                  <span className="rounded bg-alive/15 px-1.5 py-0.5 text-[9px] text-alive-lit font-bold font-mono">
+                    {token.electedPercentage}% elected
+                  </span>
+                )}
+              </dt>
+              <dd className="font-mono font-semibold tabular-nums text-paper">
+                {token.walletBalance}
+              </dd>
             </div>
           ))}
         </dl>

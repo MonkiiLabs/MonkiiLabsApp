@@ -11,6 +11,7 @@ import { fmt } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 import { WalletButton } from "@/components/dashboard/WalletButton";
 import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
+import { RealtimeBalancesPopover } from "@/components/dashboard/RealtimeBalancesPopover";
 
 /**
  * The app header.
@@ -106,17 +107,7 @@ const DashHeader = () => {
         </div>
 
         <div className="flex shrink-0 items-center gap-2.5">
-          {isAuthenticated && (
-            <div className="hidden items-center gap-2 rounded-full border-2 border-human-green/25 bg-human-green-bg px-3 py-1.5 sm:flex">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-human-green opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-human-green" />
-              </span>
-              <span className="whitespace-nowrap text-xs font-extrabold tabular-nums text-human-green">
-                {fmt(balances?.claimableMonki, 1)} {BRAND.rewardToken}
-              </span>
-            </div>
-          )}
+          {isAuthenticated && <RealtimeBalancesPopover />}
 
           <NotificationsBell />
           <WalletButton />

@@ -17,6 +17,7 @@ import {
   timeAgo,
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
+import RwaPortfolioCard from "@/components/dashboard/RwaPortfolioCard";
 
 const HomeInner = () => {
   const { t } = useTranslation();
@@ -54,6 +55,9 @@ const HomeInner = () => {
           />
         </div>
       </Panel>
+
+      {/* Real-Time RWA & $MONKI Portfolio */}
+      <RwaPortfolioCard />
 
       {/* Claimable Balances & Financial Settlement */}
       <Panel>

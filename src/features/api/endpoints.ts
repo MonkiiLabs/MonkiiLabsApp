@@ -265,5 +265,9 @@ export const rwa = {
 
   saveElection: (payload: import("./types").SaveRwaElectionPayload) =>
     api.post<import("./types").SaveRwaElectionResponse>("/rwa/election", payload),
+
+  balances: () =>
+    api.get<import("./types").RealtimeBalancesResponse>("/rwa/balances"),
 };
+
 

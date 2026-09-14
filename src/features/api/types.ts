@@ -357,3 +357,45 @@ export interface SaveRwaElectionResponse {
   stage: string;
   message: string;
 }
+
+export interface RwaTokenHolding {
+  symbol: string;
+  name: string;
+  contractAddress: string;
+  chainlinkFeedAddress: string | null;
+  corporateActionMultiplier: number;
+  isLiquid: boolean;
+  isSuspended: boolean;
+  feedStatus: "live" | "pending";
+  electedPercentage: number;
+  projectedAccrual: number;
+  walletBalance?: string;
+  walletBalanceFormatted?: string;
+}
+
+export interface RealtimeBalancesResponse {
+  ok: boolean;
+  userAddress: string;
+  network: string;
+  chainId: number;
+  isElectionsActive: boolean;
+  timestamp: string;
+  monki: {
+    claimable: number;
+    claimed: number;
+    staked: number;
+    total: number;
+  };
+  pons: {
+    claimable: number;
+    claimed: number;
+  };
+  election: {
+    mode: "stock_elected" | "plain_pons";
+    isEnabled: boolean;
+    allocations: UserRwaAllocation[];
+    updatedAt: string | null;
+  };
+  rwaTokens: RwaTokenHolding[];
+}
+

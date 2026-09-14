@@ -43,9 +43,11 @@ export const qk = {
   adminSettings: ["admin", "settings"] as const,
   rwaTokens: ["rwa", "tokens"] as const,
   rwaElection: ["rwa", "election"] as const,
+  rwaBalances: ["rwa", "balances"] as const,
 };
 
-const BALANCE_KEYS = [qk.staking, qk.claimable, qk.summary, qk.me];
+const BALANCE_KEYS = [qk.staking, qk.claimable, qk.summary, qk.me, qk.rwaBalances];
+
 
 function useInvalidateBalances() {
   const qc = useQueryClient();
@@ -418,6 +420,7 @@ export function useSaveRwaElection() {
     mutationFn: (payload: import("./types").SaveRwaElectionPayload) => rwa.saveElection(payload),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: qk.rwaElection });
+      qc.invalidateQueries({ queryKey: qk.rwaBalances });
       toast.success("Stock election updated", {
         description: data.message,
       });
@@ -428,6 +431,18 @@ export function useSaveRwaElection() {
       }),
   });
 }
+
+export function useRwaBalancesQuery() {
+  const { isAuthenticated } = useWallet();
+  return useQuery({
+    queryKey: qk.rwaBalances,
+    queryFn: () => rwa.balances(),
+    enabled: isAuthenticated,
+    refetchInterval: 10_000,
+    staleTime: 5_000,
+  });
+}
+
 
 export function useUpdateProfile() {
   const qc = useQueryClient();

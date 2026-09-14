@@ -196,6 +196,137 @@ rwaRouter.get(
   }),
 );
 
+// GET /api/rwa/balances — real-time overview of $MONKI, $PONS and RWA stock token positions
+rwaRouter.get(
+  "/rwa/balances",
+  requireAuth,
+  handler(async (req, res) => {
+    const userAddress = req.user!.walletAddress;
+    const isElectionsActive = await isRwaElectionsEnabled();
+
+    // 1. Fetch user rewards ledger
+    let rewardsRow = {
+      claimable_monki: "0",
+      claimed_monki: "0",
+      staked_monki: "0",
+      claimable_pons: "0",
+      claimed_pons: "0",
+      claimable_meta_stock: "0",
+      claimed_meta_stock: "0",
+    };
+
+    try {
+      const { rows } = await pool.query<{
+        claimable_monki: string;
+        claimed_monki: string;
+        staked_monki: string;
+        claimable_pons: string;
+        claimed_pons: string;
+        claimable_meta_stock: string;
+        claimed_meta_stock: string;
+      }>(
+        `SELECT claimable_monki, claimed_monki, staked_monki, claimable_pons, claimed_pons,
+                claimable_meta_stock, claimed_meta_stock
+           FROM rewards WHERE user_address = $1`,
+        [userAddress],
+      );
+      if (rows[0]) rewardsRow = rows[0];
+    } catch (err) {
+      console.warn("[rwa] Error reading rewards row for balances:", err);
+    }
+
+    // 2. Fetch user election
+    let election = {
+      mode: "plain_pons",
+      allocations: [] as Array<{ symbol: string; percentage: number }>,
+      isEnabled: true,
+      updatedAt: null as string | null,
+    };
+
+    try {
+      const { rows } = await pool.query<{
+        mode: string;
+        allocations: any;
+        is_enabled: boolean;
+        updated_at: string;
+      }>(
+        `SELECT mode, allocations, is_enabled, updated_at
+           FROM user_rwa_elections WHERE user_address = $1`,
+        [userAddress],
+      );
+      if (rows[0]) {
+        election = {
+          mode: rows[0].mode,
+          allocations: rows[0].allocations ?? [],
+          isEnabled: rows[0].is_enabled,
+          updatedAt: rows[0].updated_at,
+        };
+      }
+    } catch (err) {
+      console.warn("[rwa] Error reading user election for balances:", err);
+    }
+
+    // 3. Fetch eligible tokens registry
+    const eligibleTokens = await fetchEligibleTokens();
+
+    const claimableMonki = Number(rewardsRow.claimable_monki);
+    const claimedMonki = Number(rewardsRow.claimed_monki);
+    const stakedMonki = Number(rewardsRow.staked_monki);
+    const claimablePons = Number(rewardsRow.claimable_pons);
+    const claimedPons = Number(rewardsRow.claimed_pons);
+
+    // 4. Map RWA holdings
+    const allocationMap = new Map(
+      (election.allocations || []).map((a) => [a.symbol.toUpperCase(), a.percentage]),
+    );
+
+    const rwaTokens = eligibleTokens.map((token) => {
+      const percentage =
+        election.mode === "stock_elected" ? (allocationMap.get(token.symbol.toUpperCase()) ?? 0) : 0;
+      const projectedAccrual = percentage > 0 ? (claimablePons * percentage) / 100 : 0;
+
+      return {
+        symbol: token.symbol,
+        name: token.name,
+        contractAddress: token.contractAddress,
+        chainlinkFeedAddress: token.chainlinkFeedAddress,
+        corporateActionMultiplier: token.corporateActionMultiplier,
+        isLiquid: token.isLiquid,
+        isSuspended: token.isSuspended,
+        feedStatus: token.feedStatus,
+        electedPercentage: percentage,
+        projectedAccrual,
+      };
+    });
+
+    res.json({
+      ok: true,
+      userAddress,
+      network: "robinhood-chain-l2",
+      chainId: 4663,
+      isElectionsActive,
+      timestamp: new Date().toISOString(),
+      monki: {
+        claimable: claimableMonki,
+        claimed: claimedMonki,
+        staked: stakedMonki,
+        total: claimableMonki + claimedMonki + stakedMonki,
+      },
+      pons: {
+        claimable: claimablePons,
+        claimed: claimedPons,
+      },
+      election: {
+        mode: election.mode,
+        isEnabled: election.isEnabled,
+        allocations: election.allocations,
+        updatedAt: election.updatedAt,
+      },
+      rwaTokens,
+    });
+  }),
+);
+
 // GET /api/rwa/election — fetch active election for authenticated nurturer
 rwaRouter.get(
   "/rwa/election",

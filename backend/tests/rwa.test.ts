@@ -122,4 +122,37 @@ describe("RWA Stock-Elected Payouts (Sprint F)", () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("duplicate_tokens");
   });
+
+  test("GET /api/rwa/balances requires authentication", async () => {
+    const res = await request(app).get("/api/rwa/balances");
+    expect(res.status).toBe(401);
+  });
+
+  test("GET /api/rwa/balances returns real-time balances for $MONKI, $PONS and RWAs", async () => {
+    const token = await createSession({
+      id: "f35688b1-3642-4f36-8bb0-d790d1bf4301",
+      walletAddress: "0x566332F349Adbb909eFB0382316A63C255F3D7F5",
+    });
+
+    const res = await request(app)
+      .get("/api/rwa/balances")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.network).toBe("robinhood-chain-l2");
+    expect(res.body.chainId).toBe(4663);
+    expect(res.body.monki).toBeDefined();
+    expect(typeof res.body.monki.claimable).toBe("number");
+    expect(typeof res.body.monki.total).toBe("number");
+    expect(res.body.pons).toBeDefined();
+    expect(typeof res.body.pons.claimable).toBe("number");
+    expect(Array.isArray(res.body.rwaTokens)).toBe(true);
+    expect(res.body.rwaTokens.length).toBeGreaterThan(0);
+
+    const nvda = res.body.rwaTokens.find((t: any) => t.symbol === "NVDA");
+    expect(nvda).toBeDefined();
+    expect(nvda.contractAddress).toBeDefined();
+  });
 });
+
