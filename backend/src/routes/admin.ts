@@ -146,6 +146,23 @@ adminRouter.post(
   }),
 );
 
+// POST /api/admin/protocol-settings/toggle-rwa-elections
+adminRouter.post(
+  "/admin/protocol-settings/toggle-rwa-elections",
+  requireAdmin,
+  handler(async (_req, res) => {
+    const { isRwaElectionsEnabled, setProtocolSetting } = await import("../lib/settings");
+    const current = await isRwaElectionsEnabled();
+    const next = !current;
+    await setProtocolSetting("rwa_elections", next ? "true" : "false");
+    res.json({
+      ok: true,
+      enableRwaElections: next,
+      message: next ? "RWA Stock Elections are enabled (Sprint F active)." : "RWA Stock Elections are paused.",
+    });
+  }),
+);
+
 // GET /api/admin/stats — aggregate system telemetry
 adminRouter.get(
   "/admin/stats",

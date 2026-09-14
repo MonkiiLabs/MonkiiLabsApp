@@ -69,16 +69,16 @@ export async function isCompanionMintingEnabled(): Promise<boolean> {
 
 /**
  * Checks whether RWA Stock-Elected payouts (Sprint F) are enabled.
- * Defaults to FALSE ("Feature flags default OFF" per handoff intent).
+ * Defaults to TRUE now that Sprint F is live, unless explicitly disabled via ENABLE_RWA_ELECTIONS=false or "0".
  */
 export async function isRwaElectionsEnabled(): Promise<boolean> {
-  if (process.env.ENABLE_RWA_ELECTIONS === "true" || process.env.ENABLE_RWA_ELECTIONS === "1") {
-    return true;
-  }
   if (process.env.ENABLE_RWA_ELECTIONS === "false" || process.env.ENABLE_RWA_ELECTIONS === "0") {
     return false;
   }
-  const val = await getProtocolSetting("rwa_elections", "false");
+  if (process.env.ENABLE_RWA_ELECTIONS === "true" || process.env.ENABLE_RWA_ELECTIONS === "1") {
+    return true;
+  }
+  const val = await getProtocolSetting("rwa_elections", "true");
   return val === "true" || val === "1";
 }
 

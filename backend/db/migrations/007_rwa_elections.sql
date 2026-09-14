@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS user_rwa_elections (
 
 CREATE INDEX IF NOT EXISTS idx_user_rwa_elections_address ON user_rwa_elections(user_address);
 
--- 3. Feature flag in protocol_settings (default OFF per handoff rule: "Feature flags default OFF")
+-- 3. Feature flag in protocol_settings (Sprint F Active)
 INSERT INTO protocol_settings (key, value)
-VALUES ('rwa_elections', 'false')
-ON CONFLICT (key) DO NOTHING;
+VALUES ('rwa_elections', 'true')
+ON CONFLICT (key) DO UPDATE SET value = 'true';
