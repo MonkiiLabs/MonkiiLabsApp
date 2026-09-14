@@ -80,7 +80,25 @@ dashboardRouter.get(
     // 5. Power rank by lifetime $MONKI earned
     const rankRes = await pool.query<{ rank: string }>(
       `SELECT COUNT(*) + 1 AS rank FROM users
-        WHERE total_monki_earned > (SELECT total_monki_earned FROM users WHERE wallet_address = $1)`,
+        WHERE total_monki_earned > (SELECT COALESCE(total_monki_earned, 0) FROM users WHERE wallet_address = $1)`,
+      [userAddress],
+    );
+
+    // 6. Total heartbeats completed by user
+    const heartbeatsRes = await pool.query<{ count: string }>(
+      `SELECT COUNT(*) AS count
+         FROM contributions c
+         JOIN sessions s ON s.id = c.session_id
+        WHERE s.user_address = $1`,
+      [userAddress],
+    );
+
+    // 7. Active streak in days (unique days with contributions)
+    const streakRes = await pool.query<{ count: string }>(
+      `SELECT COUNT(DISTINCT DATE(c.created_at)) AS count
+         FROM contributions c
+         JOIN sessions s ON s.id = c.session_id
+        WHERE s.user_address = $1`,
       [userAddress],
     );
 
@@ -102,13 +120,17 @@ dashboardRouter.get(
       stakedMonki >= env.ponsMinStakeForPons &&
       firstEligibleEpochIndex(new Date(r.stake_period_started_at)) <= epochIndexAt(now);
 
+    const activeList = activeRes.rows.map((row) => ({
+      sessionId: row.session_id,
+      monkiEarned: Number(row.monki_earned),
+      powerContributed: Number(row.power_contributed),
+      agent: mapAgent(row),
+    }));
+
     res.json({
-      activeAgents: activeRes.rows.map((row) => ({
-        sessionId: row.session_id,
-        monkiEarned: Number(row.monki_earned),
-        powerContributed: Number(row.power_contributed),
-        agent: mapAgent(row),
-      })),
+      activeAgents: activeList,
+      totalHeartbeats: Number(heartbeatsRes.rows[0]?.count ?? 0),
+      streakDays: Number(streakRes.rows[0]?.count ?? 0),
       rewards: {
         claimableMonki: Number(r.claimable_monki),
         claimedMonki: Number(r.claimed_monki),

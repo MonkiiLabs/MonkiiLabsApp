@@ -171,45 +171,65 @@ rewardsRouter.post(
       return;
     }
 
-    const { rows } = await pool.query<{ claimable_monki: string }>(
-      `SELECT claimable_monki FROM rewards WHERE user_address = $1`,
-      [userAddress],
-    );
-    const claimable = Number(rows[0]?.claimable_monki ?? 0);
-    if (claimable <= 0) {
-      res.status(400).json({ error: "nothing_to_claim" });
-      return;
-    }
-
-    let txHash: string;
+    const client = await pool.connect();
     try {
-      const disburseRes = await disburseMonkiClaim(userAddress, claimable);
-      txHash = disburseRes.txHash;
-    } catch (chainErr: any) {
-      res.status(502).json({
-        error: "disbursal_failed",
-        message: chainErr.message || "Failed to disburse MONKI tokens on Robinhood Chain",
+      await client.query("BEGIN");
+      const { rows } = await client.query<{ claimable_monki: string }>(
+        `SELECT claimable_monki FROM rewards WHERE user_address = $1 FOR UPDATE`,
+        [userAddress],
+      );
+      const claimable = Number(rows[0]?.claimable_monki ?? 0);
+      if (claimable <= 0) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "nothing_to_claim" });
+        return;
+      }
+
+      // Phase 1: In-flight reservation: temporarily zero out claimable inside this locked transaction
+      await client.query(
+        `UPDATE rewards SET claimable_monki = 0 WHERE user_address = $1`,
+        [userAddress],
+      );
+
+      // Phase 2: On-chain broadcast
+      let txHash: string;
+      try {
+        const disburseRes = await disburseMonkiClaim(userAddress, claimable);
+        txHash = disburseRes.txHash;
+      } catch (chainErr: any) {
+        await client.query("ROLLBACK");
+        res.status(502).json({
+          error: "disbursal_failed",
+          message: chainErr.message || "Failed to disburse MONKI tokens on Robinhood Chain",
+        });
+        return;
+      }
+
+      // Phase 3: Final settlement
+      await client.query(
+        `UPDATE rewards
+            SET claimed_monki = claimed_monki + $1,
+                last_claim_tx = $2,
+                updated_at = now()
+          WHERE user_address = $3`,
+        [claimable, txHash, userAddress],
+      );
+
+      await client.query("COMMIT");
+
+      res.json({
+        ok: true,
+        withdrawnMonki: claimable,
+        txHash,
+        network: "robinhood-chain-l2",
+        status: "settled",
       });
-      return;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
     }
-
-    await pool.query(
-      `UPDATE rewards
-          SET claimed_monki = claimed_monki + $1,
-              claimable_monki = 0,
-              last_claim_tx = $2,
-              updated_at = now()
-        WHERE user_address = $3`,
-      [claimable, txHash, userAddress],
-    );
-
-    res.json({
-      ok: true,
-      withdrawnMonki: claimable,
-      txHash,
-      network: "robinhood-chain-l2",
-      status: "settled",
-    });
   }),
 );
 

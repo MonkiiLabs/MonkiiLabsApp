@@ -567,7 +567,19 @@
     },
     "sessionTitle": "Session Management",
     "sessionBody": "Disconnecting clears your cryptographic session token from this browser. Your on-chain and ledger balances remain secure on {{network}}.",
-    "disconnect": "Disconnect Wallet Session"
+    "disconnect": "Disconnect Wallet Session",
+    "editButton": "Edit Profile",
+    "editTitle": "Customize Nurturer Profile",
+    "editDesc": "Set your persona, select a companion avatar, and link your socials across Monkii Labs.",
+    "displayNameLabel": "Display Name",
+    "companionPfpLabel": "Companion Archetype PFP",
+    "hideCustomUrl": "Pick Archetype",
+    "useCustomUrl": "Use Custom URL",
+    "customUrlHint": "Paste a direct link to any PNG, JPG, or IPFS image.",
+    "bioLabel": "Nurturer Bio",
+    "noBioPlaceholder": "No bio provided yet.",
+    "xHandleLabel": "X (Twitter) Profile",
+    "saveButton": "Save Profile"
   },
   "detail": {
     "back": "Back to Fleet Telemetry",

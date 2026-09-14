@@ -429,3 +429,20 @@ export function useSaveRwaElection() {
   });
 }
 
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: import("./types").UpdateProfilePayload) => auth.updateProfile(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.me });
+      toast.success("Profile updated successfully");
+    },
+    onError: (err) =>
+      toast.error("Failed to update profile", {
+        description: describeError(err),
+      }),
+  });
+}
+
+

@@ -20,6 +20,7 @@ import type {
   StakeToken,
   StakingStatus,
   TelegramLinkCode,
+  UpdateProfilePayload,
   UserProfile,
   VerifyResponse,
 } from "./types";
@@ -53,6 +54,9 @@ export const auth = {
     api.post<VerifyResponse>("/auth/verify", { walletAddress, signature }, { anonymous: true }),
 
   me: () => api.get<{ user: UserProfile }>("/auth/me").then((r) => r.user),
+
+  updateProfile: (payload: UpdateProfilePayload) =>
+    api.patch<{ ok: boolean; user: UserProfile }>("/auth/profile", payload).then((r) => r.user),
 };
 
 /* ---- 3. Proof-of-Life sessions --------------------------------------- */
