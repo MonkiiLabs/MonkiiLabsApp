@@ -599,6 +599,7 @@
       "maxBlurb": "{{rewardToken}} 产出最大化"
     },
     "difficulty": "目标难度：{{bits}} 位",
+    "cores_other": "正在使用 {{count}} 个核心求解",
     "stop": "停止生命证明会话",
     "start": "开始养育（证明在场）",
     "slots": "伙伴槽位 · {{used}}/{{total}}",

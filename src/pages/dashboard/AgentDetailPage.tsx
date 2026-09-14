@@ -312,11 +312,18 @@ const AgentDetailInner = ({ agentId }: { agentId: string }) => {
               </div>
             </div>
 
-            {nurture.difficulty != null && (
-              <span className="font-mono text-[11px] text-paper-4">
-                {t("detail.difficulty", { bits: nurture.difficulty })}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {nurture.cores > 0 && (
+                <span className="font-mono text-[11px] text-paper-4">
+                  {t("detail.cores", { count: nurture.cores })}
+                </span>
+              )}
+              {nurture.difficulty != null && (
+                <span className="font-mono text-[11px] text-paper-4">
+                  {t("detail.difficulty", { bits: nurture.difficulty })}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Action Trigger Button */}

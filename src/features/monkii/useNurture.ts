@@ -4,19 +4,19 @@ import { toast } from "sonner";
 
 import { sessions } from "@/features/api/endpoints";
 import { describeError, qk } from "@/features/api/hooks";
+import { SolverPool, solverPoolSize, type SolverSolution } from "@/features/monkii/solverPool";
 import { ApiError } from "@/lib/api";
 import { HEARTBEAT_MIN_INTERVAL_SECONDS } from "@/lib/config";
 import type { AgentState, Challenge, Intensity } from "@/features/api/types";
-import type { PowRequest, PowResponse } from "@/workers/pow.worker";
 
 /* =====================================================================
    The Proof-of-Life loop.
 
-   start → worker grinds a nonce → submit heartbeat → server verifies,
-   pays $MONKI, restores vitality and hands back the next challenge →
-   grind again. The worker lives off the main thread, and the loop is
-   driven by refs rather than state so a re-render never restarts a grind
-   or double-submits a solution.
+   start → the solver pool grinds a nonce → submit heartbeat → server
+   verifies, pays $MONKI, restores vitality and hands back the next
+   challenge → grind again. The pool lives off the main thread, and the
+   loop is driven by refs rather than state so a re-render never restarts
+   a grind or double-submits a solution.
 
    PACING. The server rejects two heartbeats from one session inside
    HEARTBEAT_MIN_INTERVAL_SECONDS with 429 `too_fast`. A quick machine
@@ -33,6 +33,12 @@ import type { PowRequest, PowResponse } from "@/workers/pow.worker";
    the same solution, which is still valid because the rate-limit check
    runs before the challenge is consumed. The interval the server reports
    is remembered, so the loop self-corrects to the real configured value.
+
+   That pacing matters more now than it did. A multi-core pool solves the
+   same challenge several times faster, so the loop reaches the limiter
+   sooner and holds there longer. It is the reason more cores are worth
+   having: the extra speed buys headroom against a harder challenge, not
+   more heartbeats per minute.
    ===================================================================== */
 
 export interface NurtureStats {
@@ -102,8 +108,10 @@ export function useNurture(agentId: string | undefined) {
   const [state, setState] = useState<AgentState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<number | null>(null);
+  /** Workers grinding the current session. Zero while idle. */
+  const [cores, setCores] = useState(0);
 
-  const workerRef = useRef<Worker | null>(null);
+  const poolRef = useRef<SolverPool | null>(null);
   const sessionRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const currentSeedRef = useRef<string | null>(null);
@@ -114,21 +122,19 @@ export function useNurture(agentId: string | undefined) {
 
   const isRunning = phase !== "idle";
 
-  const teardownWorker = useCallback(() => {
-    workerRef.current?.terminate();
-    workerRef.current = null;
+  const teardownPool = useCallback(() => {
+    poolRef.current?.terminate();
+    poolRef.current = null;
     currentSeedRef.current = null;
+    setCores(0);
   }, []);
 
   const grind = useCallback((challenge: Challenge) => {
-    if (!workerRef.current) return;
+    if (!poolRef.current) return;
     currentSeedRef.current = challenge.seed;
     setDifficulty(challenge.difficulty);
     setPhase("solving");
-    workerRef.current.postMessage({
-      seed: challenge.seed,
-      difficulty: challenge.difficulty,
-    } satisfies PowRequest);
+    poolRef.current.solve(challenge.seed, challenge.difficulty);
   }, []);
 
   const stop = useCallback(async () => {
@@ -136,11 +142,8 @@ export function useNurture(agentId: string | undefined) {
     runningRef.current = false;
     setPhase("stopping");
 
-    const seed = currentSeedRef.current;
-    if (seed && workerRef.current) {
-      workerRef.current.postMessage({ seed, difficulty: 0, cancel: true } satisfies PowRequest);
-    }
-    teardownWorker();
+    poolRef.current?.cancel();
+    teardownPool();
 
     const sessionId = sessionRef.current;
     sessionRef.current = null;
@@ -158,7 +161,7 @@ export function useNurture(agentId: string | undefined) {
     qc.invalidateQueries({ queryKey: qk.summary });
     qc.invalidateQueries({ queryKey: qk.claimable });
     if (agentId) qc.invalidateQueries({ queryKey: qk.agent(agentId) });
-  }, [agentId, qc, teardownWorker]);
+  }, [agentId, qc, teardownPool]);
 
   const start = useCallback(
     async (intensity: Intensity = "standard") => {
@@ -176,23 +179,11 @@ export function useNurture(agentId: string | undefined) {
 
         sessionRef.current = session.sessionId;
 
-        const worker = new Worker(new URL("@/workers/pow.worker.ts", import.meta.url), {
-          type: "module",
-        });
-        workerRef.current = worker;
-
-        worker.onmessage = async (event: MessageEvent<PowResponse>) => {
-          const msg = event.data;
+        const submit = async (solution: SolverSolution) => {
           if (!runningRef.current) return;
 
-          if (msg.type === "progress") {
-            setStats((s) => ({ ...s, hashes: s.hashes + 0, hashRate: msg.hashRate }));
-            return;
-          }
-          if (msg.type === "cancelled") return;
-
           // A solution for a challenge we have already moved past is stale.
-          if (msg.seed !== currentSeedRef.current) return;
+          if (solution.seed !== currentSeedRef.current) return;
 
           try {
             const sessionId = sessionRef.current;
@@ -217,7 +208,7 @@ export function useNurture(agentId: string | undefined) {
             let result = null as Awaited<ReturnType<typeof sessions.heartbeat>> | null;
             for (let attempt = 0; attempt < 4 && result === null; attempt += 1) {
               try {
-                result = await sessions.heartbeat(sessionId, msg.seed, msg.nonce);
+                result = await sessions.heartbeat(sessionId, solution.seed, solution.nonce);
               } catch (err) {
                 const tooFast = readTooFast(err);
                 if (!tooFast) throw err;
@@ -244,8 +235,10 @@ export function useNurture(agentId: string | undefined) {
               heartbeats: s.heartbeats + 1,
               monkiEarned: s.monkiEarned + (result.monkiEarned ?? 0),
               powerGained: s.powerGained + (result.powerDelta ?? 0),
-              hashes: s.hashes + msg.hashes,
-              hashRate: msg.ms > 0 ? Math.round((msg.hashes / msg.ms) * 1000) : s.hashRate,
+              hashes: s.hashes + solution.hashes,
+              // Every worker started on this challenge together, so the pool
+              // total over the winner's elapsed time is the pool's real rate.
+              hashRate: Math.round((solution.hashes / solution.ms) * 1000),
               lastMultiplier: result.effectiveMultiplier ?? s.lastMultiplier,
               companionBuffPct: result.companionBuffPct ?? s.companionBuffPct,
             }));
@@ -265,10 +258,19 @@ export function useNurture(agentId: string | undefined) {
           }
         };
 
-        worker.onerror = () => {
-          setError("The compute worker failed to start.");
-          void stop();
-        };
+        const pool = new SolverPool(solverPoolSize(intensity), {
+          onSolved: (solution) => void submit(solution),
+          onProgress: (progress) => {
+            if (!runningRef.current) return;
+            setStats((s) => ({ ...s, hashRate: progress.hashRate }));
+          },
+          onError: () => {
+            setError("The compute worker failed to start.");
+            void stop();
+          },
+        });
+        poolRef.current = pool;
+        setCores(pool.size);
 
         grind(session.challenge);
       } catch (err) {
@@ -286,15 +288,15 @@ export function useNurture(agentId: string | undefined) {
     [isRunning, start, stop],
   );
 
-  // Never leave a worker or an open session behind on unmount.
+  // Never leave workers or an open session behind on unmount.
   useEffect(
     () => () => {
       runningRef.current = false;
-      teardownWorker();
+      teardownPool();
       const sessionId = sessionRef.current;
       if (sessionId != null) void sessions.stop(sessionId).catch(() => {});
     },
-    [teardownWorker],
+    [teardownPool],
   );
 
   return {
@@ -304,6 +306,7 @@ export function useNurture(agentId: string | undefined) {
     power,
     state,
     difficulty,
+    cores,
     error,
     start,
     stop,

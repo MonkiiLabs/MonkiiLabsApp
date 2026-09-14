@@ -600,6 +600,8 @@
       "maxBlurb": "Maximum {{rewardToken}} throughput"
     },
     "difficulty": "Target Difficulty: {{bits}} bits",
+    "cores_one": "Solving on {{count}} core",
+    "cores_other": "Solving on {{count}} cores",
     "stop": "Stop Proof-of-Life Session",
     "start": "Start Nurturing (Prove Presence)",
     "slots": "Companion Slots · {{used}}/{{total}}",
