@@ -23,6 +23,7 @@ import {
 } from "@/components/dashboard/primitives";
 import { BRAND } from "@/lib/brand";
 import StockElectionWidget from "@/components/dashboard/StockElectionWidget";
+import ElectionHistoryPanel from "@/components/dashboard/ElectionHistoryPanel";
 
 const TOKENS: Array<{ value: StakeToken; key: string }> = [
   { value: "MONKI", key: "staking.tokenMonki" },
@@ -101,6 +102,9 @@ const StakingInner = () => {
 
       {/* RWA Stock-Elected Payouts (Sprint F) */}
       <StockElectionWidget />
+
+      {/* Every basket elected before the current one */}
+      <ElectionHistoryPanel />
 
       {/* Stake & Unstake Console */}
       <Panel>
