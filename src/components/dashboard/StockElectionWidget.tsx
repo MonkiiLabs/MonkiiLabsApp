@@ -20,6 +20,7 @@ import {
   useSaveRwaElection,
 } from "@/features/api/hooks";
 import type { UserRwaAllocation } from "@/features/api/types";
+import StockLogo from "@/components/dashboard/StockLogo";
 import { explorerAddressUrl } from "@/lib/config";
 import { BRAND } from "@/lib/brand";
 
@@ -261,8 +262,9 @@ export default function StockElectionWidget() {
                   key={token.symbol}
                   type="button"
                   onClick={() => handleApplyPreset({ kind: "single", symbol: token.symbol })}
-                  className="rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-hair/15 bg-hair/5 px-2.5 py-1 font-mono text-xs text-paper-2 hover:bg-hair/15 hover:text-paper transition-all"
                 >
+                  <StockLogo symbol={token.symbol} size={14} />
                   100% {token.symbol}
                 </button>
               ))}
@@ -304,6 +306,7 @@ export default function StockElectionWidget() {
                             : "border border-hair/10 bg-bench text-paper-3 hover:text-paper hover:bg-hair/5"
                       }`}
                     >
+                      <StockLogo symbol={token.symbol} size={16} />
                       <span className="font-bold">{token.symbol}</span>
                       <span className="text-[10px] opacity-75 hidden sm:inline">
                         {token.name.replace(" Tokenized Stock", "")}
@@ -348,6 +351,7 @@ export default function StockElectionWidget() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <StockLogo symbol={item.symbol} size={20} />
                         <span className="font-mono font-bold text-sm text-paper">
                           {item.symbol}
                         </span>
